@@ -2,11 +2,18 @@
 
 #include <JuceHeader.h>
 
-class IgnitiveAudioProcessor  : public juce::AudioProcessor {
+class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
+        juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
+        juce::AudioBuffer<float> feedbackBuffer;
+        std::vector<int> feedbackWritePositions;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
+        
     public:
+        juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters", createParameterLayout()};
+
         IgnitiveAudioProcessor();
         ~IgnitiveAudioProcessor() override;
 

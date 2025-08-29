@@ -35,7 +35,8 @@
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="Ignitive"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Ignitive" vst3BinaryLocation_x64="C:\Program Files\Common Files\VST3"
+                       enablePluginBinaryCopyStep="0"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Ignitive"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

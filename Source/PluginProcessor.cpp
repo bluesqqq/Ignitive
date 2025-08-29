@@ -2,7 +2,18 @@
 #include "PluginEditor.h"
 
 
-IgnitiveAudioProcessor::IgnitiveAudioProcessor() 
+juce::AudioProcessorValueTreeState::ParameterLayout IgnitiveAudioProcessor::createParameterLayout() {
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("inGain", "In Gain", 0.0f, 2.0f, 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("outGain", "Out Gain", 0.0f, 2.0f, 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 0.8f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("feedbackDelay", "Feedback Delay", 1.0f, 100.0f, 50.0f));
+
+    return layout;
+}
+
+IgnitiveAudioProcessor::IgnitiveAudioProcessor()
     : AudioProcessor (BusesProperties().withInput("Input",  juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)) { }
 
 IgnitiveAudioProcessor::~IgnitiveAudioProcessor() { }
@@ -28,8 +39,13 @@ const juce::String IgnitiveAudioProcessor::getProgramName (int index) { return {
 void IgnitiveAudioProcessor::changeProgramName (int index, const juce::String& newName) { }
 
 void IgnitiveAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock) {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+	int feedbackBufferSize = sampleRate * 0.1; // 100 ms buffer
+
+	feedbackBuffer.setSize(getTotalNumOutputChannels(), feedbackBufferSize);
+    feedbackBuffer.clear();
+
+    feedbackWritePositions.resize(getTotalNumOutputChannels(), 0);
+
 }
 
 void IgnitiveAudioProcessor::releaseResources() {
@@ -60,26 +76,40 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+    int bufferSize = buffer.getNumSamples();
+    int feedbackBufferSize = feedbackBuffer.getNumSamples();
+
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, bufferSize);
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
+    float pInGain = apvts.getRawParameterValue("inGain")->load();
+    float pOutGain = apvts.getRawParameterValue("outGain")->load();
+    float pFeedback = apvts.getRawParameterValue("feedback")->load();
+    float pFeedbackDelay = apvts.getRawParameterValue("feedbackDelay")->load();
+
+    int delaySamples = (int)(pFeedbackDelay * 0.001 * getSampleRate());
+
+    buffer.applyGain(pInGain);
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
-        auto* channelData = buffer.getWritePointer (channel);
+        auto* input = buffer.getWritePointer(channel);
+		auto* fb = feedbackBuffer.getWritePointer(channel);
 
-        // ..do something to the data...
+        int& writePos = feedbackWritePositions[channel]; // reference to this channel's write position
+
+        for (int sample = 0; sample < bufferSize; ++sample) {
+            int readPos = writePos - delaySamples;
+            if (readPos < 0) readPos += feedbackBufferSize;
+
+            float delayedSample = fb[readPos];
+            input[sample] += delayedSample * pFeedback;
+
+            fb[writePos] = input[sample];
+            writePos = (writePos + 1) % feedbackBufferSize;
+        }
     }
+
+    buffer.applyGain(pOutGain);
 }
 
 bool IgnitiveAudioProcessor::hasEditor() const { return true; }
