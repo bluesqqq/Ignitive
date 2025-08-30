@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "DistortionEngine.h"
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
@@ -8,6 +9,8 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
 
         juce::AudioBuffer<float> feedbackBuffer;
         std::vector<int> feedbackWritePositions;
+
+        DistortionEngine distortion;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
         

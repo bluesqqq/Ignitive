@@ -8,6 +8,10 @@
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <FILE id="gMSk4r" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
+      <FILE id="mGR2Is" name="DistortionEngine.cpp" compile="1" resource="0"
+            file="Source/DistortionEngine.cpp"/>
+      <FILE id="yqL8na" name="DistortionEngine.h" compile="0" resource="0"
+            file="Source/DistortionEngine.h"/>
       <FILE id="WknIng" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
       <FILE id="Dteqg5" name="PluginEditor.cpp" compile="1" resource="0"

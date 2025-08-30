@@ -5,16 +5,44 @@
 juce::AudioProcessorValueTreeState::ParameterLayout IgnitiveAudioProcessor::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+    // Gain
     layout.add(std::make_unique<juce::AudioParameterFloat>("inGain", "In Gain", 0.0f, 2.0f, 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("mix", "Mix", 0.0f, 1.0f, 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("outGain", "Out Gain", 0.0f, 2.0f, 1.0f));
+
+    // Distortion + Feedback
+    layout.add(std::make_unique<juce::AudioParameterFloat>("drive", "Drive", 0.01f, 20.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("color", "Color", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("distortionType", "Distortion Type", juce::StringArray{ "Hard Clip", "Tube", "Fuzz", "Rectify", "Downsample" }, 0));
     layout.add(std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 0.8f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("feedbackDelay", "Feedback Delay", 1.0f, 100.0f, 50.0f));
+
+    // Filters
+    layout.add(std::make_unique<juce::AudioParameterFloat>("preCutoff", "Cutoff", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("preResonance", "Resonance", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("preType", "Filter Type", juce::StringArray{ "HP", "BP", "LP"}, 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("preFilterOn", "Filter On", false));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("postCutoff", "Cutoff", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("postResonance", "Resonance", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("postType", "Filter Type", juce::StringArray{ "HP", "BP", "LP" }, 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("postFilterOn", "Filter On", false));
+
+    // Envelope
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envAttack", "Attack", 0.0f, 100.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envDecay", "Decay", 0.0f, 200.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envGate", "Gate", 0.0f, 1.0f, 0.0f));
+
+    // LFO
+	layout.add(std::make_unique<juce::AudioParameterFloat>("lfoRate", "LFO Rate", 0.0f, 20.0f, 0.0f));
+	layout.add(std::make_unique<juce::AudioParameterChoice>("lfoWaveform", "LFO Waveform", juce::StringArray{ "Sine", "Triangle", "Square", "Saw" }, 0));
 
     return layout;
 }
 
 IgnitiveAudioProcessor::IgnitiveAudioProcessor()
-    : AudioProcessor (BusesProperties().withInput("Input",  juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)) { }
+    : AudioProcessor (BusesProperties().withInput("Input",  juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      distortion(DistortionEngine()) { }
 
 IgnitiveAudioProcessor::~IgnitiveAudioProcessor() { }
 
@@ -86,10 +114,15 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     float pOutGain = apvts.getRawParameterValue("outGain")->load();
     float pFeedback = apvts.getRawParameterValue("feedback")->load();
     float pFeedbackDelay = apvts.getRawParameterValue("feedbackDelay")->load();
+    float pDrive = apvts.getRawParameterValue("drive")->load();
+    int   pDistortionType = apvts.getRawParameterValue("distortionType")->load();
 
     int delaySamples = (int)(pFeedbackDelay * 0.001 * getSampleRate());
 
     buffer.applyGain(pInGain);
+
+	distortion.setDistortionAlgorithm(pDistortionType);
+	distortion.setDrive(pDrive);
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         auto* input = buffer.getWritePointer(channel);
@@ -98,11 +131,25 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
         int& writePos = feedbackWritePositions[channel]; // reference to this channel's write position
 
         for (int sample = 0; sample < bufferSize; ++sample) {
+            //=============// CLEAN SIGNAL //=============//
+			float drySample = input[sample];
+
+			float wetSignal = drySample;
+
+            //==============// FEEDBACK //==============//
             int readPos = writePos - delaySamples;
             if (readPos < 0) readPos += feedbackBufferSize;
-
             float delayedSample = fb[readPos];
-            input[sample] += delayedSample * pFeedback;
+
+			wetSignal += delayedSample * pFeedback;
+
+            //==============// DISTORTION //==============//
+            distortion.setModulation(0); // Set the modulation
+
+            wetSignal = distortion.processSample(wetSignal); // Distort signal
+
+
+			input[sample] = wetSignal;
 
             fb[writePos] = input[sample];
             writePos = (writePos + 1) % feedbackBufferSize;
