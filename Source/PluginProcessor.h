@@ -1,6 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <juce_dsp/juce_dsp.h>
+
 #include "DistortionEngine.h"
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
@@ -12,8 +14,10 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
 
         DistortionEngine distortion;
 
+        juce::dsp::StateVariableTPTFilter<float> preFilter, postFilter;
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
-        
+
     public:
         juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters", createParameterLayout()};
 

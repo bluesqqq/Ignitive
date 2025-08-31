@@ -20,12 +20,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout IgnitiveAudioProcessor::crea
     // Filters
     layout.add(std::make_unique<juce::AudioParameterFloat>("preCutoff", "Cutoff", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("preResonance", "Resonance", 0.0f, 1.0f, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterChoice>("preType", "Filter Type", juce::StringArray{ "HP", "BP", "LP"}, 0));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("preType", "Filter Type", juce::StringArray{ "LP", "BP", "HP"}, 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("preFilterOn", "Filter On", false));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("postCutoff", "Cutoff", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("postResonance", "Resonance", 0.0f, 1.0f, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterChoice>("postType", "Filter Type", juce::StringArray{ "HP", "BP", "LP" }, 0));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("postType", "Filter Type", juce::StringArray{ "LP", "BP", "HP" }, 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("postFilterOn", "Filter On", false));
 
     // Envelope
@@ -44,7 +44,8 @@ IgnitiveAudioProcessor::IgnitiveAudioProcessor()
     : AudioProcessor (BusesProperties().withInput("Input",  juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       distortion(DistortionEngine()) { }
 
-IgnitiveAudioProcessor::~IgnitiveAudioProcessor() { }
+IgnitiveAudioProcessor::~IgnitiveAudioProcessor() {
+}
 
 const juce::String IgnitiveAudioProcessor::getName() const { return JucePlugin_Name; }
 
@@ -74,6 +75,18 @@ void IgnitiveAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 
     feedbackWritePositions.resize(getTotalNumOutputChannels(), 0);
 
+
+    juce::dsp::ProcessSpec spec;
+	spec.sampleRate = sampleRate;
+	spec.maximumBlockSize = samplesPerBlock;
+	spec.numChannels = getTotalNumOutputChannels();
+
+    preFilter.prepare(spec);
+    preFilter.reset();
+
+    postFilter.prepare(spec);
+	postFilter.reset();
+
 }
 
 void IgnitiveAudioProcessor::releaseResources() {
@@ -101,6 +114,7 @@ bool IgnitiveAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
+
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -110,16 +124,33 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, bufferSize);
 
-    float pInGain = apvts.getRawParameterValue("inGain")->load();
-    float pOutGain = apvts.getRawParameterValue("outGain")->load();
-    float pFeedback = apvts.getRawParameterValue("feedback")->load();
-    float pFeedbackDelay = apvts.getRawParameterValue("feedbackDelay")->load();
-    float pDrive = apvts.getRawParameterValue("drive")->load();
+    float pInGain         = apvts.getRawParameterValue("inGain")->load();
+    float pOutGain        = apvts.getRawParameterValue("outGain")->load();
+    float pMix            = apvts.getRawParameterValue("mix")->load();
+    float pFeedback       = apvts.getRawParameterValue("feedback")->load();
+    float pFeedbackDelay  = apvts.getRawParameterValue("feedbackDelay")->load();
+    float pDrive          = apvts.getRawParameterValue("drive")->load();
     int   pDistortionType = apvts.getRawParameterValue("distortionType")->load();
+
+    float pPreFilterCutoff    = apvts.getRawParameterValue("preCutoff")->load();
+    float pPreFilterResonance = apvts.getRawParameterValue("preResonance")->load();
+    int   pPreFilterType      = apvts.getRawParameterValue("preType")->load();
+    bool  pPreFilterOn        = apvts.getRawParameterValue("preFilterOn")->load();
+
+    float pPostFilterCutoff    = apvts.getRawParameterValue("postCutoff")->load();
+    float pPostFilterResonance = apvts.getRawParameterValue("postResonance")->load();
+    int   pPostFilterType      = apvts.getRawParameterValue("postType")->load();
+    bool  pPostFilterOn        = apvts.getRawParameterValue("postFilterOn")->load();
 
     int delaySamples = (int)(pFeedbackDelay * 0.001 * getSampleRate());
 
     buffer.applyGain(pInGain);
+
+    float preCutoff = 20 * std::pow(10.0f, pPreFilterCutoff * 3.0f);
+    preFilter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(pPreFilterType));
+    postFilter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(pPostFilterType));
+    preFilter.setCutoffFrequency(preCutoff);
+    preFilter.setResonance(juce::jmap(pPreFilterResonance, 0.707f, 4.0f));
 
 	distortion.setDistortionAlgorithm(pDistortionType);
 	distortion.setDrive(pDrive);
@@ -134,22 +165,38 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
             //=============// CLEAN SIGNAL //=============//
 			float drySample = input[sample];
 
-			float wetSignal = drySample;
+			float wetSample = drySample;
+
+            //==============// PRE FILTER //==============//
+            if (pPreFilterOn) {
+
+				wetSample = preFilter.processSample(channel, wetSample);
+            }
 
             //==============// FEEDBACK //==============//
             int readPos = writePos - delaySamples;
             if (readPos < 0) readPos += feedbackBufferSize;
             float delayedSample = fb[readPos];
 
-			wetSignal += delayedSample * pFeedback;
+			wetSample += delayedSample * pFeedback;
 
             //==============// DISTORTION //==============//
             distortion.setModulation(0); // Set the modulation
 
-            wetSignal = distortion.processSample(wetSignal); // Distort signal
+            wetSample = distortion.processSample(wetSample); // Distort signal
 
+            //==============// POST FILTER //==============//
+            if (pPostFilterOn) {
+                postFilter.setCutoffFrequency(pPostFilterCutoff * 20000.0f);
+                postFilter.setResonance(juce::jmap(pPostFilterResonance, 0.707f, 4.0f));
 
-			input[sample] = wetSignal;
+                wetSample = postFilter.processSample(channel, wetSample);
+            }
+
+            //==============// MIX //==============//
+            float mixSignal = juce::jmap(pMix, drySample, wetSample);
+
+			input[sample] = mixSignal;
 
             fb[writePos] = input[sample];
             writePos = (writePos + 1) % feedbackBufferSize;
