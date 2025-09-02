@@ -4,6 +4,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #include "DistortionEngine.h"
+#include "EnvelopeFollower.h"
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
@@ -13,6 +14,7 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         std::vector<int> feedbackWritePositions;
 
         DistortionEngine distortion;
+		EnvelopeFollower envelopeFollower;
 
         juce::dsp::StateVariableTPTFilter<float> preFilter, postFilter;
 

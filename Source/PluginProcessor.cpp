@@ -87,6 +87,7 @@ void IgnitiveAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     postFilter.prepare(spec);
 	postFilter.reset();
 
+	envelopeFollower.setSampleRate(sampleRate);
 }
 
 void IgnitiveAudioProcessor::releaseResources() {
@@ -142,6 +143,14 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     int   pPostFilterType      = apvts.getRawParameterValue("postType")->load();
     bool  pPostFilterOn        = apvts.getRawParameterValue("postFilterOn")->load();
 
+	float pEnvAttack = apvts.getRawParameterValue("envAttack")->load();
+	float pEnvDecay  = apvts.getRawParameterValue("envDecay")->load();
+	float pEnvGate   = apvts.getRawParameterValue("envGate")->load();
+
+	envelopeFollower.setAttackTime(pEnvAttack * 0.001f);
+	envelopeFollower.setReleaseTime(pEnvDecay * 0.001f);
+	envelopeFollower.setGate(pEnvGate);
+
     int delaySamples = (int)(pFeedbackDelay * 0.001 * getSampleRate());
 
     buffer.applyGain(pInGain);
@@ -164,6 +173,8 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
         for (int sample = 0; sample < bufferSize; ++sample) {
             //=============// CLEAN SIGNAL //=============//
 			float drySample = input[sample];
+
+			envelopeFollower.process(drySample); // Update envelope follower
 
 			float wetSample = drySample;
 

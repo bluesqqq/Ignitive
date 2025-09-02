@@ -5,7 +5,35 @@
               pluginFormats="buildVST3" pluginName="Ignitive" pluginDesc="Dynamic Distortion"
               pluginManufacturer="bluesq">
   <MAINGROUP id="Q8mVPC" name="Ignitive">
+    <GROUP id="{9C013130-8D00-8247-5718-18BB695B4028}" name="Resources">
+      <FILE id="RA2Kpt" name="Ignitive.png" compile="0" resource="1" file="C:/Users/blues/OneDrive/Desktop/Ignitive.png"/>
+    </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
+      <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
+        <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
+              file="Source/EnvelopeFollower.cpp"/>
+        <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
+              file="Source/EnvelopeFollower.h"/>
+      </GROUP>
+      <GROUP id="{64F03D32-2006-7F89-08D2-4863ACCD9A4D}" name="LookAndFeels">
+        <FILE id="HesNyq" name="CustomLAFs.cpp" compile="1" resource="0" file="Source/CustomLAFs.cpp"/>
+        <FILE id="g69yeC" name="CustomLAFs.h" compile="0" resource="0" file="Source/CustomLAFs.h"/>
+      </GROUP>
+      <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="Components">
+        <FILE id="WHJ974" name="EnvelopeBox.cpp" compile="1" resource="0" file="Source/EnvelopeBox.cpp"/>
+        <FILE id="H2Oszj" name="EnvelopeBox.h" compile="0" resource="0" file="Source/EnvelopeBox.h"/>
+        <FILE id="Q1sC8V" name="SwitchButtonAttachment.cpp" compile="1" resource="0"
+              file="Source/SwitchButtonAttachment.cpp"/>
+        <FILE id="VQpya6" name="SwitchButtonAttachment.h" compile="0" resource="0"
+              file="Source/SwitchButtonAttachment.h"/>
+        <FILE id="pXKB6G" name="SwitchButton.cpp" compile="1" resource="0"
+              file="Source/SwitchButton.cpp"/>
+        <FILE id="xz4JLY" name="SwitchButton.h" compile="0" resource="0" file="Source/SwitchButton.h"/>
+        <FILE id="qNS6SN" name="FilterComponent.cpp" compile="1" resource="0"
+              file="Source/FilterComponent.cpp"/>
+        <FILE id="VV09RB" name="FilterComponent.h" compile="0" resource="0"
+              file="Source/FilterComponent.h"/>
+      </GROUP>
       <FILE id="gMSk4r" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="mGR2Is" name="DistortionEngine.cpp" compile="1" resource="0"

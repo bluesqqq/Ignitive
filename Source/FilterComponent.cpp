@@ -8,10 +8,12 @@ FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& apvts, cons
 
     cutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     cutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+	cutoffKnob.setLookAndFeel(&knobLAF);
     addAndMakeVisible(cutoffKnob);
 
     resonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     resonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+	resonanceKnob.setLookAndFeel(&knobLAF);
     addAndMakeVisible(resonanceKnob);
 
     addAndMakeVisible(typeButton);
@@ -19,8 +21,8 @@ FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& apvts, cons
 }
 
 void FilterComponent::resized() {
-    cutoffKnob.setBounds(25, 125, 50, 50);
-    resonanceKnob.setBounds(25, 200, 50, 50);
-    typeButton.setBounds(25, 275, 50, 50);
-    toggleButton.setBounds(25, 350, 50, 50);
+    cutoffKnob.setBounds(20, 215, 60, 60);
+    resonanceKnob.setBounds(86, 280, 40, 40);
+    typeButton.setBounds(50, 290, 20, 60);
+    toggleButton.setBounds(25, 375, 50, 50);
 }
