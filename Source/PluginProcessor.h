@@ -5,22 +5,41 @@
 
 #include "DistortionEngine.h"
 #include "EnvelopeFollower.h"
+#include "ModSource.h"
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
         juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
-        juce::AudioBuffer<float> feedbackBuffer;
-        std::vector<int> feedbackWritePositions;
-
+        //==============// DSP //==============//
         DistortionEngine distortion;
-		EnvelopeFollower envelopeFollower;
+
+        std::vector<std::unique_ptr<juce::dsp::DelayLine<float>>> delayLines;
 
         juce::dsp::StateVariableTPTFilter<float> preFilter, postFilter;
+
+        //==============// MODULATION //==============//
+        
+        // Souces
+        EnvelopeFollower envelopeFollower;
+
+		// Destinations
+        ModDestination driveDest{ "DRIVE" };
+        ModDestination colorDest{ "COLOR" };
+        ModDestination preCutoffDest{ "PRECUT" };
+        ModDestination preResonanceDest{ "PRERES" };
+        ModDestination postCutoffDest{ "POSTCUT" };
+        ModDestination postResonanceDest{ "POSTRES" };
+        ModDestination feedbackDest{ "FEEDBK" };
+        ModDestination feedbackDelayDest{ "FDBK DL" };
+
+
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
 
     public:
+        ModMatrix modMatrix;
+
         juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters", createParameterLayout()};
 
         IgnitiveAudioProcessor();
@@ -53,4 +72,27 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
 
         void getStateInformation (juce::MemoryBlock& destData) override;
         void setStateInformation (const void* data, int sizeInBytes) override;
+
+        float getEnvelopeValue() { return envelopeFollower.getEnvelope(); }
+
+		DistortionEngine& getDistortionEngine() { return distortion; }
+
+        std::vector<ModDestination*> getDestinations() {
+            return {
+                &driveDest,
+                &colorDest,
+                &preCutoffDest,
+                &preResonanceDest,
+                &postCutoffDest,
+                &postResonanceDest,
+                &feedbackDest,
+                &feedbackDelayDest
+            };
+        }
+
+        std::vector<ModSource*> getSources() {
+            return {
+				&envelopeFollower
+            };
+        }
 };

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <vector>
+#include "ModSource.h"
 
-class EnvelopeFollower {
+class EnvelopeFollower : public ModSource {
 	public:
 		EnvelopeFollower(float attackTime = 0.001f, float releaseTime = 0.5f, float sampleRate = 44100.0f);
 
@@ -15,6 +16,8 @@ class EnvelopeFollower {
 
 		float getEnvelope() const;
 		float getGate() const;
+
+		float getNextValue() override;
 
 	private:
 		void updateCoefficients();

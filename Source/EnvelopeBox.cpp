@@ -25,5 +25,11 @@ void EnvelopeBox::pushEnvelopeValue(float newValue) {
     envelopeValues.push_back(newValue);
     if (envelopeValues.size() > segments)
         envelopeValues.pop_front();
-    repaint();
+}
+
+void EnvelopeBox::timerCallback(int timerID) {
+    if (timerID == 0) repaint();
+    else if (timerID == 1) {
+        pushEnvelopeValue(audioProcessor.getEnvelopeValue());
+    }
 }

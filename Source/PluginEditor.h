@@ -6,6 +6,8 @@
 #include "CustomLAFs.h"
 #include "SwitchButtonAttachment.h"
 #include "EnvelopeBox.h"
+#include "ModMatrixComponent.h"
+#include "DriveKnob.h"
 
 class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
     private:
@@ -19,6 +21,8 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
 		EnvelopeBox envBox;
 
+        ModMatrixComponent modMatrixComponent;
+
         // Gain
         juce::Slider inGainSlider, mixSlider, outGainSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment inGainAttach{ audioProcessor.apvts, "inGain", inGainSlider };
@@ -26,9 +30,11 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment outGainAttach{ audioProcessor.apvts, "outGain", outGainSlider };
 
 		// Distortion + Feedback
-        juce::Slider driveSlider, colorSlider;
-        juce::AudioProcessorValueTreeState::SliderAttachment driveAttach{ audioProcessor.apvts, "drive", driveSlider };
+		DriveKnob driveKnob{ audioProcessor, "drive" };
+
+        juce::Slider colorSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment colorAttach{ audioProcessor.apvts, "color", colorSlider };
+
 
         juce::ComboBox distortionTypeSelector;
         juce::AudioProcessorValueTreeState::ComboBoxAttachment distortionTypeAttach{ audioProcessor.apvts, "distortionType", distortionTypeSelector };
@@ -45,9 +51,9 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         // Envelope + LFO
         juce::Slider attackSlider, decaySlider, gateSlider;
-        juce::AudioProcessorValueTreeState::SliderAttachment attackAttach{ audioProcessor.apvts, "envAttack", feedbackSlider };
-        juce::AudioProcessorValueTreeState::SliderAttachment decayAttach{ audioProcessor.apvts, "envDecay", feedbackSlider };
-        juce::AudioProcessorValueTreeState::SliderAttachment gateAttach{ audioProcessor.apvts, "envGate", feedbackSlider };
+        juce::AudioProcessorValueTreeState::SliderAttachment attackAttach{ audioProcessor.apvts, "envAttack", attackSlider };
+        juce::AudioProcessorValueTreeState::SliderAttachment decayAttach{ audioProcessor.apvts, "envDecay", decaySlider };
+        juce::AudioProcessorValueTreeState::SliderAttachment gateAttach{ audioProcessor.apvts, "envGate", gateSlider };
 
         SwitchButton envLFOToggleButton{ "Env LFO Toggle", 2, DOWN };
 

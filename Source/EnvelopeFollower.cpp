@@ -38,7 +38,9 @@ float EnvelopeFollower::getEnvelope() const { return envelope; }
 
 float EnvelopeFollower::getGate() const { return gate; }
 
+float EnvelopeFollower::getNextValue() { return envelope; }
+
 void EnvelopeFollower::updateCoefficients() {
-    attackCoef = std::exp(-std::log(9.0f) / (attackTime * sampleRate));
-    releaseCoef = std::exp(-std::log(9.0f) / (releaseTime * sampleRate));
+    attackCoef  = std::exp(-1.0f / (attackTime * sampleRate));
+    releaseCoef = std::exp(-1.0f / (releaseTime * sampleRate));
 }

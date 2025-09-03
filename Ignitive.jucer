@@ -9,6 +9,10 @@
       <FILE id="RA2Kpt" name="Ignitive.png" compile="0" resource="1" file="C:/Users/blues/OneDrive/Desktop/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
+      <GROUP id="{B4AC0B65-BF83-95A7-C8C8-8DA3F731F934}" name="Modulation">
+        <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>
+        <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
+      </GROUP>
       <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
         <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
               file="Source/EnvelopeFollower.cpp"/>
@@ -20,6 +24,12 @@
         <FILE id="g69yeC" name="CustomLAFs.h" compile="0" resource="0" file="Source/CustomLAFs.h"/>
       </GROUP>
       <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="Components">
+        <FILE id="UbOjbd" name="DriveKnob.cpp" compile="1" resource="0" file="Source/DriveKnob.cpp"/>
+        <FILE id="PTXjOK" name="DriveKnob.h" compile="0" resource="0" file="Source/DriveKnob.h"/>
+        <FILE id="zo8Oms" name="ModMatrixComponent.cpp" compile="1" resource="0"
+              file="Source/ModMatrixComponent.cpp"/>
+        <FILE id="LMVNG8" name="ModMatrixComponent.h" compile="0" resource="0"
+              file="Source/ModMatrixComponent.h"/>
         <FILE id="WHJ974" name="EnvelopeBox.cpp" compile="1" resource="0" file="Source/EnvelopeBox.cpp"/>
         <FILE id="H2Oszj" name="EnvelopeBox.h" compile="0" resource="0" file="Source/EnvelopeBox.h"/>
         <FILE id="Q1sC8V" name="SwitchButtonAttachment.cpp" compile="1" resource="0"
