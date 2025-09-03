@@ -41,8 +41,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout IgnitiveAudioProcessor::crea
 }
 
 IgnitiveAudioProcessor::IgnitiveAudioProcessor()
-    : AudioProcessor (BusesProperties().withInput("Input",  juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      distortion(DistortionEngine()) { }
+    : AudioProcessor (BusesProperties().withInput("Input", 
+      juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      distortion(DistortionEngine()) {
+	modMatrix.addSource(&envelopeFollower);
+
+	modMatrix.addDestination(&driveDest);
+	modMatrix.addDestination(&colorDest);
+	modMatrix.addDestination(&preCutoffDest);
+	modMatrix.addDestination(&preResonanceDest);
+	modMatrix.addDestination(&postCutoffDest);
+	modMatrix.addDestination(&postResonanceDest);
+	modMatrix.addDestination(&feedbackDest);
+	modMatrix.addDestination(&feedbackDelayDest);
+
+    modMatrix.makeConnection(0, 0, 0.5f);
+}
 
 IgnitiveAudioProcessor::~IgnitiveAudioProcessor() {
 }
@@ -160,7 +174,7 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
     postFilter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(pPostFilterType));
    
-	distortion.setDistortionAlgorithm(pDistortionType);
+	distortion.setDistortionAlgorithm(static_cast<DistortionType>(pDistortionType));
 
     buffer.applyGain(pInGain);
 
@@ -193,7 +207,6 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
             
             //==============// DISTORTION //==============//
             distortion.setDrive(driveDest.getFinalValue() * 20.0f);
-            distortion.setModulation(0);
             wetSample = distortion.processSample(wetSample); // Distort signal
 
             //==============// FEEDBACK DELAY //==============//

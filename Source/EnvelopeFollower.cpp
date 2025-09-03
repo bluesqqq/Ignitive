@@ -1,8 +1,8 @@
 #include "EnvelopeFollower.h"
 #include <cmath>
 
-EnvelopeFollower::EnvelopeFollower(float attackTime, float releaseTime, float sampleRate)
-    : attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate), envelope(0.0f) {
+EnvelopeFollower::EnvelopeFollower(const juce::String& n, const juce::String& srcID, float attackTime, float releaseTime, float sampleRate)
+    : ModSource(n, srcID), attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate), envelope(0.0f) {
     updateCoefficients();
 }
 

@@ -10,6 +10,8 @@
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <GROUP id="{B4AC0B65-BF83-95A7-C8C8-8DA3F731F934}" name="Modulation">
+        <FILE id="hX8wej" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
+        <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
         <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>
         <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
       </GROUP>

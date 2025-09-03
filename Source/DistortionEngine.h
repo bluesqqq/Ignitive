@@ -6,37 +6,41 @@
 #include <JuceHeader.h>
 #include <cmath>
 
+enum class DistortionType {
+	HardClip,
+	Tube,
+	Fuzz,
+	Rectify,
+	Downsample
+};
+
 class DistortionEngine {
-public:
-	DistortionEngine();
+	private:
+		float hardClip(float sample);
 
-	void setDistortionAlgorithm(int algoritm);
+		float tube(float sample);
 
-	void setDrive(float newDrive);
+		float fuzz(float sample);
 
-	void setModulation(float newModulation);
+		float rectify(float sample);
 
-	float getDrive();
+		float downsample(float sample);
 
-	std::vector<float> getWaveshape();
+		float distort(float sample);
 
-	float processSample(float sample);
+		DistortionType type;
+		float drive;
 
-private:
-	float hardClip(float sample);
+	public:
+		DistortionEngine();
 
-	float tube(float sample);
+		void setDistortionAlgorithm(DistortionType type);
 
-	float fuzz(float sample);
+		void setDrive(float newDrive);
 
-	float rectify(float sample);
+		float getDrive();
 
-	float downsample(float sample);
+		std::vector<float> getWaveshape();
 
-	float distort(float sample);
-
-	int distortionAlgorithm;
-	float drive;
-	float modulation; // from 0.0 - 1.0
-
+		float processSample(float sample);
 };

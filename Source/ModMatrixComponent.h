@@ -16,7 +16,7 @@ class ModSlotComponent : public juce::Component {
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSlotComponent)
 
 	public:
-		ModSlotComponent(ModConnection* conn, std::vector<ModDestination*> dsts) : connection(conn), destinations(dsts) {
+		ModSlotComponent(ModConnection* conn, std::vector<ModDestination*>& dsts) : connection(conn), destinations(dsts) {
 			
 			// Destination selector
 			int id = 1;
@@ -70,22 +70,31 @@ class ModMatrixComponent : public juce::Component {
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
 
+		ModMatrix& modMatrix;
+
 	public:
-		ModMatrixComponent() {
+		ModMatrixComponent(ModMatrix& matrix) : modMatrix(matrix) {
+			auto& connections = modMatrix.getConnections();
+			std::vector<ModDestination*>& destinations = modMatrix.getDestinations();
+
+			for (auto& conn : connections) {
+				auto* slot = new ModSlotComponent(&conn, destinations);
+				modSlots.add(slot);
+				addAndMakeVisible(slot);
+			}
 		}
 
 		void paint(juce::Graphics& g) override {
-			g.fillAll(juce::Colours::darkgrey.darker());
+
 		}
 
-		void addSlot(IgnitiveAudioProcessor& processor, ModSource* src, ModDestination* dst, float depthValue = 0.5f) {
-			auto destinations = processor.getDestinations();
-			ModConnection* conn = processor.modMatrix.makeConnection(src, dst, depthValue);
+		void addSlot(ModSource* src, ModDestination* dst, float depthValue = 0.5f) {
+			ModConnection* conn = modMatrix.makeConnection(src, dst, depthValue);
 			
-			auto* slot = new ModSlotComponent(conn, destinations);
+			auto* slot = new ModSlotComponent(conn, modMatrix.getDestinations());
 
-			slot->onRemove = [this, &processor, conn, slot]() {
-				processor.modMatrix.removeConnection(conn);
+			slot->onRemove = [this, conn, slot]() {
+				modMatrix.removeConnection(conn);
 				modSlots.removeObject(slot, true);
 				resized();
 			};

@@ -5,7 +5,8 @@
 
 #include "DistortionEngine.h"
 #include "EnvelopeFollower.h"
-#include "ModSource.h"
+#include "ModMatrix.h"
+
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
@@ -21,17 +22,17 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         //==============// MODULATION //==============//
         
         // Souces
-        EnvelopeFollower envelopeFollower;
+        EnvelopeFollower envelopeFollower{ "ENV", "envelope" };
 
 		// Destinations
-        ModDestination driveDest{ "DRIVE" };
-        ModDestination colorDest{ "COLOR" };
-        ModDestination preCutoffDest{ "PRECUT" };
-        ModDestination preResonanceDest{ "PRERES" };
-        ModDestination postCutoffDest{ "POSTCUT" };
-        ModDestination postResonanceDest{ "POSTRES" };
-        ModDestination feedbackDest{ "FEEDBK" };
-        ModDestination feedbackDelayDest{ "FDBK DL" };
+        ModDestination driveDest        { "DRIVE",   "drive" };
+        ModDestination colorDest        { "COLOR",   "color" };
+        ModDestination preCutoffDest    { "PRECUT",  "preFilterCutoff" };
+        ModDestination preResonanceDest { "PRERES",  "preFilterResonance" };
+        ModDestination postCutoffDest   { "POSTCUT", "postFilterCutoff" };
+        ModDestination postResonanceDest{ "POSTRES", "postFilterResonance" };
+        ModDestination feedbackDest     { "FEEDBK",  "feedbackAmount" , 0.0f, 0.8f };
+        ModDestination feedbackDelayDest{ "FDBK DL",  "feedbackDelay" , 0.001f, 0.1f};
 
 
 
@@ -48,9 +49,7 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void prepareToPlay (double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
 
-       #ifndef JucePlugin_PreferredChannelConfigurations
         bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-       #endif
 
         void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
@@ -74,25 +73,5 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void setStateInformation (const void* data, int sizeInBytes) override;
 
         float getEnvelopeValue() { return envelopeFollower.getEnvelope(); }
-
 		DistortionEngine& getDistortionEngine() { return distortion; }
-
-        std::vector<ModDestination*> getDestinations() {
-            return {
-                &driveDest,
-                &colorDest,
-                &preCutoffDest,
-                &preResonanceDest,
-                &postCutoffDest,
-                &postResonanceDest,
-                &feedbackDest,
-                &feedbackDelayDest
-            };
-        }
-
-        std::vector<ModSource*> getSources() {
-            return {
-				&envelopeFollower
-            };
-        }
 };

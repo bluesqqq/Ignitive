@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), driveLAF(p.getDistortionEngine()) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), driveLAF(p.getDistortionEngine()), modMatrixComponent(p.modMatrix) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
