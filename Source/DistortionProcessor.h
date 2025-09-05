@@ -20,23 +20,29 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
 
-		float hardClip(float sample);
+		float hardClip(float sample, float drive);
 
-		float tube(float sample);
+		float tube(float sample, float drive);
 
-		float fuzz(float sample);
+		float fuzz(float sample, float drive);
 
-		float rectify(float sample);
+		float rectify(float sample, float drive);
 
-		float downsample(float sample);
+		float downsample(float sample, float drive);
 
-		float distort(float sample);
+		float distort(float sample, float drive);
 
 		DistortionType type;
-		float drive;
+
+		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> drive;
+		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> color;
+
+		juce::String driveID;
+		juce::String colorID;
+		juce::String typeID;
 
 	public:
-		DistortionProcessor(juce::AudioProcessorValueTreeState& params);
+		DistortionProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID);
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override;
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
@@ -44,11 +50,5 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		void setDistortionAlgorithm(DistortionType type);
 
-		void setDrive(float newDrive);
-
-		float getDrive();
-
 		std::vector<float> getWaveshape();
-
-		float processSample(float sample);
 };

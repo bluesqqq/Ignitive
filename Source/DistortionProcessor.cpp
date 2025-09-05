@@ -1,8 +1,8 @@
 #include "DistortionProcessor.h"
-#include "Parameters.h"
 
-DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params)
-    : drive(1.0f), type(DistortionType::HardClip), parameters(params) {
+DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID)
+    : drive(0.0f), type(DistortionType::HardClip), parameters(params),
+      driveID(driveID), colorID(colorID), typeID(typeID) {
 }
 
 void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -13,14 +13,17 @@ void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
     );
 
     oversampler->initProcessing(spec.maximumBlockSize);
+
+    drive.reset(spec.sampleRate, 0.02);
+    color.reset(spec.sampleRate, 0.02);
 }
 
 void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
-    float drive = parameters.getRawParameterValue(Parameters::ID_DRIVE)->load();
-    float color = parameters.getRawParameterValue(Parameters::ID_COLOR)->load();
-    int distortionType = parameters.getRawParameterValue(Parameters::ID_DISTORTION_TYPE)->load();
+    drive.setTargetValue(*parameters.getRawParameterValue(driveID));
+    color.setTargetValue(*parameters.getRawParameterValue(colorID));
 
-    setDrive(drive);
+    int distortionType = parameters.getRawParameterValue(typeID)->load();
+
     setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
 
     auto& inBlock  = context.getInputBlock();
@@ -30,10 +33,14 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
     auto oversampledBlock = oversampler->processSamplesUp(inBlock);
 
     // Process
-    for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
-        auto* samples = oversampledBlock.getChannelPointer(channel);
-        for (size_t n = 0; n < oversampledBlock.getNumSamples(); ++n)
-            samples[n] = distort(samples[n]);
+    for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
+        float d = drive.getNextValue();
+        float c = color.getNextValue();
+
+        for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
+            auto* samples = oversampledBlock.getChannelPointer(channel);
+            samples[sample] = distort(samples[sample], d);
+        }
     }
 
     // Downsample
@@ -50,57 +57,52 @@ void DistortionProcessor::reset() {
 
 void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { type = distType; }
 
-void DistortionProcessor::setDrive(float newDrive) { drive = std::clamp(newDrive, 0.0f, 20.0f); }
-
-float DistortionProcessor::getDrive() { return drive; }
-
 std::vector<float> DistortionProcessor::getWaveshape() {
+    float d = *parameters.getRawParameterValue(driveID);
     std::vector<float> waveshape;
     waveshape.reserve(64);
 
     for (int i = 0; i < 64; ++i) {
         float input = juce::jmap(static_cast<float>(i), 0.0f, 63.0f, -1.0f, 1.0f);
-        waveshape.push_back(distort(input));
+        waveshape.push_back(distort(input, d));
     }
 
     return waveshape;
 }
-
-float DistortionProcessor::processSample(float sample) { return distort(sample); }
 
 float sign(float x) {
     if (x >= 0) return 1.0;
     return -1.0;
 }
 
-float DistortionProcessor::hardClip(float x) { return juce::jlimit(-1.0f, 1.0f, x * (1.0f + drive * 20.0f)); }
+float DistortionProcessor::hardClip(float x, float d) { return juce::jlimit(-1.0f, 1.0f, x * (1.0f + d * 20.0f)); }
 
-float DistortionProcessor::tube(float x) {
-    if (drive == 0.0f) return x;
-    float k = drive * 20.0f;
+float DistortionProcessor::tube(float x, float d) {
+    if (d == 0.0f) return x;
+    float k = d * 20.0f;
     return std::tanf(x * k) / std::tanhf(k);
 }
 
-float DistortionProcessor::fuzz(float x) { 
-    float k = drive * 20.0f;
+float DistortionProcessor::fuzz(float x, float d) {
+    float k = d * 20.0f;
     return sign(x) * ((1 - std::expf(-std::fabsf(k * x))) / (1 - std::expf(-k))); 
 }
 
-float DistortionProcessor::rectify(float x) { return hardClip(fabsf(x)); }
+float DistortionProcessor::rectify(float x, float d) { return hardClip(fabsf(x), d); }
 
-float DistortionProcessor::downsample(float x) {
-    int numSteps = juce::jmax(4, (int)std::lround(64.0f - drive * 60.0f)); // Get the number of steps based on drive (from 64 to 4)
+float DistortionProcessor::downsample(float x, float d) {
+    int numSteps = juce::jmax(4, (int)std::lround(64.0f - d * 60.0f)); // Get the number of steps based on drive (from 64 to 4)
     return std::floor(x * numSteps + 0.5f) / numSteps;
 }
 
-float DistortionProcessor::distort(float sample) {
+float DistortionProcessor::distort(float x, float d) {
     switch (type) {
-        case DistortionType::HardClip:   return hardClip(sample);
-        case DistortionType::Tube:       return tube(sample);
-        case DistortionType::Fuzz:       return fuzz(sample);
-        case DistortionType::Rectify:    return rectify(sample);
-        case DistortionType::Downsample: return downsample(sample);
+        case DistortionType::HardClip:   return hardClip(x, d);
+        case DistortionType::Tube:       return tube(x, d);
+        case DistortionType::Fuzz:       return fuzz(x, d);
+        case DistortionType::Rectify:    return rectify(x, d);
+        case DistortionType::Downsample: return downsample(x, d);
     }
 
-    return sample;
+    return x;
 }

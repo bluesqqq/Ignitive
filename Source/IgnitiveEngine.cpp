@@ -3,7 +3,8 @@
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
 	: parameters(params), processor(p),
-	  distortion(parameters), feedback(parameters), 
+	  distortion(parameters, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
+      feedback(parameters), 
       preFilter(parameters,  Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
       postFilter(parameters, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED),
       envelope("Envelope", "envelope") {
