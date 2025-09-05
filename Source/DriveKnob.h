@@ -13,7 +13,7 @@ class DriveKnob : public juce::Component, private juce::Timer {
 
 	public:
 		DriveKnob(IgnitiveAudioProcessor& processor, const juce::String& parameterID) 
-			: driveLAF(processor.getDistortionEngine()), driveAttach(processor.apvts, parameterID, driveSlider) {
+			: driveLAF(processor.ignitive.distortion), driveAttach(processor.parameters, parameterID, driveSlider) {
 			startTimer(1000 / 60);
 			driveSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
 			driveSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);

@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "SwitchButtonAttachment.h"
 #include "CustomLAFs.h"
+#include "FilterProcessor.h"
 
 class FilterComponent : public juce::Component {
     private:
@@ -10,14 +11,14 @@ class FilterComponent : public juce::Component {
 
         juce::Slider cutoffKnob, resonanceKnob;
         SwitchButton typeButton{ "Filter Type", 3, DOWN };
-        juce::ToggleButton toggleButton;
+        juce::ToggleButton enabledButton;
 
         juce::AudioProcessorValueTreeState::SliderAttachment cutoffAttach, resonanceAttach;
         SwitchButtonAttachment typeAttach;
-        juce::AudioProcessorValueTreeState::ButtonAttachment toggleAttach;
+        juce::AudioProcessorValueTreeState::ButtonAttachment enabledAttach;
 
     public:
-        FilterComponent(juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
+        FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter);
 
         void resized() override;
 };

@@ -1,6 +1,6 @@
 #include "CustomLafs.h"
 
-DriveLAF::DriveLAF(DistortionEngine& dist) : distortion(dist) {}
+DriveLAF::DriveLAF(DistortionProcessor& dist) : distortion(dist) {}
 
 void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
     float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle);

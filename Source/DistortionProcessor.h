@@ -14,8 +14,12 @@ enum class DistortionType {
 	Downsample
 };
 
-class DistortionEngine {
+class DistortionProcessor : public juce::dsp::ProcessorBase {
 	private:
+		juce::AudioProcessorValueTreeState& parameters;
+
+		std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
+
 		float hardClip(float sample);
 
 		float tube(float sample);
@@ -32,7 +36,11 @@ class DistortionEngine {
 		float drive;
 
 	public:
-		DistortionEngine();
+		DistortionProcessor(juce::AudioProcessorValueTreeState& params);
+
+		void prepare(const juce::dsp::ProcessSpec& spec) override;
+		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+		void reset() override;
 
 		void setDistortionAlgorithm(DistortionType type);
 

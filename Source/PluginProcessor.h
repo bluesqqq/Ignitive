@@ -3,22 +3,13 @@
 #include <JuceHeader.h>
 #include <juce_dsp/juce_dsp.h>
 
-#include "DistortionEngine.h"
+#include "IgnitiveEngine.h"
+
 #include "EnvelopeFollower.h"
 #include "ModMatrix.h"
 
-
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
-        juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
-        //==============// DSP //==============//
-        DistortionEngine distortion;
-
-        std::vector<std::unique_ptr<juce::dsp::DelayLine<float>>> delayLines;
-
-        juce::dsp::StateVariableTPTFilter<float> preFilter, postFilter;
-
         //==============// MODULATION //==============//
         
         // Souces
@@ -34,14 +25,14 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         ModDestination feedbackDest     { "FEEDBK",  "feedbackAmount" , 0.0f, 0.8f };
         ModDestination feedbackDelayDest{ "FDBK DL",  "feedbackDelay" , 0.001f, 0.1f};
 
-
-
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
 
     public:
-        ModMatrix modMatrix;
+        IgnitiveEngine ignitive;
 
-        juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters", createParameterLayout()};
+        juce::AudioProcessorValueTreeState parameters;
+
+        ModMatrix modMatrix;
 
         IgnitiveAudioProcessor();
         ~IgnitiveAudioProcessor() override;
@@ -73,5 +64,4 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void setStateInformation (const void* data, int sizeInBytes) override;
 
         float getEnvelopeValue() { return envelopeFollower.getEnvelope(); }
-		DistortionEngine& getDistortionEngine() { return distortion; }
 };

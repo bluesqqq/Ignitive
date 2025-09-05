@@ -1,0 +1,22 @@
+#pragma once
+
+#include <JuceHeader.h>
+
+class FilterProcessor : public juce::dsp::ProcessorBase {
+	private:
+		juce::AudioProcessorValueTreeState& parameters;
+
+		juce::dsp::StateVariableTPTFilter<float> filter;
+
+	public:
+		FilterProcessor(juce::AudioProcessorValueTreeState& parameters, const juce::String& cutoffID, const juce::String& resonanceID, const juce::String& typeID, const juce::String& enabledID);
+
+		void prepare(const juce::dsp::ProcessSpec& spec) override;
+		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+		void reset() override;
+
+		juce::String cutoffID;
+		juce::String resonanceID;
+		juce::String typeID;
+		juce::String enabledID;
+};

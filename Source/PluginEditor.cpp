@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), driveLAF(p.getDistortionEngine()), modMatrixComponent(p.modMatrix) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.modMatrix) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -54,10 +54,12 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     addAndMakeVisible(colorSlider);
 
     distortionTypeSelector.addItem("Hard Clip", 1);
-    distortionTypeSelector.addItem("Tube", 2);
-    distortionTypeSelector.addItem("Fuzz", 3);
-    distortionTypeSelector.addItem("Rectify", 4);
-    distortionTypeSelector.addItem("Downsample", 5);
+    distortionTypeSelector.addItem("Soft Clip", 2);
+    distortionTypeSelector.addItem("Tube", 3);
+    distortionTypeSelector.addItem("Fuzz", 4);
+    distortionTypeSelector.addItem("Sine Shaper", 5);
+    distortionTypeSelector.addItem("Rectify", 6);
+    distortionTypeSelector.addItem("Downsample", 7);
     addAndMakeVisible(distortionTypeSelector);
 
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);

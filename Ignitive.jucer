@@ -9,6 +9,11 @@
       <FILE id="RA2Kpt" name="Ignitive.png" compile="0" resource="1" file="C:/Users/blues/OneDrive/Desktop/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
+      <FILE id="vMNfJV" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
+      <FILE id="LCvnI7" name="IgnitiveEngine.cpp" compile="1" resource="0"
+            file="Source/IgnitiveEngine.cpp"/>
+      <FILE id="xA3w4z" name="IgnitiveEngine.h" compile="0" resource="0"
+            file="Source/IgnitiveEngine.h"/>
       <GROUP id="{B4AC0B65-BF83-95A7-C8C8-8DA3F731F934}" name="Modulation">
         <FILE id="hX8wej" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
         <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
@@ -16,6 +21,18 @@
         <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
       </GROUP>
       <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
+        <FILE id="yirYJ1" name="FilterProcessor.cpp" compile="1" resource="0"
+              file="Source/FilterProcessor.cpp"/>
+        <FILE id="gSIBdc" name="FilterProcessor.h" compile="0" resource="0"
+              file="Source/FilterProcessor.h"/>
+        <FILE id="UZ1IoX" name="FeedbackProcessor.cpp" compile="1" resource="0"
+              file="Source/FeedbackProcessor.cpp"/>
+        <FILE id="WHCf5a" name="FeedbackProcessor.h" compile="0" resource="0"
+              file="Source/FeedbackProcessor.h"/>
+        <FILE id="yqL8na" name="DistortionProcessor.h" compile="0" resource="0"
+              file="Source/DistortionProcessor.h"/>
+        <FILE id="mGR2Is" name="DistortionProcessor.cpp" compile="1" resource="0"
+              file="Source/DistortionProcessor.cpp"/>
         <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
               file="Source/EnvelopeFollower.cpp"/>
         <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
@@ -48,10 +65,6 @@
       </GROUP>
       <FILE id="gMSk4r" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
-      <FILE id="mGR2Is" name="DistortionEngine.cpp" compile="1" resource="0"
-            file="Source/DistortionEngine.cpp"/>
-      <FILE id="yqL8na" name="DistortionEngine.h" compile="0" resource="0"
-            file="Source/DistortionEngine.h"/>
       <FILE id="WknIng" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
       <FILE id="Dteqg5" name="PluginEditor.cpp" compile="1" resource="0"

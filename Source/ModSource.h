@@ -3,9 +3,11 @@
 #include <vector>
 #include <JuceHeader.h>
 
-struct ModSource {
+class ModSource {
 	juce::String name;
 	juce::String sourceID;
+
+	juce::AudioBuffer<float> modulationBuffer;
 
 	ModSource(const juce::String& name, const juce::String& sourceID);
 
