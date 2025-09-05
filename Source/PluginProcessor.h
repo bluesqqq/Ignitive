@@ -12,9 +12,6 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
         //==============// MODULATION //==============//
         
-        // Souces
-        EnvelopeFollower envelopeFollower{ "ENV", "envelope" };
-
 		// Destinations
         ModDestination driveDest        { "DRIVE",   "drive" };
         ModDestination colorDest        { "COLOR",   "color" };
@@ -62,6 +59,4 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
 
         void getStateInformation (juce::MemoryBlock& destData) override;
         void setStateInformation (const void* data, int sizeInBytes) override;
-
-        float getEnvelopeValue() { return envelopeFollower.getEnvelope(); }
 };

@@ -15,6 +15,12 @@
       <FILE id="xA3w4z" name="IgnitiveEngine.h" compile="0" resource="0"
             file="Source/IgnitiveEngine.h"/>
       <GROUP id="{B4AC0B65-BF83-95A7-C8C8-8DA3F731F934}" name="Modulation">
+        <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
+              file="Source/EnvelopeFollower.cpp"/>
+        <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
+              file="Source/EnvelopeFollower.h"/>
+        <FILE id="wqQXGy" name="LFO.cpp" compile="1" resource="0" file="Source/LFO.cpp"/>
+        <FILE id="feKrpe" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
         <FILE id="hX8wej" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
         <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
         <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>
@@ -33,10 +39,6 @@
               file="Source/DistortionProcessor.h"/>
         <FILE id="mGR2Is" name="DistortionProcessor.cpp" compile="1" resource="0"
               file="Source/DistortionProcessor.cpp"/>
-        <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
-              file="Source/EnvelopeFollower.cpp"/>
-        <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
-              file="Source/EnvelopeFollower.h"/>
       </GROUP>
       <GROUP id="{64F03D32-2006-7F89-08D2-4863ACCD9A4D}" name="LookAndFeels">
         <FILE id="HesNyq" name="CustomLAFs.cpp" compile="1" resource="0" file="Source/CustomLAFs.cpp"/>

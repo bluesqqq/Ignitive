@@ -2,7 +2,9 @@
 #include <cmath>
 
 EnvelopeFollower::EnvelopeFollower(const juce::String& n, const juce::String& srcID, float attackTime, float releaseTime, float sampleRate)
-    : ModSource(n, srcID), attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate), envelope(0.0f) {
+    : ModSource(n, srcID), attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate) {
+    fifoBuffer.resize(fifo.getTotalSize());
+    writeToFifo(0.0f);
     updateCoefficients();
 }
 
@@ -22,23 +24,6 @@ void EnvelopeFollower::setSampleRate(float rate) {
     sampleRate = rate;
     updateCoefficients();
 }
-
-float EnvelopeFollower::process(float input) {
-    float absInput = std::abs(input);
-
-    if (absInput > envelope && absInput > gate)
-        envelope = attackCoef * envelope + (1.0f - attackCoef) * absInput;  // Attack phase
-    else
-        envelope = releaseCoef * envelope + (1.0f - releaseCoef) * absInput; // Release phase
-
-    return envelope;
-}
-
-float EnvelopeFollower::getEnvelope() const { return envelope; }
-
-float EnvelopeFollower::getGate() const { return gate; }
-
-float EnvelopeFollower::getNextValue() { return envelope; }
 
 void EnvelopeFollower::updateCoefficients() {
     attackCoef  = std::exp(-1.0f / (attackTime * sampleRate));

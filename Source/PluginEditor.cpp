@@ -123,7 +123,6 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
 void IgnitiveAudioProcessorEditor::resized() {
     auto area = getLocalBounds();
 
-
     preFilterComponent.setBounds(area);
     postFilterComponent.setBounds(area);
 

@@ -5,7 +5,8 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 	: parameters(params), processor(p),
 	  distortion(parameters), feedback(parameters), 
       preFilter(parameters,  Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
-      postFilter(parameters, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED) {
+      postFilter(parameters, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED),
+      envelope("Envelope", "envelope") {
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -13,6 +14,8 @@ void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
 	feedback.prepare(spec);
 	preFilter.prepare(spec);
 	postFilter.prepare(spec);
+
+    envelope.prepare(spec);
 
     inGain.reset(spec.sampleRate, 0.02);
     outGain.reset(spec.sampleRate, 0.02);
@@ -34,6 +37,10 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     }
 
     // Envelope processing here
+    envelope.setAttackTime(*parameters.getRawParameterValue(Parameters::ID_ENV_ATTACK));
+    envelope.setReleaseTime(*parameters.getRawParameterValue(Parameters::ID_ENV_DECAY));
+    envelope.setGate(*parameters.getRawParameterValue(Parameters::ID_ENV_GATE));
+    envelope.process(block);
 
     // DSP
     preFilter.process(context);

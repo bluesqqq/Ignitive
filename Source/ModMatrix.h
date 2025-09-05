@@ -34,8 +34,8 @@ class ModMatrix {
 			for (auto destination : destinations) destination->modAmount = 0.0f;
 
 			for (auto& conn : connections) {
-				if (conn.source && conn.destination) {
-					conn.destination->modAmount += conn.source->getNextValue() * conn.depth;
+				if (conn.source && conn.destination) { //TODO: FIX THIS BACK
+					conn.destination->modAmount += 0; //conn.source->getNextValue() * conn.depth;
 				}
 			}
 		}

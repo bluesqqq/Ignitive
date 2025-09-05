@@ -4,15 +4,22 @@
 #include <JuceHeader.h>
 
 class ModSource {
-	juce::String name;
-	juce::String sourceID;
+	protected:
+		juce::AudioBuffer<float> modulationBuffer;
 
-	juce::AudioBuffer<float> modulationBuffer;
+	public:
+		juce::String name;
+		juce::String sourceID;
 
-	ModSource(const juce::String& name, const juce::String& sourceID);
+		ModSource(const juce::String& name, const juce::String& sourceID);
 
-	virtual float getNextValue() = 0;
-	virtual ~ModSource() = default;
+		virtual void prepare(const juce::dsp::ProcessSpec& spec) {
+			modulationBuffer.setSize(1, spec.maximumBlockSize);
+		}
+
+		float getValue(int sampleIndex) const {
+			return modulationBuffer.getSample(0, sampleIndex);
+		}
 };
 
 struct ModDestination {

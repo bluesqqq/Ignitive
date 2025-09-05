@@ -11,7 +11,7 @@ void EnvelopeBox::paint(juce::Graphics& g) {
 
     for (int i = 0; i < envelopeValues.size(); ++i) {
         float x = i * segmentWidth;
-        float y = envBox.getHeight() * 0.5f - envelopeValues[i] * (envBox.getHeight() / 2.0f);
+        float y = envBox.getHeight() * 0.9 - envelopeValues[i] * (envBox.getHeight() * 0.8);
 
         if (i == 0) path.startNewSubPath(x, y);
         else        path.lineTo(x, y);
@@ -27,9 +27,13 @@ void EnvelopeBox::pushEnvelopeValue(float newValue) {
         envelopeValues.pop_front();
 }
 
-void EnvelopeBox::timerCallback(int timerID) {
-    if (timerID == 0) repaint();
-    else if (timerID == 1) {
-        pushEnvelopeValue(audioProcessor.getEnvelopeValue());
+void EnvelopeBox::timerCallback() {
+    auto& follower = audioProcessor.ignitive.envelope;
+
+    while (follower.popFifo(500)) {
+        float v = follower.readFifo();
+        pushEnvelopeValue(v);
     }
+
+    repaint();
 }

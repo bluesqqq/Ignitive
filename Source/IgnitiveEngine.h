@@ -7,6 +7,8 @@
 #include "FeedbackProcessor.h"
 #include "FilterProcessor.h"
 
+#include "EnvelopeFollower.h"
+
 class IgnitiveEngine : public juce::dsp::ProcessorBase {
     private:
         juce::AudioProcessorValueTreeState& parameters;
@@ -21,6 +23,8 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         DistortionProcessor distortion;
         FeedbackProcessor feedback;
         FilterProcessor preFilter, postFilter;
+
+        EnvelopeFollower envelope;
 
         IgnitiveEngine(juce::AudioProcessorValueTreeState& parameters, juce::AudioProcessor& processor);
 
