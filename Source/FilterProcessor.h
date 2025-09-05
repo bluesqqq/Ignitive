@@ -8,6 +8,9 @@ class FilterProcessor : public juce::dsp::ProcessorBase {
 
 		juce::dsp::StateVariableTPTFilter<float> filter;
 
+		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> cutoff;
+		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> resonance;
+
 	public:
 		FilterProcessor(juce::AudioProcessorValueTreeState& parameters, const juce::String& cutoffID, const juce::String& resonanceID, const juce::String& typeID, const juce::String& enabledID);
 

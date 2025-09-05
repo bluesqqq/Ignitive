@@ -7,23 +7,40 @@ FilterProcessor::FilterProcessor(juce::AudioProcessorValueTreeState& params, con
 
 void FilterProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
     filter.prepare(spec);
+
+    cutoff.reset(spec.sampleRate, 0.02);
+    resonance.reset(spec.sampleRate, 0.02);
 }
 
 void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
     if (!parameters.getRawParameterValue(enabledID)->load()) return; // bypass
 
-    float cutoffNorm = parameters.getRawParameterValue(cutoffID)->load();
-    float resonanceNorm = parameters.getRawParameterValue(resonanceID)->load();
+    cutoff.setTargetValue(*parameters.getRawParameterValue(cutoffID));
+    resonance.setTargetValue(*parameters.getRawParameterValue(resonanceID));
+
     int typeIndex = (int)parameters.getRawParameterValue(typeID)->load();
 
-    float cutoffHz = 20.0f * std::pow(10.0f, cutoffNorm * 3.0f);
-    float resonance = juce::jmap(resonanceNorm, 0.707f, 4.0f);
-
     filter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(typeIndex));
-    filter.setCutoffFrequency(cutoffHz);
-    filter.setResonance(resonance);
 
-    filter.process(context);
+    auto& block = context.getOutputBlock();
+    auto numSamples = block.getNumSamples();
+    auto numChannels = block.getNumChannels();
+
+    for (size_t sample = 0; sample < numSamples; ++sample) {
+        float cutoffNorm = cutoff.getNextValue();
+        float resonanceNorm = resonance.getNextValue();
+
+        float cutoffHz = 20.0f * std::pow(10.0f, cutoffNorm * 3.0f);
+        float qResonance = juce::jmap(resonanceNorm, 0.707f, 4.0f);
+
+        filter.setCutoffFrequency(cutoffHz);
+        filter.setResonance(qResonance);
+
+        for (size_t ch = 0; ch < numChannels; ++ch) {
+            float* data = block.getChannelPointer(ch);
+            data[sample] = filter.processSample(ch, data[sample]);
+        }
+    }
 }
 
 void FilterProcessor::reset() {
