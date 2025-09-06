@@ -1,7 +1,8 @@
 #include "FeedbackProcessor.h"
 #include "Parameters.h"
 
-FeedbackProcessor::FeedbackProcessor(juce::AudioProcessorValueTreeState& params) : parameters(params), sampleRate(48000) {
+FeedbackProcessor::FeedbackProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& amountID, const juce::String& delayID)
+    : parameters(params), sampleRate(48000), amountID(amountID), delayID(delayID) {
 
 }
 
@@ -19,35 +20,68 @@ void FeedbackProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
 }
 
 void FeedbackProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
-    auto& inputBlock = context.getInputBlock();
-    auto& outputBlock = context.getOutputBlock();
+    auto& block = context.getOutputBlock();
 
-    const auto numChannels = inputBlock.getNumChannels();
-    const auto numSamples = inputBlock.getNumSamples();
+    const auto numChannels = block.getNumChannels();
+    const auto numSamples = block.getNumSamples();
 
-    float feedback = parameters.getRawParameterValue(Parameters::ID_FEEDBACK)->load();
-    float delay = parameters.getRawParameterValue(Parameters::ID_FEEDBACK_DELAY)->load();
-    auto delaySamples = delay * sampleRate;
+    updateParameters();
 
-    for (size_t channel = 0; channel < numChannels; ++channel) {
-        auto* in = inputBlock.getChannelPointer(channel);
-        auto* out = outputBlock.getChannelPointer(channel);
+    for (size_t sample = 0; sample < numSamples; ++sample) {
+        float fb = amount.getNextValue();
+        float dSec = delay.getNextValue();
+        float delaySamples = dSec * (float)sampleRate;
 
-        auto& delayLine = *delayLines[channel];
-        delayLine.setDelay(delaySamples);
+        for (size_t channel = 0; channel < numChannels; ++channel) {
+            auto& delayLine = *delayLines[channel];
+            delayLine.setDelay(delaySamples);
 
-        for (size_t n = 0; n < numSamples; ++n) {
-            float inputSample = in[n];
-            float delayedSample = delayLine.popSample(0);
-
-            float toDelay = inputSample + delayedSample * feedback;
-
-            delayLine.pushSample(0, toDelay);
-
-            out[n] = delayedSample;
+            float* data = block.getChannelPointer(channel);
+            data[sample] += delayLine.popSample(channel) * fb;
         }
     }
 }
 
 void FeedbackProcessor::reset() {
+}
+
+void FeedbackProcessor::processWrite(const juce::dsp::AudioBlock<float>& block) {
+    const auto numChannels = block.getNumChannels();
+    const auto numSamples = block.getNumSamples();
+
+    for (size_t channel = 0; channel < numChannels; ++channel) {
+        auto& delayLine = *delayLines[channel];
+        const float* data = block.getChannelPointer(channel);
+
+        for (size_t sample = 0; sample < numSamples; ++sample) {
+            delayLine.pushSample(channel, data[sample]);
+        }
+    }
+}
+
+float FeedbackProcessor::processSample(float input, int channel) {
+    if (channel >= delayLines.size()) return input;
+
+    auto& delayLine = *delayLines[channel];
+
+    float fb = amount.getNextValue();
+    float dSec = delay.getNextValue();
+    float delaySamples = dSec * (float)sampleRate;
+
+    delayLine.setDelay(delaySamples);
+
+    float delayed = delayLine.popSample(channel);
+    return input + delayed * fb;
+}
+
+void FeedbackProcessor::processWriteSample(float input, int channel) {
+    if (channel >= delayLines.size()) return;
+
+    auto& delayLine = *delayLines[channel];
+    delayLine.pushSample(channel, input);
+}
+
+void FeedbackProcessor::updateParameters() {
+    amount.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_FEEDBACK));
+    delay.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_FEEDBACK_DELAY));
 }

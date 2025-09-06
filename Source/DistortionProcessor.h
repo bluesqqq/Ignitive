@@ -30,7 +30,7 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		float downsample(float sample, float drive);
 
-		float distort(float sample, float drive);
+		float distort(float sample, float drive, float color);
 
 		DistortionType type;
 

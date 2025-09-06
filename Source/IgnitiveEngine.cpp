@@ -1,10 +1,10 @@
-#include "IgnitiveEngine.h"
+﻿#include "IgnitiveEngine.h"
 #include "Parameters.h"
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
 	: parameters(params), processor(p),
 	  distortion(parameters, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
-      feedback(parameters), 
+      feedback(parameters,   Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY), 
       preFilter(parameters,  Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
       postFilter(parameters, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED),
       envelope("Envelope", "envelope") {
@@ -30,6 +30,14 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     inGain.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_IN_GAIN));
     outGain.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_OUT_GAIN));
 
+    /*
+      Chain Layout:
+
+      -> IN GAIN -> PRE FILTER -> DISTORTION -> POST FILTER -> [FEEDBACK] -> MIX -> OUT GAIN ->
+                                             ^                     │
+                                             └─────────────────────┘
+    */
+
     // Input Gain
     for (size_t sample = 0; sample < numSamples; ++sample) {
         auto g = inGain.getNextValue();
@@ -46,8 +54,26 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     // DSP
     preFilter.process(context);
     distortion.process(context);
-    feedback.process(context);
-    postFilter.process(context);
+    
+    feedback.updateParameters();
+    postFilter.updateParameters();
+
+    // Post filter has to be processed per sample due to feedback's ordering
+    // See graph above for visual explanation
+    for (size_t sample = 0; sample < numSamples; ++sample) {
+        for (size_t ch = 0; ch < numChannels; ++ch) {
+            float* data = block.getChannelPointer(ch);
+
+            float x = feedback.processSample(data[sample], (int)ch);
+
+            x = postFilter.processSample(x, (int)ch);
+
+            feedback.processWriteSample(x, (int)ch);
+
+            data[sample] = x;
+        }
+    }
+
 
     // Output gain
     for (size_t sample = 0; sample < numSamples; ++sample) {

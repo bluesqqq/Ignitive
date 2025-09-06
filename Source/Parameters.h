@@ -45,8 +45,8 @@ class Parameters {
 			params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_PRE_FILTER_TYPE,     "Pre Filter Type", juce::StringArray{"LP", "BP", "HP"}, 0));
 			params.push_back(std::make_unique<juce::AudioParameterBool>(ID_PRE_FILTER_ENABLED,    "Pre Filter Enabled", false));
 
-			params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_POST_FILTER_CUTOFF,    "Post Filter Cutoff", 0.0f, 1.0f, 0.5f));
-			params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_POST_FILTER_RESONANCE, "Post Filter Resonance", 0.0f, 1.0f, 0.5f));
+			params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_POST_FILTER_CUTOFF,    "Post Filter Cutoff", 0.0f, 1.0f, 0.0f));
+			params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_POST_FILTER_RESONANCE, "Post Filter Resonance", 0.0f, 1.0f, 0.0f));
 			params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_POST_FILTER_TYPE,     "Post Filter Type", juce::StringArray{ "LP", "BP", "HP" }, 0));
 			params.push_back(std::make_unique<juce::AudioParameterBool>(ID_POST_FILTER_ENABLED,    "Post Filter Enabled", false));
 

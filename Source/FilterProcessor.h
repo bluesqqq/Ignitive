@@ -18,6 +18,10 @@ class FilterProcessor : public juce::dsp::ProcessorBase {
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
 		void reset() override;
 
+		float processSample(float input, int channel);
+
+		void updateParameters();
+
 		juce::String cutoffID;
 		juce::String resonanceID;
 		juce::String typeID;

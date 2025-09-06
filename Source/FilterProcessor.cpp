@@ -15,12 +15,7 @@ void FilterProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
 void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
     if (!parameters.getRawParameterValue(enabledID)->load()) return; // bypass
 
-    cutoff.setTargetValue(*parameters.getRawParameterValue(cutoffID));
-    resonance.setTargetValue(*parameters.getRawParameterValue(resonanceID));
-
-    int typeIndex = (int)parameters.getRawParameterValue(typeID)->load();
-
-    filter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(typeIndex));
+    updateParameters();
 
     auto& block = context.getOutputBlock();
     auto numSamples = block.getNumSamples();
@@ -36,13 +31,37 @@ void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& c
         filter.setCutoffFrequency(cutoffHz);
         filter.setResonance(qResonance);
 
-        for (size_t ch = 0; ch < numChannels; ++ch) {
-            float* data = block.getChannelPointer(ch);
-            data[sample] = filter.processSample(ch, data[sample]);
+        for (size_t channel = 0; channel < numChannels; ++channel) {
+            float* data = block.getChannelPointer(channel);
+            data[sample] = filter.processSample(channel, data[sample]);
         }
     }
 }
 
 void FilterProcessor::reset() {
     filter.reset();
+}
+
+float FilterProcessor::processSample(float input, int channel) {
+    if (!parameters.getRawParameterValue(enabledID)->load()) return input;
+
+    float cutoffNorm = cutoff.getNextValue();
+    float resonanceNorm = resonance.getNextValue();
+
+    float cutoffHz = 20.0f * std::pow(10.0f, cutoffNorm * 3.0f);
+    float qResonance = juce::jmap(resonanceNorm, 0.707f, 4.0f);
+
+    filter.setCutoffFrequency(cutoffHz);
+    filter.setResonance(qResonance);
+
+    return filter.processSample(channel, input);
+}
+
+void FilterProcessor::updateParameters() {
+    cutoff.setTargetValue(*parameters.getRawParameterValue(cutoffID));
+    resonance.setTargetValue(*parameters.getRawParameterValue(resonanceID));
+
+    int typeIndex = (int)parameters.getRawParameterValue(typeID)->load();
+
+    filter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(typeIndex));
 }

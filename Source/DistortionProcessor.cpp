@@ -39,7 +39,7 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
 
         for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
             auto* samples = oversampledBlock.getChannelPointer(channel);
-            samples[sample] = distort(samples[sample], d);
+            samples[sample] = distort(samples[sample], d, c);
         }
     }
 
@@ -59,12 +59,13 @@ void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { type
 
 std::vector<float> DistortionProcessor::getWaveshape() {
     float d = *parameters.getRawParameterValue(driveID);
+    float c = *parameters.getRawParameterValue(colorID);
     std::vector<float> waveshape;
     waveshape.reserve(64);
 
     for (int i = 0; i < 64; ++i) {
         float input = juce::jmap(static_cast<float>(i), 0.0f, 63.0f, -1.0f, 1.0f);
-        waveshape.push_back(distort(input, d));
+        waveshape.push_back(distort(input, d, c));
     }
 
     return waveshape;
@@ -95,7 +96,20 @@ float DistortionProcessor::downsample(float x, float d) {
     return std::floor(x * numSteps + 0.5f) / numSteps;
 }
 
-float DistortionProcessor::distort(float x, float d) {
+float DistortionProcessor::distort(float x, float d, float c) {
+    const float minDrive = 0.5f;
+    const float maxDrive = 1.2f;
+
+    float tilt = (c - 0.5f) * 2.0f;
+
+    float side = (x >= 0.0f ? 1.0f : -1.0f);
+
+    float driveFactor = juce::jmap(tilt * side,
+        -1.0f, 1.0f,
+        minDrive, maxDrive);
+
+    d = d * driveFactor;
+
     switch (type) {
         case DistortionType::HardClip:   return hardClip(x, d);
         case DistortionType::Tube:       return tube(x, d);
