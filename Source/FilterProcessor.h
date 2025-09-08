@@ -18,7 +18,7 @@ class FilterProcessor : public juce::dsp::ProcessorBase {
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
 		void reset() override;
 
-		float processSample(float input, int channel);
+		void processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample);
 
 		void updateParameters();
 

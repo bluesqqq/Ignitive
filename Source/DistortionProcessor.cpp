@@ -19,12 +19,7 @@ void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
 }
 
 void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
-    drive.setTargetValue(*parameters.getRawParameterValue(driveID));
-    color.setTargetValue(*parameters.getRawParameterValue(colorID));
-
-    int distortionType = parameters.getRawParameterValue(typeID)->load();
-
-    setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
+    updateParameters();
 
     auto& inBlock  = context.getInputBlock();
     auto& outBlock = context.getOutputBlock();
@@ -52,10 +47,16 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
 void DistortionProcessor::reset() {
 }
 
-
-
-
 void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { type = distType; }
+
+void DistortionProcessor::updateParameters() {
+    drive.setTargetValue(*parameters.getRawParameterValue(driveID));
+    color.setTargetValue(*parameters.getRawParameterValue(colorID));
+
+    int distortionType = parameters.getRawParameterValue(typeID)->load();
+
+    setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
+}
 
 std::vector<float> DistortionProcessor::getWaveshape() {
     float d = *parameters.getRawParameterValue(driveID);

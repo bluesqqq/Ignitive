@@ -42,8 +42,8 @@ void FilterProcessor::reset() {
     filter.reset();
 }
 
-float FilterProcessor::processSample(float input, int channel) {
-    if (!parameters.getRawParameterValue(enabledID)->load()) return input;
+void FilterProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
+    if (!parameters.getRawParameterValue(enabledID)->load()) return;
 
     float cutoffNorm = cutoff.getNextValue();
     float resonanceNorm = resonance.getNextValue();
@@ -54,7 +54,12 @@ float FilterProcessor::processSample(float input, int channel) {
     filter.setCutoffFrequency(cutoffHz);
     filter.setResonance(qResonance);
 
-    return filter.processSample(channel, input);
+    for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
+
+        float* data = block.getChannelPointer(channel);
+
+        data[sample] = filter.processSample(channel, data[sample]);
+    }
 }
 
 void FilterProcessor::updateParameters() {

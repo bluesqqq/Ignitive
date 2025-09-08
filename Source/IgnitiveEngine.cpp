@@ -36,6 +36,8 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
       -> IN GAIN -> PRE FILTER -> DISTORTION -> POST FILTER -> [FEEDBACK] -> MIX -> OUT GAIN ->
                                              ^                     │
                                              └─────────────────────┘
+
+      Feedback is written after the post filter and mixed back in after a delay before the post filter
     */
 
     // Input Gain
@@ -45,7 +47,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
             block.getChannelPointer(ch)[sample] *= g;
     }
 
-    // Envelope processing here
+    // Envelope processing
     envelope.setAttackTime(*parameters.getRawParameterValue(Parameters::ID_ENV_ATTACK));
     envelope.setReleaseTime(*parameters.getRawParameterValue(Parameters::ID_ENV_DECAY));
     envelope.setGate(*parameters.getRawParameterValue(Parameters::ID_ENV_GATE));
@@ -61,17 +63,9 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     // Post filter has to be processed per sample due to feedback's ordering
     // See graph above for visual explanation
     for (size_t sample = 0; sample < numSamples; ++sample) {
-        for (size_t ch = 0; ch < numChannels; ++ch) {
-            float* data = block.getChannelPointer(ch);
-
-            float x = feedback.processSample(data[sample], (int)ch);
-
-            x = postFilter.processSample(x, (int)ch);
-
-            feedback.processWriteSample(x, (int)ch);
-
-            data[sample] = x;
-        }
+        feedback.processBlockSample(block, sample);
+        postFilter.processBlockSample(block, sample);
+        feedback.processWriteBlockSample(block, sample);
     }
 
 

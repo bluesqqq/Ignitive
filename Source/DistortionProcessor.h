@@ -50,5 +50,7 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		void setDistortionAlgorithm(DistortionType type);
 
+		void updateParameters();
+
 		std::vector<float> getWaveshape();
 };

@@ -23,10 +23,8 @@ class FeedbackProcessor : public juce::dsp::ProcessorBase {
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
 		void reset() override;
 
-		void processWrite(const juce::dsp::AudioBlock<float>& block);
-
-		float processSample(float input, int channel);
-		void processWriteSample(float input, int channel);
+		void processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample);
+		void processWriteBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample);
 
 		void updateParameters();
 

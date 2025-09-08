@@ -45,40 +45,30 @@ void FeedbackProcessor::process(const juce::dsp::ProcessContextReplacing<float>&
 void FeedbackProcessor::reset() {
 }
 
-void FeedbackProcessor::processWrite(const juce::dsp::AudioBlock<float>& block) {
-    const auto numChannels = block.getNumChannels();
-    const auto numSamples = block.getNumSamples();
-
-    for (size_t channel = 0; channel < numChannels; ++channel) {
-        auto& delayLine = *delayLines[channel];
-        const float* data = block.getChannelPointer(channel);
-
-        for (size_t sample = 0; sample < numSamples; ++sample) {
-            delayLine.pushSample(channel, data[sample]);
-        }
-    }
-}
-
-float FeedbackProcessor::processSample(float input, int channel) {
-    if (channel >= delayLines.size()) return input;
-
-    auto& delayLine = *delayLines[channel];
-
+void FeedbackProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
     float fb = amount.getNextValue();
     float dSec = delay.getNextValue();
     float delaySamples = dSec * (float)sampleRate;
 
-    delayLine.setDelay(delaySamples);
+    for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
+        auto& delayLine = *delayLines[channel];
+        delayLine.setDelay(delaySamples);
 
-    float delayed = delayLine.popSample(channel);
-    return input + delayed * fb;
+        float* data = block.getChannelPointer(channel);
+        float delayed = delayLine.popSample((int)channel);
+
+        data[sample] = data[sample] + delayed * fb;
+    }
 }
 
-void FeedbackProcessor::processWriteSample(float input, int channel) {
-    if (channel >= delayLines.size()) return;
+void FeedbackProcessor::processWriteBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
+    for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
+        auto& delayLine = *delayLines[channel];
+        
+        float* data = block.getChannelPointer(channel);
 
-    auto& delayLine = *delayLines[channel];
-    delayLine.pushSample(channel, input);
+        delayLine.pushSample(channel, data[sample]);
+    }
 }
 
 void FeedbackProcessor::updateParameters() {
