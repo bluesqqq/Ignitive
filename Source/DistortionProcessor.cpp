@@ -1,7 +1,7 @@
 #include "DistortionProcessor.h"
 
-DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID)
-    : drive(0.0f), type(DistortionType::HardClip), parameters(params),
+DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID)
+    : type(DistortionType::HardClip), parameters(params), modMatrix(matrix),
       driveID(driveID), colorID(colorID), typeID(typeID) {
 }
 
@@ -13,9 +13,6 @@ void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
     );
 
     oversampler->initProcessing(spec.maximumBlockSize);
-
-    drive.reset(spec.sampleRate, 0.02);
-    color.reset(spec.sampleRate, 0.02);
 }
 
 void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
@@ -29,8 +26,8 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
 
     // Process
     for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
-        float d = drive.getNextValue();
-        float c = color.getNextValue();
+        float d = modMatrix.getValue(Parameters::ID_DRIVE, sample/4);
+        float c = modMatrix.getValue(Parameters::ID_COLOR, sample/4);
 
         for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
             auto* samples = oversampledBlock.getChannelPointer(channel);
@@ -50,17 +47,14 @@ void DistortionProcessor::reset() {
 void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { type = distType; }
 
 void DistortionProcessor::updateParameters() {
-    drive.setTargetValue(*parameters.getRawParameterValue(driveID));
-    color.setTargetValue(*parameters.getRawParameterValue(colorID));
-
     int distortionType = parameters.getRawParameterValue(typeID)->load();
 
     setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
 }
 
 std::vector<float> DistortionProcessor::getWaveshape() {
-    float d = *parameters.getRawParameterValue(driveID);
-    float c = *parameters.getRawParameterValue(colorID);
+    float d = modMatrix.getValue(driveID, 0);
+    float c = modMatrix.getValue(colorID, 0);
     std::vector<float> waveshape;
     waveshape.reserve(64);
 

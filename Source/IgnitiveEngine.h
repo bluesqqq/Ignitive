@@ -1,13 +1,14 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "DistortionProcessor.h"
 
 #include "DistortionProcessor.h"
 #include "FeedbackProcessor.h"
 #include "FilterProcessor.h"
 
 #include "EnvelopeFollower.h"
+
+#include "ModMatrix.h"
 
 class IgnitiveEngine : public juce::dsp::ProcessorBase {
     private:
@@ -25,6 +26,8 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         FilterProcessor preFilter, postFilter;
 
         EnvelopeFollower envelope;
+
+        ModMatrix modMatrix;
 
         IgnitiveEngine(juce::AudioProcessorValueTreeState& parameters, juce::AudioProcessor& processor);
 

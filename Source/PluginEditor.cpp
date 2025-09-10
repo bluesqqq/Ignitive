@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.modMatrix) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -117,7 +117,7 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
 
 	juce::Rectangle<int> envBox(30, 590, 240, 120);
 
-	g.drawText("Number of Connections: " + juce::String(audioProcessor.modMatrix.getNumOfConnections()), 10, 10, 200, 20, juce::Justification::left);
+	g.drawText("Number of Connections: " + juce::String(audioProcessor.ignitive.modMatrix.getNumOfConnections()), 10, 10, 200, 20, juce::Justification::left);
 }
 
 void IgnitiveAudioProcessorEditor::resized() {

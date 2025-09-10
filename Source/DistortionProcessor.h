@@ -5,6 +5,7 @@
 #include <vector>
 #include <JuceHeader.h>
 #include <cmath>
+#include "ModMatrix.h"
 
 enum class DistortionType {
 	HardClip,
@@ -17,6 +18,7 @@ enum class DistortionType {
 class DistortionProcessor : public juce::dsp::ProcessorBase {
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
+		ModMatrix& modMatrix;
 
 		std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
 
@@ -34,15 +36,12 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		DistortionType type;
 
-		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> drive;
-		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> color;
-
 		juce::String driveID;
 		juce::String colorID;
 		juce::String typeID;
 
 	public:
-		DistortionProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID);
+		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID);
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override;
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;

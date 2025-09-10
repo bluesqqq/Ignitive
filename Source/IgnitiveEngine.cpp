@@ -3,11 +3,18 @@
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
 	: parameters(params), processor(p),
-	  distortion(parameters, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
-      feedback(parameters,   Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY), 
-      preFilter(parameters,  Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
-      postFilter(parameters, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED),
-      envelope("Envelope", "envelope") {
+	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
+      feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
+      preFilter (parameters, modMatrix, Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
+      postFilter(parameters, modMatrix, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED) {
+
+    for (const auto& id : Parameters::destinationIDs) {
+        modMatrix.addDestination(id, params);
+    }
+
+    modMatrix.addSource(Parameters::ID_ENV, &envelope);
+
+    modMatrix.makeConnection(Parameters::ID_ENV, Parameters::ID_DRIVE, 1.0f);
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -17,6 +24,8 @@ void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
 	postFilter.prepare(spec);
 
     envelope.prepare(spec);
+
+    modMatrix.prepare(spec);
 
     inGain.reset(spec.sampleRate, 0.02);
     outGain.reset(spec.sampleRate, 0.02);
@@ -53,11 +62,12 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     envelope.setGate(*parameters.getRawParameterValue(Parameters::ID_ENV_GATE));
     envelope.process(block);
 
+    modMatrix.update();
+
     // DSP
     preFilter.process(context);
     distortion.process(context);
     
-    feedback.updateParameters();
     postFilter.updateParameters();
 
     // Post filter has to be processed per sample due to feedback's ordering

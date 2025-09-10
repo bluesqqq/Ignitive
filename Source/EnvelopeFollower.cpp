@@ -1,8 +1,8 @@
 #include "EnvelopeFollower.h"
 #include <cmath>
 
-EnvelopeFollower::EnvelopeFollower(const juce::String& n, const juce::String& srcID, float attackTime, float releaseTime, float sampleRate)
-    : ModSource(n, srcID), attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate) {
+EnvelopeFollower::EnvelopeFollower(float attackTime, float releaseTime, float sampleRate) 
+    : attackTime(attackTime), releaseTime(releaseTime), sampleRate(sampleRate) {
     fifoBuffer.resize(fifo.getTotalSize());
     writeToFifo(0.0f);
     updateCoefficients();

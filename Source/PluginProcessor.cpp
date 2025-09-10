@@ -6,17 +6,6 @@ IgnitiveAudioProcessor::IgnitiveAudioProcessor()
     : AudioProcessor (BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, "Parameter", Parameters::createParameterLayout()),
       ignitive(parameters, *this) {
-
-	modMatrix.addDestination(&driveDest);
-	modMatrix.addDestination(&colorDest);
-	modMatrix.addDestination(&preCutoffDest);
-	modMatrix.addDestination(&preResonanceDest);
-	modMatrix.addDestination(&postCutoffDest);
-	modMatrix.addDestination(&postResonanceDest);
-	modMatrix.addDestination(&feedbackDest);
-	modMatrix.addDestination(&feedbackDelayDest);
-
-    //modMatrix.makeConnection(0, 0, 0.5f);
 }
 
 IgnitiveAudioProcessor::~IgnitiveAudioProcessor() {

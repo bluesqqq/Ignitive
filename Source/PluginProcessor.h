@@ -5,31 +5,14 @@
 
 #include "IgnitiveEngine.h"
 
-#include "EnvelopeFollower.h"
-#include "ModMatrix.h"
-
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
-        //==============// MODULATION //==============//
-        
-		// Destinations
-        ModDestination driveDest        { "DRIVE",   "drive" };
-        ModDestination colorDest        { "COLOR",   "color" };
-        ModDestination preCutoffDest    { "PRECUT",  "preFilterCutoff" };
-        ModDestination preResonanceDest { "PRERES",  "preFilterResonance" };
-        ModDestination postCutoffDest   { "POSTCUT", "postFilterCutoff" };
-        ModDestination postResonanceDest{ "POSTRES", "postFilterResonance" };
-        ModDestination feedbackDest     { "FEEDBK",  "feedbackAmount" , 0.0f, 0.8f };
-        ModDestination feedbackDelayDest{ "FDBK DL",  "feedbackDelay" , 0.001f, 0.1f};
-
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
 
     public:
-        IgnitiveEngine ignitive;
-
         juce::AudioProcessorValueTreeState parameters;
 
-        ModMatrix modMatrix;
+        IgnitiveEngine ignitive;
 
         IgnitiveAudioProcessor();
         ~IgnitiveAudioProcessor() override;

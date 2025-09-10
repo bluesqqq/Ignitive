@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ModMatrix.h"
 
 class Parameters {
 	public:
@@ -23,7 +24,26 @@ class Parameters {
 			ID_POST_FILTER_ENABLED   = "postFilterEnabled",
 			ID_ENV_ATTACK            = "envAttack",
 			ID_ENV_DECAY             = "envDecay",
-			ID_ENV_GATE              = "envGate";
+			ID_ENV_GATE              = "envGate",
+
+			ID_ENV = "envelope",
+			ID_LFO = "lfo";
+
+		inline static const std::vector<juce::String> destinationIDs{
+			ID_DRIVE,
+			ID_COLOR,
+			ID_FEEDBACK,
+			ID_FEEDBACK_DELAY,
+			ID_PRE_FILTER_CUTOFF,
+			ID_PRE_FILTER_RESONANCE,
+			ID_POST_FILTER_CUTOFF,
+			ID_POST_FILTER_RESONANCE
+		};
+
+		inline static const std::vector<juce::String> sourceIDs{
+			ID_ENV,
+			ID_LFO
+		};
 
 		static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
 			std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;

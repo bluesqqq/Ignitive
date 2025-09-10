@@ -1,8 +1,8 @@
 #include "FeedbackProcessor.h"
 #include "Parameters.h"
 
-FeedbackProcessor::FeedbackProcessor(juce::AudioProcessorValueTreeState& params, const juce::String& amountID, const juce::String& delayID)
-    : parameters(params), sampleRate(48000), amountID(amountID), delayID(delayID) {
+FeedbackProcessor::FeedbackProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& amountID, const juce::String& delayID)
+    : parameters(params), modMatrix(matrix), sampleRate(48000), amountID(amountID), delayID(delayID) {
 
 }
 
@@ -25,11 +25,9 @@ void FeedbackProcessor::process(const juce::dsp::ProcessContextReplacing<float>&
     const auto numChannels = block.getNumChannels();
     const auto numSamples = block.getNumSamples();
 
-    updateParameters();
-
     for (size_t sample = 0; sample < numSamples; ++sample) {
-        float fb = amount.getNextValue();
-        float dSec = delay.getNextValue();
+        float fb   = modMatrix.getValue(Parameters::ID_FEEDBACK, sample);
+        float dSec = modMatrix.getValue(Parameters::ID_FEEDBACK_DELAY, sample);
         float delaySamples = dSec * (float)sampleRate;
 
         for (size_t channel = 0; channel < numChannels; ++channel) {
@@ -46,8 +44,8 @@ void FeedbackProcessor::reset() {
 }
 
 void FeedbackProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
-    float fb = amount.getNextValue();
-    float dSec = delay.getNextValue();
+    float fb = modMatrix.getValue(amountID, sample);
+    float dSec = modMatrix.getValue(delayID, sample);
     float delaySamples = dSec * (float)sampleRate;
 
     for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
@@ -69,9 +67,4 @@ void FeedbackProcessor::processWriteBlockSample(juce::dsp::AudioBlock<float>& bl
 
         delayLine.pushSample(channel, data[sample]);
     }
-}
-
-void FeedbackProcessor::updateParameters() {
-    amount.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_FEEDBACK));
-    delay.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_FEEDBACK_DELAY));
 }

@@ -21,6 +21,10 @@
               file="Source/EnvelopeFollower.h"/>
         <FILE id="wqQXGy" name="LFO.cpp" compile="1" resource="0" file="Source/LFO.cpp"/>
         <FILE id="feKrpe" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
+        <FILE id="Z1XP2v" name="ModDestination.cpp" compile="1" resource="0"
+              file="Source/ModDestination.cpp"/>
+        <FILE id="eNUE5P" name="ModDestination.h" compile="0" resource="0"
+              file="Source/ModDestination.h"/>
         <FILE id="hX8wej" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
         <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
         <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>

@@ -1,18 +1,17 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ModMatrix.h"
 
 class FilterProcessor : public juce::dsp::ProcessorBase {
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
+		ModMatrix& modMatrix;
 
 		juce::dsp::StateVariableTPTFilter<float> filter;
 
-		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> cutoff;
-		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> resonance;
-
 	public:
-		FilterProcessor(juce::AudioProcessorValueTreeState& parameters, const juce::String& cutoffID, const juce::String& resonanceID, const juce::String& typeID, const juce::String& enabledID);
+		FilterProcessor(juce::AudioProcessorValueTreeState& parameters, ModMatrix& modMatrix, const juce::String& cutoffID, const juce::String& resonanceID, const juce::String& typeID, const juce::String& enabledID);
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override;
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
