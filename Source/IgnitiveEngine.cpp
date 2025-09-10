@@ -2,7 +2,7 @@
 #include "Parameters.h"
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
-	: parameters(params), processor(p),
+	: parameters(params), processor(p), modMatrix(params), 
 	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
       preFilter (parameters, modMatrix, Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),

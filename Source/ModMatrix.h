@@ -5,50 +5,48 @@
 #include "Parameters.h"
 
 struct ModConnection {
-	ModSource* source;
-	ModDestination* destination;
-	float depth = 1.0f;
-
-	ModConnection(ModSource* source, ModDestination* destination, float depth = 0.5f);
+	juce::String sourceID;
+	juce::String destinationID;
+	float depth;
 };
 
 class ModMatrix {
 	private:
+		juce::AudioProcessorValueTreeState& parameters;
+
 		std::unordered_map<juce::String, std::unique_ptr<ModDestination>> destinationMap;
 		std::unordered_map<juce::String, ModSource*> sourceMap;
-		std::list<ModConnection> connections;
+
+		std::vector<ModConnection> connections;
+
+		std::vector<juce::String> destinationIDs;
 
 	public:
-		void prepare(const juce::dsp::ProcessSpec& spec) {
-			for (auto& destination : destinationMap) {
-				destination.second->prepare(spec);
-			}
+		ModMatrix(juce::AudioProcessorValueTreeState& parameters) : parameters(parameters) {}
 
-			for (auto& source : sourceMap) {
-				source.second->prepare(spec);
-			}
-		}
+		void prepare(const juce::dsp::ProcessSpec& spec);
 
-		void addDestination(const juce::String& id, juce::AudioProcessorValueTreeState& parameters) {
-			juce::RangedAudioParameter* parameter = parameters.getParameter(id); // this line throwing an error
+		void addDestination(const juce::String& id, juce::AudioProcessorValueTreeState& parameters);
 
-			if (parameter != nullptr) 
-				destinationMap[id] = std::make_unique<ModDestination>(parameter);
-		}
-
-		void addSource(const juce::String& id, ModSource* modSource) {
-			sourceMap[id] = modSource;
-		}
+		void addSource(const juce::String& id, ModSource* modSource);
 
 		ModConnection* makeConnection(const juce::String& sourceID, const juce::String& destinationID, float depth = 0.5f) {
-			ModSource* source = getSourceByID(sourceID);
-			ModDestination* destination = getDestinationByID(destinationID);
+			connections.push_back({ sourceID, destinationID, depth });
+			return &connections.back();
+		}
 
-			if (source && destination) {
-				connections.push_back(ModConnection(source, destination, depth));
-				return &connections.back();
+		bool removeConnection(const juce::String& sourceID, const juce::String& destinationID) {
+			auto it = std::remove_if(connections.begin(), connections.end(),
+				[&](const ModConnection& conn) {
+					return conn.sourceID == sourceID && conn.destinationID == destinationID;
+				});
+
+			if (it != connections.end()) {
+				connections.erase(it, connections.end());
+				return true;
 			}
-			return nullptr;
+
+			return false;
 		}
 
 		ModSource* getSourceByID(const juce::String& id) {
@@ -61,23 +59,21 @@ class ModMatrix {
 			return nullptr;
 		}
 
-		void removeConnection(ModConnection* connection);
-
-		std::list<ModConnection>& getConnections() { return connections; }
-
 		void update() {
-			for (auto& destination : destinationMap) destination.second->update();
+			for (auto& destination : destinationMap) {
+				float value = parameters.getRawParameterValue(destination.first)->load();
+				destination.second->update(value);
+			}
 
-			for (auto& conn : connections) {
-				if (conn.source && conn.destination) {
-					conn.destination->addMod(conn.source);
-				}
+			for (ModConnection& connection : connections) {
+				ModSource* source = getSourceByID(connection.sourceID);
+				ModDestination* destination = getDestinationByID(connection.destinationID);
+
+				if (source && destination) destination->addMod(source, connection.depth);
 			}
 		}
 
-		void clearConnections() { connections.clear(); }
-
-		int getNumOfConnections() const { return static_cast<int>(connections.size()); }
+		int getNumOfConnections() const { return connections.size(); }
 
 		float getValue(const juce::String& destinationID, int sample) {
 			ModDestination* destination = getDestinationByID(destinationID);
@@ -85,8 +81,9 @@ class ModMatrix {
 			if (!destination) return 0.0f;
 
 			return destination->getValue(sample);
-
 		}
 
-		
+		std::vector<ModConnection>& getConnections() { return connections; }
+
+		std::vector<juce::String>& getDestinationsIDs() { return destinationIDs; }
 };

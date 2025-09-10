@@ -15,26 +15,26 @@ class ModSlotComponent : public juce::Component {
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSlotComponent)
 
 	public:
-		ModSlotComponent(ModConnection* conn) : connection(conn){
-			
-			// Destination selector
-			int id = 1;
-			//for (auto* d : destinations) destinationBox.addItem("Test", id++);
+		ModSlotComponent(ModConnection* conn, ModMatrix& modMatrix) : connection(conn) {
+			if (connection == nullptr) return;
 
-			/*
-			// Set to current destination
-			if (connection && connection->destination) {
-				for (int i = 0; i < destinations.size(); ++i)
-					if (destinations[i] == connection->destination)
-						destinationBox.setSelectedId(i + 1, juce::dontSendNotification);
-			} else {
-				destinationBox.setSelectedId(1, juce::dontSendNotification);
-			};
-			*/
+			// Destination selector
+			int selectedID = 0;
+			int id = 1;
+
+			auto& destinations = modMatrix.getDestinationsIDs();
+			for (auto& destination : destinations) {
+				destinationBox.addItem(destination, id);
+				if (connection && destination == connection->destinationID) selectedID = id;
+				++id;
+			}
 
 			addAndMakeVisible(destinationBox);
-			destinationBox.onChange = [this]() {
-				//if (connection) connection->destination = destinations[destinationBox.getSelectedId() - 1];
+
+			if (selectedID > 0) destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
+
+			destinationBox.onChange = [this, destinations]() {
+				if (connection) connection->destinationID = destinations[destinationBox.getSelectedId() - 1];
 			};
 
 			addAndMakeVisible(depthSlider);
@@ -76,8 +76,8 @@ class ModMatrixComponent : public juce::Component {
 		ModMatrixComponent(ModMatrix& matrix) : modMatrix(matrix) {
 			auto& connections = modMatrix.getConnections();
 			
-			for (auto& conn : connections) {
-				auto* slot = new ModSlotComponent(&conn);
+			for (auto& connection : connections) {
+				auto* slot = new ModSlotComponent(&connection, modMatrix);
 				modSlots.add(slot);
 				addAndMakeVisible(slot);
 			}
@@ -88,12 +88,14 @@ class ModMatrixComponent : public juce::Component {
 		}
 
 		void addSlot(const juce::String& sourceID, const juce::String& destinationID, float depthValue = 0.5f) {
-			ModConnection* conn = modMatrix.makeConnection(sourceID, destinationID, depthValue);
-			
-			auto* slot = new ModSlotComponent(conn);
+			ModConnection* connection = modMatrix.makeConnection(sourceID, destinationID, depthValue);
 
-			slot->onRemove = [this, conn, slot]() {
-				modMatrix.removeConnection(conn);
+			if (connection == nullptr) return;
+			
+			auto* slot = new ModSlotComponent(connection, modMatrix);
+
+			slot->onRemove = [this, connection, slot]() {
+				modMatrix.removeConnection(connection->destinationID, connection->sourceID);
 				modSlots.removeObject(slot, true);
 				resized();
 			};

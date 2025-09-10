@@ -1,7 +1,15 @@
 #include "ModMatrix.h"
 
-ModConnection::ModConnection(ModSource* src, ModDestination* dst, float d) : source(src), destination(dst), depth(d) {}
+void ModMatrix::prepare(const juce::dsp::ProcessSpec& spec) {
+	for (auto& destination : destinationMap) destination.second->prepare(spec);
+	for (auto& source : sourceMap) source.second->prepare(spec);
+}
 
-void ModMatrix::removeConnection(ModConnection* connection) {
-	connections.remove_if([connection](const ModConnection& c) { return &c == connection; });
+void ModMatrix::addDestination(const juce::String& id, juce::AudioProcessorValueTreeState& params) {
+	destinationMap[id] = std::make_unique<ModDestination>();
+	destinationIDs.push_back(id);
+}
+
+void ModMatrix::addSource(const juce::String& id, ModSource* modSource) {
+	sourceMap[id] = modSource;
 }
