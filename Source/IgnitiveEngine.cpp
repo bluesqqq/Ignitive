@@ -8,9 +8,14 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
       preFilter (parameters, modMatrix, Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
       postFilter(parameters, modMatrix, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED) {
 
-    for (const auto& id : Parameters::destinationIDs) {
-        modMatrix.addDestination(id, params);
-    }
+    modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
+    modMatrix.addDestination(Parameters::ID_COLOR, "Color", params);
+    modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback", params);
+    modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay", params);
+    modMatrix.addDestination(Parameters::ID_PRE_FILTER_CUTOFF, "Pre Cut", params);
+    modMatrix.addDestination(Parameters::ID_PRE_FILTER_RESONANCE, "Pre Res", params);
+    modMatrix.addDestination(Parameters::ID_POST_FILTER_CUTOFF, "Post Cut", params);
+    modMatrix.addDestination(Parameters::ID_POST_FILTER_RESONANCE, "Post Res", params);
 
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
 

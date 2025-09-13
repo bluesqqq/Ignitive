@@ -122,7 +122,7 @@ void ModSlotLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isB
     // Set the font (you can adjust size here too)
     g.setFont(customFont.withHeight(16.0f));
 
-    g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centredLeft);
+    g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centred);
 }
 
 void ModSlotLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {

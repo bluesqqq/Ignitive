@@ -25,10 +25,10 @@ class ModSlotComponent : public juce::Component {
 			int selectedID = 0;
 			int id = 1;
 
-			auto& destinations = modMatrix.getDestinationsIDs();
+			auto& destinations = modMatrix.getDestinationDisplayNameAndIDs();
 			for (auto& destination : destinations) {
-				destinationBox.addItem(destination, id);
-				if (connection && destination == connection->destinationID) selectedID = id;
+				destinationBox.addItem(destination.second, id);
+				if (connection && destination.first == connection->destinationID) selectedID = id;
 				++id;
 			}
 
@@ -36,7 +36,7 @@ class ModSlotComponent : public juce::Component {
 			destinationBox.setLookAndFeel(&modSlotLAF);
 			if (selectedID > 0) destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
 			destinationBox.onChange = [this, destinations]() {
-				if (connection) connection->destinationID = destinations[destinationBox.getSelectedId() - 1];
+				if (connection) connection->destinationID = destinations[destinationBox.getSelectedId() - 1].first;
 			};
 			addAndMakeVisible(destinationBox);
 

@@ -26,7 +26,7 @@ class ModMatrix {
 
 		void prepare(const juce::dsp::ProcessSpec& spec);
 
-		void addDestination(const juce::String& id, juce::AudioProcessorValueTreeState& parameters);
+		void addDestination(const juce::String& id, const juce::String& displayName, juce::AudioProcessorValueTreeState& parameters);
 
 		void addSource(const juce::String& id, ModSource* modSource);
 
@@ -86,4 +86,15 @@ class ModMatrix {
 		std::vector<ModConnection>& getConnections() { return connections; }
 
 		std::vector<juce::String>& getDestinationsIDs() { return destinationIDs; }
+
+		std::vector<std::pair<juce::String, juce::String>> getDestinationDisplayNameAndIDs() {
+			std::vector<std::pair<juce::String, juce::String>> result;
+			for (auto& d : destinationMap) {
+				auto& id = d.first;
+				auto& displayName = d.second->displayName;
+				result.push_back(std::pair<juce::String, juce::String>(id, displayName));
+			}
+
+			return result;
+		}
 };

@@ -9,27 +9,15 @@ class ModDestination {
 		juce::AudioBuffer<float> valueBuffer;
 
 	public:
+		juce::String displayName;
+
+		ModDestination(const juce::String& displayName = "NO NAME") : displayName(displayName) {}
+
 		void prepare(const juce::dsp::ProcessSpec& spec);
 
-		void update(float value) {
-			baseValue.setTargetValue(value);
-
-			auto* out = valueBuffer.getWritePointer(0);
-
-			// Fills the buffer with the base value
-			for (int i = 0; i < valueBuffer.getNumSamples(); i++) {
-				out[i] = baseValue.getNextValue();
-			}
-		}
+		void update(float value);
 
 		float getValue(int sampleIndex) const;
 
-		void addMod(ModSource* source, float depth) {
-			if (source == nullptr) return;
-			auto* out = valueBuffer.getWritePointer(0);
-
-			for (int i = 0; i < valueBuffer.getNumSamples(); i++) {
-				out[i] += source->getValue(i) * depth;
-			}
-		}
+		void addMod(ModSource* source, float depth);
 };
