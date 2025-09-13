@@ -50,4 +50,8 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 		void updateParameters();
 
 		std::vector<float> getWaveshape();
+
+		float getModifiedDriveValue() {
+			return modMatrix.getValue(driveID, 0);
+		}
 };

@@ -8,11 +8,22 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     int centerY = y + height / 2;
     float radius = width / 2 - 15;
 
+    float modifiedValue = distortion.getModifiedDriveValue();
+    float modifiedAngle = juce::jmap(modifiedValue, rotaryStartAngle, rotaryEndAngle);
+
+    // Parameter arc
     juce::Path arc;
     arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, angle, true);
-
     g.setColour(juce::Colours::red);
     g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
+
+    // Modified arc
+    juce::Path modArc;
+    modArc.addCentredArc(centerX, centerY, radius, radius, 0.0f, angle, modifiedAngle, true);
+    g.setColour(juce::Colours::yellow);
+    g.strokePath(modArc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
+
+
 
 	std::vector<float> waveshape = distortion.getWaveshape();
 
@@ -40,6 +51,20 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
 
     g.setColour(juce::Colours::red);
     g.strokePath(path, juce::PathStrokeType(5.0f));
+}
+
+void DistortionLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox) {
+    g.setColour(juce::Colours::red);
+
+    static juce::Font customFont = [] {
+        auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf,
+            BinaryData::digital_ttfSize);
+        return juce::Font(typeface);
+        }();
+
+    g.setFont(customFont.withHeight(22.0f));
+
+    g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centredLeft);
 }
 
 void KnobLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
@@ -113,14 +138,12 @@ void ModSlotLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isB
     g.setColour(juce::Colours::yellow);
 
     static juce::Font customFont = [] {
-        // Replace MyFont_ttf with the actual name of your embedded binary font symbol
         auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf,
             BinaryData::digital_ttfSize);
         return juce::Font(typeface);
         }();
 
-    // Set the font (you can adjust size here too)
-    g.setFont(customFont.withHeight(16.0f));
+    g.setFont(customFont.withHeight(18.0f));
 
     g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centred);
 }

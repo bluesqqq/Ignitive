@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix){
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -55,6 +55,8 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
     auto* parameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
     distortionTypeSelector.addItemList(parameter->getAllValueStrings(), 1);
+    distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+    distortionTypeSelector.setLookAndFeel(&distortionLAF);
     addAndMakeVisible(distortionTypeSelector);
     distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
 

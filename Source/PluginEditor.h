@@ -14,6 +14,8 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
     private:
         IgnitiveAudioProcessor& audioProcessor;
 
+        DistortionLAF distortionLAF;
+
         KnobLAF knobLAF;
 
         juce::Image backgroundImage;
