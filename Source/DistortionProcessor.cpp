@@ -110,14 +110,14 @@ void DistortionProcessor::updateParameters() {
     setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
 }
 
-std::vector<float> DistortionProcessor::getWaveshape() {
+std::vector<float> DistortionProcessor::getWaveshape(unsigned int points) {
     float d = modMatrix.getValue(driveID, 0);
     float c = modMatrix.getValue(colorID, 0);
     std::vector<float> waveshape;
-    waveshape.reserve(64);
+    waveshape.reserve(points);
 
-    for (int i = 0; i < 64; ++i) {
-        float input = juce::jmap(static_cast<float>(i), 0.0f, 63.0f, -1.0f, 1.0f);
+    for (int i = 0; i < points; ++i) {
+        float input = juce::jmap(static_cast<float>(i), 0.0f, static_cast<float>(points - 1), -1.0f, 1.0f);
         waveshape.push_back(distort(input, d, c));
     }
 

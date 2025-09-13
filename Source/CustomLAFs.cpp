@@ -23,9 +23,8 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     g.setColour(juce::Colours::yellow);
     g.strokePath(modArc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
 
-
-
-	std::vector<float> waveshape = distortion.getWaveshape();
+    // Waveshape
+	std::vector<float> waveshape = distortion.getWaveshape(128);
 
     juce::Path path;
 
@@ -50,7 +49,7 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     }
 
     g.setColour(juce::Colours::red);
-    g.strokePath(path, juce::PathStrokeType(5.0f));
+    g.strokePath(path, juce::PathStrokeType(5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 }
 
 void DistortionLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox) {
