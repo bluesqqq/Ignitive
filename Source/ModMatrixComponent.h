@@ -11,7 +11,6 @@ class ModSlotComponent : public juce::Component {
 
 		juce::ComboBox destinationBox;
 		juce::Slider depthSlider;
-		juce::TextButton removeButton;
 
 		ModConnection* connection = nullptr;
 
@@ -22,9 +21,10 @@ class ModSlotComponent : public juce::Component {
 			if (connection == nullptr) return;
 
 			// Destination selector
-			int selectedID = 0;
+			int selectedID = 1;
 			int id = 1;
 
+			destinationBox.addItem("---", id++);
 			auto& destinations = modMatrix.getDestinationDisplayNameAndIDs();
 			for (auto& destination : destinations) {
 				destinationBox.addItem(destination.second, id);
@@ -34,12 +34,23 @@ class ModSlotComponent : public juce::Component {
 
 			destinationBox.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
 			destinationBox.setLookAndFeel(&modSlotLAF);
-			if (selectedID > 0) destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
+			destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
 			destinationBox.onChange = [this, destinations]() {
-				if (connection) connection->destinationID = destinations[destinationBox.getSelectedId() - 1].first;
+				if (connection) {
+					int selectedID = destinationBox.getSelectedId();
+
+					if (selectedID == 1) {
+						connection->destinationID = ""; // No Destination
+						connection->depth = 0.0f;
+					} else {
+						if (connection->destinationID.isEmpty()) connection->depth = 0.5f; // If coming from no destination, set the depth
+						connection->destinationID = destinations[selectedID - 2].first;
+					}
+				}
 			};
 			addAndMakeVisible(destinationBox);
 
+			// Depth slider
 			depthSlider.setLookAndFeel(&modSlotLAF);
 			depthSlider.setRange(-1.0f, 1.0f, 0.01f);
 			addAndMakeVisible(depthSlider);
@@ -47,13 +58,6 @@ class ModSlotComponent : public juce::Component {
 			depthSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 			depthSlider.onValueChange = [this]() {
 				if (connection) connection->depth = (float)depthSlider.getValue();
-			};
-
-			removeButton.setLookAndFeel(&modSlotLAF);
-			addAndMakeVisible(removeButton);
-			removeButton.setButtonText("X");
-			removeButton.onClick = [this]() {
-				if (onRemove) onRemove();
 			};
 		}
 
@@ -67,19 +71,12 @@ class ModSlotComponent : public juce::Component {
 		void resized() override {
 			auto area = getLocalBounds();
 
-			// 10% width for removeButton
-			int removeWidth = area.getWidth() * 0.1f;
-			auto removeArea = area.removeFromRight(removeWidth);
-			removeButton.setBounds(removeArea);
-
 			// Split remaining 90% in half
 			auto leftHalf = area.removeFromLeft(area.getWidth() / 2);
 			destinationBox.setBounds(leftHalf);
 
 			depthSlider.setBounds(area); // remaining right half
 		}
-
-		std::function<void()> onRemove;
 };
 
 class ModMatrixComponent : public juce::Component {
@@ -102,29 +99,19 @@ class ModMatrixComponent : public juce::Component {
 		void addSlot(ModConnection& connection) {
 			auto* slot = new ModSlotComponent(&connection, modMatrix);
 
-			const juce::String sourceID = connection.sourceID;
-			const juce::String destinationID = connection.destinationID;
-
-			// Not a fan of this, probably a better way
-			slot->onRemove = [this, slot, sourceID, destinationID]() {
-				modMatrix.removeConnection(sourceID, destinationID);
-				modSlots.removeObject(slot, false);
-				resized();
-				delete slot;
-			};
-
 			modSlots.add(slot);
 			addAndMakeVisible(slot);
 			resized();
 		}
 
 		void resized() override {
-			auto area = getLocalBounds().reduced(10);
+			auto area = getLocalBounds().toFloat();
 
-			int slotHeight = 32;
-			int y = 0;
-			for (auto* slot : modSlots) {
-				slot->setBounds(area.removeFromTop(slotHeight));
+			float slotHeight = area.getHeight() / (float)modSlots.size();
+
+			for (int i = 0; i < modSlots.size(); ++i) {
+				auto slotArea = area.removeFromTop(slotHeight);
+				modSlots[i]->setBounds(slotArea.toNearestInt());
 			}
 		}
 };

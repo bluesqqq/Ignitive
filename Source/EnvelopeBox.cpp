@@ -1,7 +1,7 @@
 #include "EnvelopeBox.h"
 
 void EnvelopeBox::paint(juce::Graphics& g) {
-    auto envBox = getLocalBounds().toFloat();
+    auto envBox = getLocalBounds().toFloat().reduced(10);
     g.setColour(juce::Colours::yellow);
     g.drawRect(envBox, 2.0f);
 

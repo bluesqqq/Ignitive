@@ -22,6 +22,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
 		EnvelopeBox envBox;
 
+        juce::Viewport modMatrixViewport;
         ModMatrixComponent modMatrixComponent;
 
         // Gain

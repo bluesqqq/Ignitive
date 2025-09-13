@@ -19,7 +19,8 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
 
-    modMatrix.makeConnection(Parameters::ID_ENV, Parameters::ID_DRIVE, 1.0f);
+    for (int i = 0; i < 8; i++)
+        modMatrix.makeConnection(Parameters::ID_ENV, "", 0.0f);
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {

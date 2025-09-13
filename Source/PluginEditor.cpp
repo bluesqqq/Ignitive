@@ -15,6 +15,9 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     // ==============// MOD MATRIX //==============//
     addAndMakeVisible(modMatrixComponent);
 
+    modMatrixViewport.setViewedComponent(&modMatrixComponent, false);
+    addAndMakeVisible(modMatrixViewport);
+
     addAndMakeVisible(filterToggleButton);
     filterToggleButton.onClick = [this] {
         bool showingPre = filterToggleButton.getIndex();
@@ -104,6 +107,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     };
 
 	addAndMakeVisible(envBox);
+
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -124,7 +128,9 @@ void IgnitiveAudioProcessorEditor::resized() {
     preFilterComponent.setBounds(area);
     postFilterComponent.setBounds(area);
 
-    modMatrixComponent.setBounds(260, 580, 200, 200);
+    modMatrixViewport.setBounds(260 + 10, 580 + 10, 200 - 20, 200 - 20);
+
+    modMatrixComponent.setSize(160, 250);
 
     inGainSlider.setBounds(20, 20, 40, 40);
     mixSlider.setBounds(280, 20, 40, 40);
@@ -144,5 +150,5 @@ void IgnitiveAudioProcessorEditor::resized() {
     gateSlider.setBounds(180, 740, 40, 40);
 
     envLFOToggleButton.setBounds(230, 620, 20, 40);
-	envBox.setBounds(30, 590, 180, 120);
+	envBox.setBounds(20, 580, 200, 140);
 }
