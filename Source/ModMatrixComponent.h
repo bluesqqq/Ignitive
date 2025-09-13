@@ -3,9 +3,12 @@
 #include <JuceHeader.h>
 #include "ModSource.h"
 #include "PluginProcessor.h"
+#include "CustomLAFs.h"
 
 class ModSlotComponent : public juce::Component {
 	private:
+		ModSlotLAF modSlotLAF;
+
 		juce::ComboBox destinationBox;
 		juce::Slider depthSlider;
 		juce::TextButton removeButton;
@@ -29,34 +32,49 @@ class ModSlotComponent : public juce::Component {
 				++id;
 			}
 
-			addAndMakeVisible(destinationBox);
-
+			destinationBox.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+			destinationBox.setLookAndFeel(&modSlotLAF);
 			if (selectedID > 0) destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
-
 			destinationBox.onChange = [this, destinations]() {
 				if (connection) connection->destinationID = destinations[destinationBox.getSelectedId() - 1];
 			};
+			addAndMakeVisible(destinationBox);
 
-			addAndMakeVisible(depthSlider);
+			depthSlider.setLookAndFeel(&modSlotLAF);
 			depthSlider.setRange(-1.0f, 1.0f, 0.01f);
+			addAndMakeVisible(depthSlider);
 			if (connection) depthSlider.setValue(connection->depth);
 			depthSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 			depthSlider.onValueChange = [this]() {
 				if (connection) connection->depth = (float)depthSlider.getValue();
 			};
 
-			//addAndMakeVisible(removeButton);
+			removeButton.setLookAndFeel(&modSlotLAF);
+			addAndMakeVisible(removeButton);
 			removeButton.setButtonText("X");
 			removeButton.onClick = [this]() {
 				if (onRemove) onRemove();
 			};
 		}
 
+		void paint(juce::Graphics& g) override {
+			auto area = getLocalBounds();
+
+			g.setColour(juce::Colours::yellow);
+			g.drawLine(0, area.getHeight() - 1, area.getWidth(), area.getHeight() - 1);
+		}
+
 		void resized() override {
 			auto area = getLocalBounds();
 
-			auto left = area.removeFromLeft(area.getWidth() / 2);
-			destinationBox.setBounds(left);
+			// 10% width for removeButton
+			int removeWidth = area.getWidth() * 0.1f;
+			auto removeArea = area.removeFromRight(removeWidth);
+			removeButton.setBounds(removeArea);
+
+			// Split remaining 90% in half
+			auto leftHalf = area.removeFromLeft(area.getWidth() / 2);
+			destinationBox.setBounds(leftHalf);
 
 			depthSlider.setBounds(area); // remaining right half
 		}
@@ -77,27 +95,22 @@ class ModMatrixComponent : public juce::Component {
 			auto& connections = modMatrix.getConnections();
 			
 			for (auto& connection : connections) {
-				auto* slot = new ModSlotComponent(&connection, modMatrix);
-				modSlots.add(slot);
-				addAndMakeVisible(slot);
+				addSlot(connection);
 			}
 		}
 
-		void paint(juce::Graphics& g) override {
+		void addSlot(ModConnection& connection) {
+			auto* slot = new ModSlotComponent(&connection, modMatrix);
 
-		}
+			const juce::String sourceID = connection.sourceID;
+			const juce::String destinationID = connection.destinationID;
 
-		void addSlot(const juce::String& sourceID, const juce::String& destinationID, float depthValue = 0.5f) {
-			ModConnection* connection = modMatrix.makeConnection(sourceID, destinationID, depthValue);
-
-			if (connection == nullptr) return;
-			
-			auto* slot = new ModSlotComponent(connection, modMatrix);
-
-			slot->onRemove = [this, connection, slot]() {
-				modMatrix.removeConnection(connection->destinationID, connection->sourceID);
-				modSlots.removeObject(slot, true);
+			// Not a fan of this, probably a better way
+			slot->onRemove = [this, slot, sourceID, destinationID]() {
+				modMatrix.removeConnection(sourceID, destinationID);
+				modSlots.removeObject(slot, false);
 				resized();
+				delete slot;
 			};
 
 			modSlots.add(slot);
@@ -106,9 +119,9 @@ class ModMatrixComponent : public juce::Component {
 		}
 
 		void resized() override {
-			auto area = getLocalBounds().reduced(4);
+			auto area = getLocalBounds().reduced(10);
 
-			int slotHeight = 40;
+			int slotHeight = 32;
 			int y = 0;
 			for (auto* slot : modSlots) {
 				slot->setBounds(area.removeFromTop(slotHeight));

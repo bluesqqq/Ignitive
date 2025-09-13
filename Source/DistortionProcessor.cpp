@@ -1,8 +1,66 @@
 #include "DistortionProcessor.h"
 
+const std::array<DistortionDefinition, 7> DistortionProcessor::distortionDefs = { {
+    {
+        "Hard Clip",
+        [](float sample, float drive) -> float {
+            return juce::jlimit(-1.0f, 1.0f, sample * (1.0f + drive * 20.0f));
+        }
+    },
+    {
+        "Tube",
+        [](float sample, float drive) -> float {
+            if (drive <= 0.0f) return sample;
+            float k = drive * 20.0f;
+            return std::tanhf(sample * k) / std::tanhf(k);
+        }
+    },
+    {
+        "Tape",
+        [](float sample, float drive) -> float {
+            if (drive <= 0.0f) return sample;
+
+            float k = 1.0f + drive * 5.0f;
+            float x = sample * k;
+
+            return (x / (1.0f + fabsf(x)));
+        }
+    },
+    {
+        "LinearShaper",
+        [](float sample, float drive) -> float {
+            float k = 1.0f + drive * 15.0f;
+
+            return 1.0f - std::fabsf(std::fmodf(sample * k + 1.0f, 4.0f) - 2.0f);
+        }
+    },
+    {
+        "SineShaper",
+        [](float sample, float drive) -> float {
+            float k = 1.0f + drive * 15.0f;
+
+            return sin(sample * k);
+        }
+    },
+    {
+        "Rectify",
+        [](float sample, float drive) -> float {
+            return juce::jlimit(-1.0f, 1.0f, fabsf(sample) * (1.0f + drive * 20.0f));
+        }
+    },
+    {
+        "Downsample",
+        [](float sample, float drive) -> float {
+            int numSteps = juce::jmax(2, (int)std::lround(64.0f - drive * 62.0f)); // Get the number of steps based on drive (from 64 to 4)
+            return std::floor(sample * numSteps + 0.5f) / numSteps;
+        }
+    },
+}};
+
 DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID)
-    : type(DistortionType::HardClip), parameters(params), modMatrix(matrix),
-      driveID(driveID), colorID(colorID), typeID(typeID) {
+    : parameters(params), modMatrix(matrix),
+      driveID(driveID), colorID(colorID), typeID(typeID),
+      index(0) {
 }
 
 void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -44,7 +102,7 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
 void DistortionProcessor::reset() {
 }
 
-void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { type = distType; }
+void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { index = static_cast<int>(distType); }
 
 void DistortionProcessor::updateParameters() {
     int distortionType = parameters.getRawParameterValue(typeID)->load();
@@ -71,47 +129,32 @@ float sign(float x) {
     return -1.0;
 }
 
-float DistortionProcessor::hardClip(float x, float d) { return juce::jlimit(-1.0f, 1.0f, x * (1.0f + d * 20.0f)); }
-
-float DistortionProcessor::tube(float x, float d) {
-    if (d == 0.0f) return x;
-    float k = d * 20.0f;
-    return std::tanf(x * k) / std::tanhf(k);
-}
-
-float DistortionProcessor::fuzz(float x, float d) {
-    float k = d * 20.0f;
-    return sign(x) * ((1 - std::expf(-std::fabsf(k * x))) / (1 - std::expf(-k))); 
-}
-
-float DistortionProcessor::rectify(float x, float d) { return hardClip(fabsf(x), d); }
-
-float DistortionProcessor::downsample(float x, float d) {
-    int numSteps = juce::jmax(4, (int)std::lround(64.0f - d * 60.0f)); // Get the number of steps based on drive (from 64 to 4)
-    return std::floor(x * numSteps + 0.5f) / numSteps;
-}
-
 float DistortionProcessor::distort(float x, float d, float c) {
+    auto& def = distortionDefs[index];
+
+    float distortion = d;
+
+    // BEND
+    //float distortion = d + c * (1.0f - std::fabsf(x));
+
+    // ASYM
+    //float offset = (c - 0.5f) * 1.5f;
+    //if (x <= offset) distortion += (1.0f / (offset + 1.0f)) * (x + 1.0f);
+    //else distortion += (1.0f / (offset - 1.0f)) * (x - 1.0f);
+
+    /*
     const float minDrive = 0.5f;
     const float maxDrive = 1.2f;
-
     float tilt = (c - 0.5f) * 2.0f;
 
     float side = (x >= 0.0f ? 1.0f : -1.0f);
 
-    float driveFactor = juce::jmap(tilt * side,
-        -1.0f, 1.0f,
-        minDrive, maxDrive);
+    float driveFactor = juce::jmap(tilt * side, -1.0f, 1.0f, minDrive, maxDrive);
+    */
 
-    d = d * driveFactor;
+    distortion = juce::jlimit(0.0f, 2.0f, distortion);
 
-    switch (type) {
-        case DistortionType::HardClip:   return hardClip(x, d);
-        case DistortionType::Tube:       return tube(x, d);
-        case DistortionType::Fuzz:       return fuzz(x, d);
-        case DistortionType::Rectify:    return rectify(x, d);
-        case DistortionType::Downsample: return downsample(x, d);
-    }
+    x = def.process(x, distortion);
 
     return x;
 }

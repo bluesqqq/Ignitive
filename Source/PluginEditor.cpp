@@ -53,14 +53,10 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     colorSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(colorSlider);
 
-    distortionTypeSelector.addItem("Hard Clip", 1);
-    distortionTypeSelector.addItem("Soft Clip", 2);
-    distortionTypeSelector.addItem("Tube", 3);
-    distortionTypeSelector.addItem("Fuzz", 4);
-    distortionTypeSelector.addItem("Sine Shaper", 5);
-    distortionTypeSelector.addItem("Rectify", 6);
-    distortionTypeSelector.addItem("Downsample", 7);
+    auto* parameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
+    distortionTypeSelector.addItemList(parameter->getAllValueStrings(), 1);
     addAndMakeVisible(distortionTypeSelector);
+    distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
 
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -126,7 +122,7 @@ void IgnitiveAudioProcessorEditor::resized() {
     preFilterComponent.setBounds(area);
     postFilterComponent.setBounds(area);
 
-    modMatrixComponent.setBounds(310, 580, 150, 200);
+    modMatrixComponent.setBounds(260, 580, 200, 200);
 
     inGainSlider.setBounds(20, 20, 40, 40);
     mixSlider.setBounds(280, 20, 40, 40);
@@ -145,6 +141,6 @@ void IgnitiveAudioProcessorEditor::resized() {
     decaySlider.setBounds(100, 740, 40, 40);
     gateSlider.setBounds(180, 740, 40, 40);
 
-    envLFOToggleButton.setBounds(280, 620, 20, 40);
-	envBox.setBounds(30, 590, 230, 120);
+    envLFOToggleButton.setBounds(230, 620, 20, 40);
+	envBox.setBounds(30, 590, 180, 120);
 }

@@ -80,7 +80,7 @@ class ModMatrix {
 
 			if (!destination) return 0.0f;
 
-			return destination->getValue(sample);
+			return juce::jlimit(0.0f, 1.0f, destination->getValue(sample));
 		}
 
 		std::vector<ModConnection>& getConnections() { return connections; }

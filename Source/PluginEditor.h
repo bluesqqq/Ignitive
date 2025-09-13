@@ -35,7 +35,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment colorAttach{ audioProcessor.parameters, Parameters::ID_COLOR, colorSlider };
 
         juce::ComboBox distortionTypeSelector;
-        juce::AudioProcessorValueTreeState::ComboBoxAttachment distortionTypeAttach{ audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector };
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> distortionTypeAttach;
 
         juce::Slider feedbackSlider, feedbackDelaySlider;
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK, feedbackSlider };

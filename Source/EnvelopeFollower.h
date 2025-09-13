@@ -74,7 +74,7 @@ class EnvelopeFollower : public ModSource {
 				int start1, size1, start2, size2;
 				fifo.prepareToRead(samples, start1, size1, start2, size2);
 
-				// we don’t actually care about the values, just skip them
+				// we donâ€™t actually care about the values, just skip them
 				fifo.finishedRead(samples);
 				return true;
 			}

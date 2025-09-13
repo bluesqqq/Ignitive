@@ -12,7 +12,13 @@ enum class DistortionType {
 	Tube,
 	Fuzz,
 	Rectify,
-	Downsample
+	Downsample,
+	NumDefinitions
+};
+
+struct DistortionDefinition {
+	const char* name;
+	float (*process)(float, float);
 };
 
 class DistortionProcessor : public juce::dsp::ProcessorBase {
@@ -22,25 +28,17 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 		std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
 
-		float hardClip(float sample, float drive);
-
-		float tube(float sample, float drive);
-
-		float fuzz(float sample, float drive);
-
-		float rectify(float sample, float drive);
-
-		float downsample(float sample, float drive);
-
 		float distort(float sample, float drive, float color);
 
-		DistortionType type;
+		int index;
 
 		juce::String driveID;
 		juce::String colorID;
 		juce::String typeID;
 
 	public:
+		static const std::array<DistortionDefinition, 7> distortionDefs;
+
 		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID);
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override;
