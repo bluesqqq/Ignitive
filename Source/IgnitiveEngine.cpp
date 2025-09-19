@@ -3,19 +3,20 @@
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
 	: parameters(params), processor(p), modMatrix(params), 
-	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_COLOR, Parameters::ID_DISTORTION_TYPE),
+	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_CHARACTER, Parameters::ID_DISTORTION_TYPE, Parameters::ID_CHARACTER_TYPE),
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
-      preFilter (parameters, modMatrix, Parameters::ID_PRE_FILTER_CUTOFF,  Parameters::ID_PRE_FILTER_RESONANCE,  Parameters::ID_PRE_FILTER_TYPE,  Parameters::ID_PRE_FILTER_ENABLED),
-      postFilter(parameters, modMatrix, Parameters::ID_POST_FILTER_CUTOFF, Parameters::ID_POST_FILTER_RESONANCE, Parameters::ID_POST_FILTER_TYPE, Parameters::ID_POST_FILTER_ENABLED) {
+      filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE) {
 
     modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
-    modMatrix.addDestination(Parameters::ID_COLOR, "Color", params);
+    modMatrix.addDestination(Parameters::ID_CHARACTER, "Color", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay", params);
-    modMatrix.addDestination(Parameters::ID_PRE_FILTER_CUTOFF, "Pre Cut", params);
-    modMatrix.addDestination(Parameters::ID_PRE_FILTER_RESONANCE, "Pre Res", params);
-    modMatrix.addDestination(Parameters::ID_POST_FILTER_CUTOFF, "Post Cut", params);
-    modMatrix.addDestination(Parameters::ID_POST_FILTER_RESONANCE, "Post Res", params);
+
+
+    modMatrix.addDestination(Parameters::ID_LP_CUTOFF,    "LP Cut", params);
+    modMatrix.addDestination(Parameters::ID_LP_RESONANCE, "LP Res", params);
+    modMatrix.addDestination(Parameters::ID_HP_CUTOFF,    "HP Cut", params);
+    modMatrix.addDestination(Parameters::ID_HP_RESONANCE, "HP Res", params);
 
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
 
@@ -26,8 +27,7 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
 	distortion.prepare(spec);
 	feedback.prepare(spec);
-	preFilter.prepare(spec);
-	postFilter.prepare(spec);
+	filter.prepare(spec);
 
     envelope.prepare(spec);
 
@@ -71,16 +71,13 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     modMatrix.update();
 
     // DSP
-    preFilter.process(context);
+    filter.process(context);
     distortion.process(context);
-    
-    postFilter.updateParameters();
 
     // Post filter has to be processed per sample due to feedback's ordering
     // See graph above for visual explanation
     for (size_t sample = 0; sample < numSamples; ++sample) {
         feedback.processBlockSample(block, sample);
-        postFilter.processBlockSample(block, sample);
         feedback.processWriteBlockSample(block, sample);
     }
 
@@ -97,6 +94,5 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
 void IgnitiveEngine::reset() {
     distortion.reset();
     feedback.reset();
-    preFilter.reset();
-    postFilter.reset();
+    filter.reset();
 }

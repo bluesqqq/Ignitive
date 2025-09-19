@@ -1,66 +1,69 @@
 
 #include "FilterProcessor.h"
 
-FilterProcessor::FilterProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& cutID, const juce::String& resID, const juce::String& typeID, const juce::String& enabledID)
-    : parameters(params), modMatrix(matrix), cutoffID(cutID), resonanceID(resID), typeID(typeID), enabledID(enabledID) {
+FilterProcessor::FilterProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& lpCutID, const juce::String& lpResID, const juce::String& hpCutID, const juce::String& hpResID)
+    : parameters(params), modMatrix(matrix), lpCutoffID(lpCutID), lpResonanceID(lpResID), hpCutoffID(hpCutID), hpResonanceID(hpResID) {
 }
 
 void FilterProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
-    filter.prepare(spec);
+    lpFilter.prepare(spec);
+    lpFilter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+    hpFilter.prepare(spec);
+    hpFilter.setType(juce::dsp::StateVariableTPTFilterType::highpass);
 }
 
 void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
-    if (!parameters.getRawParameterValue(enabledID)->load()) return; // bypass
-
-    updateParameters();
-
     auto& block = context.getOutputBlock();
     auto numSamples = block.getNumSamples();
     auto numChannels = block.getNumChannels();
 
     for (size_t sample = 0; sample < numSamples; ++sample) {
-        float cutoffNorm    = modMatrix.getValue(cutoffID, sample);
-        float resonanceNorm = modMatrix.getValue(resonanceID, sample);
+        float lpCutoff    = modMatrix.getValue(lpCutoffID, sample);
+        float lpResonance = modMatrix.getValue(lpResonanceID, sample);
+        float hpCutoff    = modMatrix.getValue(hpCutoffID, sample);
+        float hpResonance = modMatrix.getValue(hpResonanceID, sample);
 
-        float cutoffHz = 20.0f * std::pow(10.0f, cutoffNorm * 3.0f);
-        float qResonance = juce::jmap(resonanceNorm, 0.707f, 4.0f);
+        float lpCutoffHz = 20.0f * std::pow(10.0f, lpCutoff * 3.0f);
+        float lpResonanceQ = juce::jmap(lpResonance, 0.707f, 4.0f);
+        float hpCutoffHz = 20.0f * std::pow(10.0f, hpCutoff * 3.0f);
+        float hpResonanceQ = juce::jmap(hpResonance, 0.707f, 4.0f);
 
-        filter.setCutoffFrequency(cutoffHz);
-        filter.setResonance(qResonance);
+        lpFilter.setCutoffFrequency(lpCutoffHz);
+        lpFilter.setResonance(lpResonanceQ);
+        hpFilter.setCutoffFrequency(hpCutoffHz);
+        hpFilter.setResonance(hpResonanceQ);
 
         for (size_t channel = 0; channel < numChannels; ++channel) {
             float* data = block.getChannelPointer(channel);
-            data[sample] = filter.processSample(channel, data[sample]);
+            data[sample] = hpFilter.processSample(channel, lpFilter.processSample(channel, data[sample]));
         }
     }
 }
 
 void FilterProcessor::reset() {
-    filter.reset();
+    lpFilter.reset();
+    hpFilter.reset();
 }
 
 void FilterProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
-    if (!parameters.getRawParameterValue(enabledID)->load()) return;
+    float lpCutoff    = modMatrix.getValue(lpCutoffID, sample);
+    float lpResonance = modMatrix.getValue(lpResonanceID, sample);
+    float hpCutoff    = modMatrix.getValue(hpCutoffID, sample);
+    float hpResonance = modMatrix.getValue(hpResonanceID, sample);
 
-    float cutoffNorm    = modMatrix.getValue(cutoffID, sample);
-    float resonanceNorm = modMatrix.getValue(resonanceID, sample);
+    float lpCutoffHz = 20.0f * std::pow(10.0f, lpCutoff * 3.0f);
+    float lpResonanceQ = juce::jmap(lpResonance, 0.707f, 4.0f);
+    float hpCutoffHz = 20.0f * std::pow(10.0f, hpCutoff * 3.0f);
+    float hpResonanceQ = juce::jmap(hpResonance, 0.707f, 4.0f);
 
-    float cutoffHz = 20.0f * std::pow(10.0f, cutoffNorm * 3.0f);
-    float qResonance = juce::jmap(resonanceNorm, 0.707f, 4.0f);
-
-    filter.setCutoffFrequency(cutoffHz);
-    filter.setResonance(qResonance);
+    lpFilter.setCutoffFrequency(lpCutoffHz);
+    lpFilter.setResonance(lpResonanceQ);
+    hpFilter.setCutoffFrequency(hpCutoffHz);
+    hpFilter.setResonance(hpResonanceQ);
 
     for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
-
         float* data = block.getChannelPointer(channel);
-
-        data[sample] = filter.processSample(channel, data[sample]);
+        data[sample] = lpFilter.processSample(channel, data[sample]);
+        data[sample] = hpFilter.processSample(channel, data[sample]);
     }
-}
-
-void FilterProcessor::updateParameters() {
-    int typeIndex = (int)parameters.getRawParameterValue(typeID)->load();
-
-    filter.setType(static_cast<juce::dsp::StateVariableTPTFilterType>(typeIndex));
 }

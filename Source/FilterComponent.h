@@ -5,20 +5,28 @@
 #include "CustomLAFs.h"
 #include "FilterProcessor.h"
 
-class FilterComponent : public juce::Component {
+class FilterComponent : public juce::Component, private juce::Timer {
     private:
 		KnobLAF knobLAF;
 
-        juce::Slider cutoffKnob, resonanceKnob;
-        SwitchButton typeButton{ "Filter Type", 3, DOWN };
-        juce::ToggleButton enabledButton;
+        juce::Slider lpCutoffKnob, lpResonanceKnob;
+        juce::Slider hpCutoffKnob, hpResonanceKnob;
 
-        juce::AudioProcessorValueTreeState::SliderAttachment cutoffAttach, resonanceAttach;
-        SwitchButtonAttachment typeAttach;
-        juce::AudioProcessorValueTreeState::ButtonAttachment enabledAttach;
+        juce::AudioProcessorValueTreeState::SliderAttachment lpCutoffAttach, lpResonanceAttach;
+        juce::AudioProcessorValueTreeState::SliderAttachment hpCutoffAttach, hpResonanceAttach;
+
+        FilterProcessor& filter;
+
+        float calculateLowpassResponse(float frequency, float cutoff, float resonance);
+        float calculateHighpassResponse(float frequency, float cutoff, float resonance);
+
 
     public:
         FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter);
 
         void resized() override;
+
+        void paint(juce::Graphics& g) override;
+
+        void timerCallback() override;
 };

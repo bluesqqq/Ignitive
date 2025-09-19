@@ -6,8 +6,8 @@
               pluginManufacturer="bluesq">
   <MAINGROUP id="Q8mVPC" name="Ignitive">
     <GROUP id="{9C013130-8D00-8247-5718-18BB695B4028}" name="Resources">
-      <FILE id="E9AWQ5" name="digital.ttf" compile="0" resource="1" file="C:/Users/blues/OneDrive/Desktop/digital.ttf"/>
-      <FILE id="S342FU" name="Ignitive.png" compile="0" resource="1" file="C:/Users/blues/OneDrive/Desktop/Ignitive.png"/>
+      <FILE id="Zs484S" name="digital.ttf" compile="0" resource="1" file="Source/digital.ttf"/>
+      <FILE id="U2eshZ" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <FILE id="jA2Oay" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>

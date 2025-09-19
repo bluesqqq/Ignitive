@@ -57,9 +57,9 @@ const std::array<DistortionDefinition, 7> DistortionProcessor::distortionDefs = 
     },
 }};
 
-DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& colorID, const juce::String& typeID)
+DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID)
     : parameters(params), modMatrix(matrix),
-      driveID(driveID), colorID(colorID), typeID(typeID),
+      driveID(driveID), characterID(characterID), typeID(typeID), characterTypeID(characterTypeID),
       index(0) {
 }
 
@@ -85,7 +85,7 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
     // Process
     for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
         float d = modMatrix.getValue(Parameters::ID_DRIVE, sample/4);
-        float c = modMatrix.getValue(Parameters::ID_COLOR, sample/4);
+        float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample/4);
 
         for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
             auto* samples = oversampledBlock.getChannelPointer(channel);
@@ -102,17 +102,16 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
 void DistortionProcessor::reset() {
 }
 
-void DistortionProcessor::setDistortionAlgorithm(DistortionType distType) { index = static_cast<int>(distType); }
-
 void DistortionProcessor::updateParameters() {
     int distortionType = parameters.getRawParameterValue(typeID)->load();
+    characterType = static_cast<CharacterType>(parameters.getRawParameterValue(characterTypeID)->load());
 
-    setDistortionAlgorithm(static_cast<DistortionType>(distortionType));
+    index = distortionType;
 }
 
 std::vector<float> DistortionProcessor::getWaveshape(unsigned int points) {
     float d = modMatrix.getValue(driveID, 0);
-    float c = modMatrix.getValue(colorID, 0);
+    float c = modMatrix.getValue(characterID, 0);
     std::vector<float> waveshape;
     waveshape.reserve(points);
 
@@ -134,6 +133,16 @@ float DistortionProcessor::distort(float x, float d, float c) {
 
     float distortion = d;
 
+    switch (characterType) {
+        case CharacterType::Bend: {
+            distortion += fabsf(x * c) - c / 2.0f;
+            break;
+        }
+        case CharacterType::Asym: {
+            distortion += x * 0.5f * c;
+            break;
+        }
+    }
     // BEND
     //float distortion = d + c * (1.0f - std::fabsf(x));
 

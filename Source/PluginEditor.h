@@ -18,6 +18,8 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         KnobLAF knobLAF;
 
+        BirdsEyeLAF birdsEyeLAF;
+
         juce::Image backgroundImage;
 
 		EnvelopeBox envBox;
@@ -31,24 +33,25 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment mixAttach{ audioProcessor.parameters, Parameters::ID_MIX, mixSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment outGainAttach{ audioProcessor.parameters, Parameters::ID_OUT_GAIN, outGainSlider };
 
-		// Distortion + Feedback
+		// Distortion
 		DriveKnob driveKnob{ audioProcessor, Parameters::ID_DRIVE };
-
-        juce::Slider colorSlider;
-        juce::AudioProcessorValueTreeState::SliderAttachment colorAttach{ audioProcessor.parameters, Parameters::ID_COLOR, colorSlider };
 
         juce::ComboBox distortionTypeSelector;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> distortionTypeAttach;
 
+        juce::Slider colorSlider;
+        juce::AudioProcessorValueTreeState::SliderAttachment colorAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER, colorSlider };
+
+        juce::ComboBox characterTypeSelector;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;
+
+        // Feedback
         juce::Slider feedbackSlider, feedbackDelaySlider;
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK, feedbackSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackDelayAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK_DELAY, feedbackDelaySlider };
 
-        // Filters
-		FilterComponent preFilterComponent { audioProcessor.parameters, audioProcessor.ignitive.preFilter };
-		FilterComponent postFilterComponent { audioProcessor.parameters, audioProcessor.ignitive.postFilter };
-
-        SwitchButton filterToggleButton { "Filter Toggle", 2, RIGHT };
+        // Filter
+		FilterComponent filterComponent { audioProcessor.parameters, audioProcessor.ignitive.filter };
 
         // Envelope + LFO
         juce::Slider attackSlider, decaySlider, gateSlider;

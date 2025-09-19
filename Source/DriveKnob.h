@@ -18,6 +18,7 @@ class DriveKnob : public juce::Component, private juce::Timer {
 			driveSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
 			driveSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 			driveSlider.setLookAndFeel(&driveLAF);
+			driveSlider.setRotaryParameters(juce::degreesToRadians<float>(255.0f), juce::degreesToRadians<float>(465.0f), true);
 			addAndMakeVisible(driveSlider);
 		}
 

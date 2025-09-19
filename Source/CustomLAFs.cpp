@@ -6,7 +6,7 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle);
     int centerX = x + width / 2;
     int centerY = y + height / 2;
-    float radius = width / 2 - 15;
+    float radius = width / 2 - 8;
 
     float modifiedValue = distortion.getModifiedDriveValue();
     float modifiedAngle = juce::jmap(modifiedValue, rotaryStartAngle, rotaryEndAngle);
@@ -162,4 +162,89 @@ void ModSlotLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, c
     g.setColour(juce::Colours::yellow);
     g.drawLine(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, 2.0f);
     g.drawLine(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, 2.0f);
+}
+
+void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
+    float now = juce::Time::getMillisecondCounter() * 0.001;
+    float deltaTime = now - lastFrameTime;
+    lastFrameTime = now;
+
+    float deltaTimeNorm = deltaTime / 0.01667f;
+
+    juce::Rectangle<float> bounds(x, y, width, height);
+
+    float modifiedValue = distortion.getModifiedCharacterValue();
+
+    // BLINKING
+    
+    // trigger a blink every blinkInterval
+    if (!blinking && now - lastBlinkTime > blinkInterval) {
+        blinking = true;
+        targetEyelidPosition = 0.0f; // close eyelid
+        lastBlinkTime = now;
+    }
+
+    juce::Random random;
+
+    // if it reaches the closed position, open it again
+    if (blinking && std::abs(eyelidPosition - targetEyelidPosition) < 0.05f) {
+        pupilTrackState = random.nextInt(2);
+        blinking = false;
+    }
+
+    if (!blinking) targetEyelidPosition = 0.5f + modifiedValue / 2.0f;
+
+    eyelidPosition = juce::jmap(0.35f * deltaTimeNorm, eyelidPosition, targetEyelidPosition);
+
+    // PUPIL TRACKING
+    if (pupilTrackState == 0) { // Follow mouse
+        juce::Point<float> eyeCenter = bounds.getCentre();
+        juce::Point<float> mousePos = slider.getLocalPoint(nullptr, juce::Desktop::getInstance().getMainMouseSource().getScreenPosition());
+        pupilLookTarget = mousePos - eyeCenter;
+
+        float distance = pupilLookTarget.getDistanceFromOrigin();
+        float maxOffset = 9.0f;
+        if (distance > maxOffset) pupilLookTarget *= (maxOffset / distance);
+    } else {
+        pupilLookTarget.setXY(0.0f, 0.0f);
+    }
+
+    pupilLook.x = juce::jmap(0.05f * deltaTimeNorm, pupilLook.x, pupilLookTarget.x);
+    pupilLook.y = juce::jmap(0.05f * deltaTimeNorm, pupilLook.y, pupilLookTarget.y);
+
+    // DRAWING
+    bounds.reduce(3.0f, 3.0f);
+
+    juce::Path eye;
+
+    float eyelidRadians = juce::jmap(juce::jlimit(0.0f, 1.0f, eyelidPosition), 0.1f, juce::MathConstants<float>::pi - 0.1f);
+    eye.addArc(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), juce::MathConstants<float>::pi + eyelidRadians, juce::MathConstants<float>::pi - eyelidRadians, true);
+    eye.closeSubPath();
+    
+    g.setColour(juce::Colours::red);
+    g.strokePath(eye, juce::PathStrokeType(5, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+    float pupilSpacing = 4.0f;
+    bounds.reduce(2.0f + pupilSpacing, 2.0f + pupilSpacing);
+
+    float pupilSize    = juce::jmap(sliderPos, 6.0f, bounds.getWidth() / 2.0f);
+    float pupilModSize = juce::jmap(modifiedValue, 6.0f, bounds.getWidth() / 2.0f);
+
+    if (pupilModSize < pupilSize) {
+        std::swap(pupilSize, pupilModSize);
+    }
+
+    juce::Point<float> eyeCenter = bounds.getCentre();
+
+    juce::Rectangle<float> pupilBounds(eyeCenter.x - pupilSize + pupilLook.x, eyeCenter.y - pupilSize + pupilLook.y, pupilSize * 2, pupilSize * 2);
+    juce::Rectangle<float> pupilModBounds(eyeCenter.x - pupilModSize + pupilLook.x, eyeCenter.y - pupilModSize + pupilLook.y, pupilModSize * 2, pupilModSize * 2);
+
+    // pupil
+    g.reduceClipRegion(eye);
+    g.setColour(juce::Colours::yellow);
+    g.fillEllipse(pupilModBounds);
+
+    g.setColour(juce::Colours::red);
+    g.fillEllipse(pupilBounds);
+
 }

@@ -2,31 +2,19 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix){
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
 
     // ==============// FILTERS //==============//
-
-    addAndMakeVisible(preFilterComponent);
-    addChildComponent(postFilterComponent);
+    addAndMakeVisible(filterComponent);
 
     // ==============// MOD MATRIX //==============//
     addAndMakeVisible(modMatrixComponent);
 
     modMatrixViewport.setViewedComponent(&modMatrixComponent, false);
     addAndMakeVisible(modMatrixViewport);
-
-    addAndMakeVisible(filterToggleButton);
-    filterToggleButton.onClick = [this] {
-        bool showingPre = filterToggleButton.getIndex();
-
-        preFilterComponent.setVisible(showingPre);
-        postFilterComponent.setVisible(!showingPre);
-
-        resized();
-    };
 
 	// ==============// GAIN //==============//
     inGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -52,7 +40,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
     colorSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     colorSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    colorSlider.setLookAndFeel(&knobLAF);
+    colorSlider.setLookAndFeel(&birdsEyeLAF);
     colorSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(colorSlider);
 
@@ -62,6 +50,14 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     distortionTypeSelector.setLookAndFeel(&distortionLAF);
     addAndMakeVisible(distortionTypeSelector);
     distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
+
+    characterTypeSelector.addItemList(juce::StringArray("Color", "Bend", "Asym"), 1);
+    characterTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+    characterTypeSelector.setLookAndFeel(&distortionLAF);
+    addAndMakeVisible(characterTypeSelector);
+    characterTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_CHARACTER_TYPE, characterTypeSelector));
+
+
 
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -125,8 +121,7 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
 void IgnitiveAudioProcessorEditor::resized() {
     auto area = getLocalBounds();
 
-    preFilterComponent.setBounds(area);
-    postFilterComponent.setBounds(area);
+    filterComponent.setBounds(area);
 
     modMatrixViewport.setBounds(260 + 10, 580 + 10, 200 - 20, 200 - 20);
 
@@ -136,14 +131,15 @@ void IgnitiveAudioProcessorEditor::resized() {
     mixSlider.setBounds(280, 20, 40, 40);
     outGainSlider.setBounds(340, 20, 40, 40);
 
+    // Distortion
     driveKnob.setBounds(140, 220, 200, 200);
-    colorSlider.setBounds(103, 398, 60, 60);
-    distortionTypeSelector.setBounds(352, 300, 112, 40);
+    colorSlider.setBounds(97, 403, 60, 60);
+    characterTypeSelector.setBounds(7, 300, 112, 40);
+    distortionTypeSelector.setBounds(361, 300, 112, 40);
 
-    feedbackSlider.setBounds(360, 440, 80, 80);
-    feedbackDelaySlider.setBounds(400, 392, 40, 40);
-
-    filterToggleButton.setBounds(184, 88, 40, 20);
+    // Feedback
+    feedbackSlider.setBounds(354, 383, 80, 80);
+    feedbackDelaySlider.setBounds(296, 452, 40, 40);
 
     attackSlider.setBounds(20, 740, 40, 40);
     decaySlider.setBounds(100, 740, 40, 40);

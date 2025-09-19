@@ -23,7 +23,7 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         //==============// DSP //==============//
         DistortionProcessor distortion;
         FeedbackProcessor feedback;
-        FilterProcessor preFilter, postFilter;
+        FilterProcessor filter;
 
         EnvelopeFollower envelope;
 

@@ -37,3 +37,28 @@ class ModSlotLAF : public juce::LookAndFeel_V4 {
         void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
             bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 };
+
+class BirdsEyeLAF : public juce::LookAndFeel_V4 {
+    private:
+        float eyelidPosition = 0.0f;
+        float targetEyelidPosition = 0.0f;
+        bool blinking = false;
+
+        float blinkInterval = 6.0f;
+        float lastBlinkTime = 0.0f;
+        float lastFrameTime = 0.0f;
+
+        juce::Point<float> pupilLook;
+        juce::Point<float> pupilLookTarget;
+
+        int pupilTrackState;
+        DistortionProcessor& distortion;
+
+    public:
+        BirdsEyeLAF(DistortionProcessor& distortion) : distortion(distortion) {
+            pupilLook.setXY(0.0f, 0.0f);
+            pupilLookTarget.setXY(0.0f, 0.0f);
+        }
+
+        void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider);
+};
