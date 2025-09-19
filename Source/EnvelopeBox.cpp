@@ -3,7 +3,7 @@
 void EnvelopeBox::paint(juce::Graphics& g) {
     auto envBox = getLocalBounds().toFloat().reduced(10);
     g.setColour(juce::Colours::yellow);
-    g.drawRect(envBox, 2.0f);
+    g.drawRect(envBox, 3.0f);
 
     float segmentWidth = envBox.getWidth() / (float)segments;
 
@@ -18,7 +18,7 @@ void EnvelopeBox::paint(juce::Graphics& g) {
     }
 
     g.setColour(juce::Colours::yellow);
-    g.strokePath(path, juce::PathStrokeType(2.0f));
+    g.strokePath(path, juce::PathStrokeType(3.0f));
 }
 
 void EnvelopeBox::pushEnvelopeValue(float newValue) {

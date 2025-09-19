@@ -7,7 +7,7 @@
   <MAINGROUP id="Q8mVPC" name="Ignitive">
     <GROUP id="{9C013130-8D00-8247-5718-18BB695B4028}" name="Resources">
       <FILE id="Zs484S" name="digital.ttf" compile="0" resource="1" file="Source/digital.ttf"/>
-      <FILE id="U2eshZ" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
+      <FILE id="SWLRxx" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <FILE id="jA2Oay" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
@@ -33,6 +33,9 @@
         <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
       </GROUP>
       <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
+        <FILE id="PH9Bcu" name="GainProcessor.cpp" compile="1" resource="0"
+              file="Source/GainProcessor.cpp"/>
+        <FILE id="mR7Hpp" name="GainProcessor.h" compile="0" resource="0" file="Source/GainProcessor.h"/>
         <FILE id="yirYJ1" name="FilterProcessor.cpp" compile="1" resource="0"
               file="Source/FilterProcessor.cpp"/>
         <FILE id="gSIBdc" name="FilterProcessor.h" compile="0" resource="0"
@@ -51,6 +54,8 @@
         <FILE id="g69yeC" name="CustomLAFs.h" compile="0" resource="0" file="Source/CustomLAFs.h"/>
       </GROUP>
       <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="Components">
+        <FILE id="zk1SbU" name="LevelMeter.cpp" compile="1" resource="0" file="Source/LevelMeter.cpp"/>
+        <FILE id="X2xK9H" name="LevelMeter.h" compile="0" resource="0" file="Source/LevelMeter.h"/>
         <FILE id="UbOjbd" name="DriveKnob.cpp" compile="1" resource="0" file="Source/DriveKnob.cpp"/>
         <FILE id="PTXjOK" name="DriveKnob.h" compile="0" resource="0" file="Source/DriveKnob.h"/>
         <FILE id="zo8Oms" name="ModMatrixComponent.cpp" compile="1" resource="0"

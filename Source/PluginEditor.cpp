@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion), inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -34,6 +34,9 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     outGainSlider.setLookAndFeel(&knobLAF);
     outGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(outGainSlider);
+
+    addAndMakeVisible(inMeter);
+    addAndMakeVisible(outMeter);
 
     // ==============// DISTORTION + FEEDBACK //==============//
     addAndMakeVisible(driveKnob);
@@ -112,10 +115,6 @@ IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
 void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
     if (backgroundImage.isValid()) g.drawImage(backgroundImage, getLocalBounds().toFloat());
     else g.fillAll(juce::Colours::grey);
-
-	juce::Rectangle<int> envBox(30, 590, 240, 120);
-
-	g.drawText("Number of Connections: " + juce::String(audioProcessor.ignitive.modMatrix.getNumOfConnections()), 10, 10, 200, 20, juce::Justification::left);
 }
 
 void IgnitiveAudioProcessorEditor::resized() {
@@ -147,4 +146,7 @@ void IgnitiveAudioProcessorEditor::resized() {
 
     envLFOToggleButton.setBounds(230, 620, 20, 40);
 	envBox.setBounds(20, 580, 200, 140);
+
+    inMeter.setBounds(412, 12, 22, 56);
+    outMeter.setBounds(446, 12, 22, 56);
 }

@@ -43,77 +43,54 @@ void FilterComponent::resized() {
 
 void FilterComponent::paint(juce::Graphics& g) {
     juce::Rectangle<float> screen(110.0f, 120.0f, 260.0f, 80.0f);
-
     screen.reduce(5.0f, 5.0f);
     juce::Path path;
 
-    float lpCutoff    = filter.lpFilter.getCutoffFrequency();
+    float lpCutoff = filter.lpFilter.getCutoffFrequency();
     float lpResonance = filter.lpFilter.getResonance();
 
     float hpCutoff = filter.hpFilter.getCutoffFrequency();
     float hpResonance = filter.hpFilter.getResonance();
 
-    int numberOfPoints = 100;
+    int numberOfPoints = 200; // more points = smoother curve
     std::vector<float> filterCurve;
     filterCurve.reserve(numberOfPoints);
 
-    for (int i = 0; i < numberOfPoints; i++) {
+    auto lpCoeffs = *juce::dsp::IIR::Coefficients<float>::makeLowPass(44100, lpCutoff, lpResonance);
+    auto hpCoeffs = *juce::dsp::IIR::Coefficients<float>::makeHighPass(44100, hpCutoff, hpResonance);
+
+    for (int i = 0; i < numberOfPoints; ++i) {
         float pos = (float)i / (float)(numberOfPoints - 1);
-        float hz = 20.0f * std::pow(10.0f, pos * 3.0f);
+        float freq = 20.0f * std::pow(10.0f, pos * 3.0f); // 20Hz-20kHz log scale
+        float omega = 2.0f * juce::MathConstants<float>::pi * freq / 44100;
+        std::complex<float> z = std::polar(1.0f, -omega);
 
-        float hpResponse = calculateHighpassResponse(hz, hpCutoff, hpResonance); 
-        float lpResponse = calculateLowpassResponse(hz, lpCutoff, lpResonance);
+        std::complex<float> Hlp = (lpCoeffs.coefficients[0] + lpCoeffs.coefficients[1] * z + lpCoeffs.coefficients[2] * z * z)
+            / (1.0f + lpCoeffs.coefficients[3] * z + lpCoeffs.coefficients[4] * z * z);
 
-        float combinedResponse = hpResponse * lpResponse;
+        std::complex<float> Hhp = (hpCoeffs.coefficients[0] + hpCoeffs.coefficients[1] * z + hpCoeffs.coefficients[2] * z * z)
+            / (1.0f + hpCoeffs.coefficients[3] * z + hpCoeffs.coefficients[4] * z * z);
 
-        // Convert to dB and normalize for display
-        float responseDB = 20.0f * std::log10(std::max(combinedResponse, 0.00001f));
+        float combined = std::abs(Hlp * Hhp);
 
-        // Map dB range to 0-1 for display (-48dB to +6dB range)
-        float normalizedResponse = juce::jmap(responseDB, -48.0f, 6.0f, 0.0f, 1.0f);
-        normalizedResponse = juce::jlimit(0.0f, 1.0f, normalizedResponse);
+        float db = 20.0f * std::log10(std::max(combined, 1e-6f));
+        float normalized = juce::jlimit(0.0f, 1.0f, juce::jmap(db, graphBottomDB, graphTopDB, 0.0f, 1.0f));
 
-        filterCurve.push_back(normalizedResponse);
+        filterCurve.push_back(normalized);
     }
 
-    // Map filter points to line
     float width = screen.getWidth() / (float)filterCurve.size();
-    for (int i = 0; i < filterCurve.size(); i++) {
+    for (int i = 0; i < filterCurve.size(); ++i) {
         float x = screen.getX() + width * i;
         float y = juce::jmap(filterCurve[i], screen.getY() + screen.getHeight(), screen.getY());
-
         if (i == 0) path.startNewSubPath(x, y);
         else path.lineTo(x, y);
     }
 
     g.setColour(juce::Colours::green);
-    g.strokePath(path, juce::PathStrokeType(2.0f));
+    g.strokePath(path, juce::PathStrokeType(3.0f));
 }
 
-float FilterComponent::calculateHighpassResponse(float frequency, float cutoff, float resonance) {
-    if (frequency <= 0.0f || cutoff <= 0.0f) return 0.0f;
-
-    float omega = frequency / cutoff;
-    float omega2 = omega * omega;
-
-    float R = 2.0f * (1.0f / std::max(resonance, 0.01f));
-
-    float numerator = omega2 * omega2;
-    float denominator = omega2 * omega2 + R * omega2 + 1.0f;
-
-    return std::sqrt(numerator / denominator);
-}
-
-float FilterComponent::calculateLowpassResponse(float frequency, float cutoff, float resonance) {
-    if (frequency <= 0.0f || cutoff <= 0.0f) return 1.0f;
-
-    float omega = frequency / cutoff;
-    float omega2 = omega * omega;
-    float R = 2.0f * (1.0f / std::max(resonance, 0.01f));
-    float denominator = omega2 * omega2 + R * omega2 + 1.0f;
-
-    return 1.0f / std::sqrt(denominator);
-}
 
 void FilterComponent::timerCallback() {
     repaint();

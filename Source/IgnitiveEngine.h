@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+#include "GainProcessor.h"
 #include "DistortionProcessor.h"
 #include "FeedbackProcessor.h"
 #include "FilterProcessor.h"
@@ -15,12 +16,9 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         juce::AudioProcessorValueTreeState& parameters;
         juce::AudioProcessor& processor;
 
-        //==============// Gain //==============//
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inGain;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> outGain;
-
     public:
         //==============// DSP //==============//
+        GainProcessor inGain, outGain;
         DistortionProcessor distortion;
         FeedbackProcessor feedback;
         FilterProcessor filter;

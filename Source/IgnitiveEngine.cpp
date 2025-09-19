@@ -5,7 +5,8 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 	: parameters(params), processor(p), modMatrix(params), 
 	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_CHARACTER, Parameters::ID_DISTORTION_TYPE, Parameters::ID_CHARACTER_TYPE),
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
-      filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE) {
+      filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE),
+      inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN) {
 
     modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
     modMatrix.addDestination(Parameters::ID_CHARACTER, "Color", params);
@@ -28,22 +29,14 @@ void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
 	distortion.prepare(spec);
 	feedback.prepare(spec);
 	filter.prepare(spec);
-
     envelope.prepare(spec);
-
     modMatrix.prepare(spec);
-
-    inGain.reset(spec.sampleRate, 0.02);
-    outGain.reset(spec.sampleRate, 0.02);
 }
 
 void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& context) {
     auto& block = context.getOutputBlock();
     auto numSamples = block.getNumSamples();
     auto numChannels = block.getNumChannels();
-
-    inGain.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_IN_GAIN));
-    outGain.setTargetValue(*parameters.getRawParameterValue(Parameters::ID_OUT_GAIN));
 
     /*
       Chain Layout:
@@ -55,12 +48,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
       Feedback is written after the post filter and mixed back in after a delay before the post filter
     */
 
-    // Input Gain
-    for (size_t sample = 0; sample < numSamples; ++sample) {
-        auto g = inGain.getNextValue();
-        for (size_t ch = 0; ch < numChannels; ++ch)
-            block.getChannelPointer(ch)[sample] *= g;
-    }
+    inGain.process(context);
 
     // Envelope processing
     envelope.setAttackTime(*parameters.getRawParameterValue(Parameters::ID_ENV_ATTACK));
@@ -81,13 +69,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         feedback.processWriteBlockSample(block, sample);
     }
 
-
-    // Output gain
-    for (size_t sample = 0; sample < numSamples; ++sample) {
-        auto g = outGain.getNextValue();
-        for (size_t ch = 0; ch < numChannels; ++ch)
-            block.getChannelPointer(ch)[sample] *= g;
-    }
+    outGain.process(context);
 }
 
 

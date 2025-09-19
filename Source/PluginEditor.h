@@ -9,6 +9,7 @@
 #include "ModMatrixComponent.h"
 #include "DriveKnob.h"
 #include "Parameters.h"
+#include "LevelMeter.h"
 
 class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
     private:
@@ -23,6 +24,8 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::Image backgroundImage;
 
 		EnvelopeBox envBox;
+
+        LevelMeter inMeter, outMeter;
 
         juce::Viewport modMatrixViewport;
         ModMatrixComponent modMatrixComponent;

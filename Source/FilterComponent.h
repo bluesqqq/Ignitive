@@ -17,9 +17,8 @@ class FilterComponent : public juce::Component, private juce::Timer {
 
         FilterProcessor& filter;
 
-        float calculateLowpassResponse(float frequency, float cutoff, float resonance);
-        float calculateHighpassResponse(float frequency, float cutoff, float resonance);
-
+        float graphBottomDB = -48.0f;
+        float graphTopDB = 12.0f;
 
     public:
         FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter);
