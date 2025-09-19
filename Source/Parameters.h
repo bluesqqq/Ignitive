@@ -25,6 +25,8 @@ class Parameters {
 			ID_ENV_DECAY             = "envDecay",
 			ID_ENV_GATE              = "envGate",
 
+			ID_LFO_SPEED = "lfoSpeed",
+
 			ID_ENV = "envelope",
 			ID_LFO = "lfo";
 

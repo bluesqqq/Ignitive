@@ -1,4 +1,5 @@
 #include "EnvelopeBox.h"
+#include "LFOBox.h"
 
 void EnvelopeBox::paint(juce::Graphics& g) {
     auto envBox = getLocalBounds().toFloat().reduced(10);

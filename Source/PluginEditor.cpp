@@ -2,7 +2,9 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion), inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
+    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
+      inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
+      lfoBox(p) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -42,19 +44,23 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     addAndMakeVisible(driveKnob);
 
     colorSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+
+
+
     colorSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     colorSlider.setLookAndFeel(&birdsEyeLAF);
     colorSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(colorSlider);
 
-    auto* parameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
-    distortionTypeSelector.addItemList(parameter->getAllValueStrings(), 1);
+    auto* distTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
+    distortionTypeSelector.addItemList(distTypeParameter->getAllValueStrings(), 1);
     distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
     distortionTypeSelector.setLookAndFeel(&distortionLAF);
     addAndMakeVisible(distortionTypeSelector);
     distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
 
-    characterTypeSelector.addItemList(juce::StringArray("Color", "Bend", "Asym"), 1);
+    auto* charTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_CHARACTER_TYPE);
+    characterTypeSelector.addItemList(charTypeParameter->getAllValueStrings(), 1);
     characterTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
     characterTypeSelector.setLookAndFeel(&distortionLAF);
     addAndMakeVisible(characterTypeSelector);
@@ -94,16 +100,35 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     gateSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
 	addAndMakeVisible(gateSlider);
 
+    addAndMakeVisible(lfoBox);
+
+    lfoSpeedSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    lfoSpeedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    lfoSpeedSlider.setLookAndFeel(&knobLAF);
+    lfoSpeedSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(lfoSpeedSlider);
+
     addAndMakeVisible(envLFOToggleButton);
+    lfoBox.setVisible(false);
+    lfoSpeedSlider.setVisible(false);
+
     envLFOToggleButton.onClick = [this] {
-        bool showingEnv = envLFOToggleButton.getIndex() == 1;
+        bool showingEnv = envLFOToggleButton.getIndex() == 0;
 
         attackSlider.setVisible(showingEnv);
         decaySlider.setVisible(showingEnv);
 		gateSlider.setVisible(showingEnv);
+        envBox.setVisible(showingEnv);
+
+        lfoBox.setVisible(!showingEnv);
+        lfoSpeedSlider.setVisible(!showingEnv);
+
+        modMatrixComponent.setSourceIDFilter(showingEnv ? Parameters::ID_ENV : Parameters::ID_LFO);
 
         resized();
     };
+
+    modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
 
 	addAndMakeVisible(envBox);
 
@@ -140,12 +165,17 @@ void IgnitiveAudioProcessorEditor::resized() {
     feedbackSlider.setBounds(354, 383, 80, 80);
     feedbackDelaySlider.setBounds(296, 452, 40, 40);
 
+    // LFO + ENV
+    envLFOToggleButton.setBounds(230, 620, 20, 40);
+
     attackSlider.setBounds(20, 740, 40, 40);
     decaySlider.setBounds(100, 740, 40, 40);
     gateSlider.setBounds(180, 740, 40, 40);
-
-    envLFOToggleButton.setBounds(230, 620, 20, 40);
 	envBox.setBounds(20, 580, 200, 140);
+
+    lfoBox.setBounds(20, 580, 200, 140);
+
+    lfoSpeedSlider.setBounds(20, 740, 40, 40);
 
     inMeter.setBounds(412, 12, 22, 56);
     outMeter.setBounds(446, 12, 22, 56);

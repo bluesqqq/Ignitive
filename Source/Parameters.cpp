@@ -10,13 +10,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_MIX, "Mix", 0.0f, 1.0f, 1.0f));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_DRIVE, "Drive", 0.0f, 1.0f, 0.0f));
-	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Color", 0.0f, 1.0f, 0.0f));
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Character", 0.0f, 1.0f, 0.0f));
 
 	juce::StringArray distortionNames;
 	for (const auto& def : DistortionProcessor::distortionDefs) distortionNames.add(def.name);
 	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_DISTORTION_TYPE, "Distortion Type", distortionNames, 0));
 
-	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_TYPE, "Character Type", juce::StringArray("Color", "Bend", "Asym"), 0));
+	juce::StringArray characterNames;
+	for (const auto& def : DistortionProcessor::characterDefs) characterNames.add(def);
+	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_TYPE, "Character Type", characterNames, 0));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_FEEDBACK, "Feedback", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_FEEDBACK_DELAY, "Feedback Delay", 0.0f, 1.0f, 0.5f));
@@ -29,6 +31,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_ATTACK, "Envelope Attack", 0.0f, 0.5f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_DECAY, "Envelope Decay", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_GATE, "Envelope Gate", 0.0f, 1.0f, 0.0f));
+
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_LFO_SPEED, "LFO Speed", 0.0f, 1.0f, 0.5f));
 
 	return { params.begin(), params.end() };
 }

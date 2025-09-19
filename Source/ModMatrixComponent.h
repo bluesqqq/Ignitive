@@ -6,107 +6,120 @@
 #include "CustomLAFs.h"
 
 class ModSlotComponent : public juce::Component {
-	private:
-		ModSlotLAF modSlotLAF;
+private:
+	ModSlotLAF modSlotLAF;
 
-		juce::ComboBox destinationBox;
-		juce::Slider depthSlider;
+	juce::ComboBox destinationBox;
+	juce::Slider depthSlider;
 
-		ModConnection* connection = nullptr;
+	ModConnection* connection = nullptr;
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSlotComponent)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSlotComponent)
 
-	public:
-		ModSlotComponent(ModConnection* conn, ModMatrix& modMatrix) : connection(conn) {
-			if (connection == nullptr) return;
+public:
+	ModSlotComponent(ModConnection* conn, ModMatrix& modMatrix) : connection(conn) {
+		if (connection == nullptr) return;
 
-			// Destination selector
-			int selectedID = 1;
-			int id = 1;
+		// Destination selector
+		int selectedID = 1;
+		int id = 1;
 
-			destinationBox.addItem("---", id++);
-			auto& destinations = modMatrix.getDestinationDisplayNameAndIDs();
-			for (auto& destination : destinations) {
-				destinationBox.addItem(destination.second, id);
-				if (connection && destination.first == connection->destinationID) selectedID = id;
-				++id;
-			}
+		destinationBox.addItem("---", id++);
+		auto& destinations = modMatrix.getDestinationDisplayNameAndIDs();
+		for (auto& destination : destinations) {
+			destinationBox.addItem(destination.second, id);
+			if (connection && destination.first == connection->destinationID) selectedID = id;
+			++id;
+		}
 
-			destinationBox.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
-			destinationBox.setLookAndFeel(&modSlotLAF);
-			destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
-			destinationBox.onChange = [this, destinations]() {
-				if (connection) {
-					int selectedID = destinationBox.getSelectedId();
+		destinationBox.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+		destinationBox.setLookAndFeel(&modSlotLAF);
+		destinationBox.setSelectedId(selectedID, juce::dontSendNotification);
+		destinationBox.onChange = [this, destinations]() {
+			if (connection) {
+				int selectedID = destinationBox.getSelectedId();
 
-					if (selectedID == 1) {
-						connection->destinationID = ""; // No Destination
-						connection->depth = 0.0f;
-					} else {
-						if (connection->destinationID.isEmpty()) connection->depth = 0.5f; // If coming from no destination, set the depth
-						connection->destinationID = destinations[selectedID - 2].first;
-					}
+				if (selectedID == 1) {
+					connection->destinationID = ""; // No Destination
+					connection->depth = 0.0f;
 				}
+				else {
+					if (connection->destinationID.isEmpty()) connection->depth = 0.5f; // If coming from no destination, set the depth
+					connection->destinationID = destinations[selectedID - 2].first;
+				}
+			}
 			};
-			addAndMakeVisible(destinationBox);
+		addAndMakeVisible(destinationBox);
 
-			// Depth slider
-			depthSlider.setLookAndFeel(&modSlotLAF);
-			depthSlider.setRange(-1.0f, 1.0f, 0.01f);
-			addAndMakeVisible(depthSlider);
-			if (connection) depthSlider.setValue(connection->depth);
-			depthSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-			depthSlider.onValueChange = [this]() {
-				if (connection) connection->depth = (float)depthSlider.getValue();
+		// Depth slider
+		depthSlider.setLookAndFeel(&modSlotLAF);
+		depthSlider.setRange(-1.0f, 1.0f, 0.01f);
+		addAndMakeVisible(depthSlider);
+		if (connection) depthSlider.setValue(connection->depth);
+		depthSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+		depthSlider.onValueChange = [this]() {
+			if (connection) connection->depth = (float)depthSlider.getValue();
 			};
-		}
+	}
 
-		void paint(juce::Graphics& g) override {
-			auto area = getLocalBounds();
+	void paint(juce::Graphics& g) override {
+		auto area = getLocalBounds();
 
-			g.setColour(juce::Colours::yellow);
-			g.drawLine(0, area.getHeight() - 1, area.getWidth(), area.getHeight() - 1);
-		}
+		g.setColour(juce::Colours::yellow);
+		g.drawLine(0, area.getHeight() - 1, area.getWidth(), area.getHeight() - 1);
+	}
 
-		void resized() override {
-			auto area = getLocalBounds();
+	void resized() override {
+		auto area = getLocalBounds();
 
-			// Split remaining 90% in half
-			auto leftHalf = area.removeFromLeft(area.getWidth() / 2);
-			destinationBox.setBounds(leftHalf);
+		// Split remaining 90% in half
+		auto leftHalf = area.removeFromLeft(area.getWidth() / 2);
+		destinationBox.setBounds(leftHalf);
 
-			depthSlider.setBounds(area); // remaining right half
-		}
+		depthSlider.setBounds(area); // remaining right half
+	}
 };
 
 class ModMatrixComponent : public juce::Component {
-	private:
-		juce::OwnedArray<ModSlotComponent> modSlots;
+private:
+	juce::OwnedArray<ModSlotComponent> modSlots;
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
 
 		ModMatrix& modMatrix;
 
-	public:
-		ModMatrixComponent(ModMatrix& matrix) : modMatrix(matrix) {
-			auto& connections = modMatrix.getConnections();
-			
-			for (auto& connection : connections) {
-				addSlot(connection);
+	juce::String sourceIDFilter;
+
+	void rebuildSlots() {
+		modSlots.clear(true);
+
+		auto& connections = modMatrix.getConnections();
+
+		for (auto& connection : connections) {
+			if (sourceIDFilter.isEmpty() || connection.sourceID == sourceIDFilter) {
+				auto* slot = new ModSlotComponent(&connection, modMatrix);
+				modSlots.add(slot);
+				addAndMakeVisible(slot);
 			}
 		}
 
-		void addSlot(ModConnection& connection) {
-			auto* slot = new ModSlotComponent(&connection, modMatrix);
+		resized();
+	}
 
-			modSlots.add(slot);
-			addAndMakeVisible(slot);
-			resized();
+	public:
+		ModMatrixComponent(ModMatrix& matrix) : modMatrix(matrix), sourceIDFilter("") {
+			rebuildSlots();
+		}
+
+		void setSourceIDFilter(const juce::String& sourceID) {
+			sourceIDFilter = sourceID;
+			rebuildSlots();
 		}
 
 		void resized() override {
-			auto area = getLocalBounds().toFloat();
+			if (modSlots.size() == 0) return;
 
+			auto area = getLocalBounds().toFloat();
 			float slotHeight = area.getHeight() / (float)modSlots.size();
 
 			for (int i = 0; i < modSlots.size(); ++i) {

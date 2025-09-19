@@ -6,6 +6,7 @@
 #include "CustomLAFs.h"
 #include "SwitchButtonAttachment.h"
 #include "EnvelopeBox.h"
+#include "LFOBox.h"
 #include "ModMatrixComponent.h"
 #include "DriveKnob.h"
 #include "Parameters.h"
@@ -24,6 +25,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::Image backgroundImage;
 
 		EnvelopeBox envBox;
+        LFOBox lfoBox;
 
         LevelMeter inMeter, outMeter;
 
@@ -63,6 +65,9 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment gateAttach{ audioProcessor.parameters, Parameters::ID_ENV_GATE, gateSlider };
 
         SwitchButton envLFOToggleButton{ "Env LFO Toggle", 2, DOWN };
+
+        juce::Slider lfoSpeedSlider;
+        juce::AudioProcessorValueTreeState::SliderAttachment lfoSpeedAttach{ audioProcessor.parameters, Parameters::ID_LFO_SPEED, lfoSpeedSlider };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 

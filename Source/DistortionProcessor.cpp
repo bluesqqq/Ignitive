@@ -1,6 +1,6 @@
 #include "DistortionProcessor.h"
 
-const std::array<DistortionDefinition, 7> DistortionProcessor::distortionDefs = { {
+const std::array<DistortionDefinition, 4> DistortionProcessor::distortionDefs = { {
     {
         "Hard Clip",
         [](float sample, float drive) -> float {
@@ -27,28 +27,6 @@ const std::array<DistortionDefinition, 7> DistortionProcessor::distortionDefs = 
         }
     },
     {
-        "LinearShaper",
-        [](float sample, float drive) -> float {
-            float k = 1.0f + drive * 15.0f;
-
-            return 1.0f - std::fabsf(std::fmodf(sample * k + 1.0f, 4.0f) - 2.0f);
-        }
-    },
-    {
-        "SineShaper",
-        [](float sample, float drive) -> float {
-            float k = 1.0f + drive * 15.0f;
-
-            return sin(sample * k);
-        }
-    },
-    {
-        "Rectify",
-        [](float sample, float drive) -> float {
-            return juce::jlimit(-1.0f, 1.0f, fabsf(sample) * (1.0f + drive * 20.0f));
-        }
-    },
-    {
         "Downsample",
         [](float sample, float drive) -> float {
             int numSteps = juce::jmax(2, (int)std::lround(64.0f - drive * 62.0f)); // Get the number of steps based on drive (from 64 to 4)
@@ -56,6 +34,13 @@ const std::array<DistortionDefinition, 7> DistortionProcessor::distortionDefs = 
         }
     },
 }};
+
+const std::array<juce::String, 4> DistortionProcessor::characterDefs = {
+    "Bend",
+    "Asym",
+    "Fold",
+    "Rectify"
+};
 
 DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID)
     : parameters(params), modMatrix(matrix),
@@ -135,11 +120,23 @@ float DistortionProcessor::distort(float x, float d, float c) {
 
     switch (characterType) {
         case CharacterType::Bend: {
-            distortion += fabsf(x * c) - c / 2.0f;
+            distortion += fabsf(x * c * 2.0f) - c;
             break;
         }
         case CharacterType::Asym: {
-            distortion += x * 0.5f * c;
+            distortion += x * c;
+            break;
+        }
+        case CharacterType::Fold: {
+            x *= 1.0f + c * 8.0f;
+            float xm = x - 1.0f;
+            xm = xm - 4.0f * std::floor(xm * 0.25f); // faster than fmod for positive mod
+
+            x = std::fabs(xm - 2.0f) - 1.0f;
+            break;
+        }
+        case CharacterType::Rectify: {
+            x = (1 - c) * x + c * std::fabsf(x);
             break;
         }
     }

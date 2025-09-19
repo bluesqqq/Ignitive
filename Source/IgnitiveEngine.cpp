@@ -6,10 +6,11 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_CHARACTER, Parameters::ID_DISTORTION_TYPE, Parameters::ID_CHARACTER_TYPE),
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
       filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE),
-      inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN) {
+      inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN), 
+      lfo(parameters, Parameters::ID_LFO_SPEED) {
 
     modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
-    modMatrix.addDestination(Parameters::ID_CHARACTER, "Color", params);
+    modMatrix.addDestination(Parameters::ID_CHARACTER, "Character", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay", params);
 
@@ -20,9 +21,15 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
     modMatrix.addDestination(Parameters::ID_HP_RESONANCE, "HP Res", params);
 
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
+    modMatrix.addSource(Parameters::ID_LFO, &lfo);
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++) {
         modMatrix.makeConnection(Parameters::ID_ENV, "", 0.0f);
+    }
+
+    for (int i = 0; i < 8; i++) {
+        modMatrix.makeConnection(Parameters::ID_LFO, "", 0.0f);
+    }
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -30,6 +37,7 @@ void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
 	feedback.prepare(spec);
 	filter.prepare(spec);
     envelope.prepare(spec);
+    lfo.prepare(spec);
     modMatrix.prepare(spec);
 }
 
@@ -55,6 +63,8 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     envelope.setReleaseTime(*parameters.getRawParameterValue(Parameters::ID_ENV_DECAY));
     envelope.setGate(*parameters.getRawParameterValue(Parameters::ID_ENV_GATE));
     envelope.process(block);
+
+    lfo.update();
 
     modMatrix.update();
 

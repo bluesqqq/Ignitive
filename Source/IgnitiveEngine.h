@@ -8,6 +8,7 @@
 #include "FilterProcessor.h"
 
 #include "EnvelopeFollower.h"
+#include "LFO.h"
 
 #include "ModMatrix.h"
 
@@ -24,6 +25,7 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         FilterProcessor filter;
 
         EnvelopeFollower envelope;
+        LFO lfo;
 
         ModMatrix modMatrix;
 

@@ -3,7 +3,6 @@
 #include <vector>
 #include "ModSource.h"
 
-
 class EnvelopeFollower : public ModSource {
 	private:
 		void updateCoefficients();
@@ -69,12 +68,9 @@ class EnvelopeFollower : public ModSource {
 
 
 		bool popFifo(int samples) {
-			// We only pop if we have at least samples + 1 available
 			if (fifo.getNumReady() > samples) {
 				int start1, size1, start2, size2;
 				fifo.prepareToRead(samples, start1, size1, start2, size2);
-
-				// we don’t actually care about the values, just skip them
 				fifo.finishedRead(samples);
 				return true;
 			}

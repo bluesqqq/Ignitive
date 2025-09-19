@@ -53,7 +53,9 @@
         <FILE id="HesNyq" name="CustomLAFs.cpp" compile="1" resource="0" file="Source/CustomLAFs.cpp"/>
         <FILE id="g69yeC" name="CustomLAFs.h" compile="0" resource="0" file="Source/CustomLAFs.h"/>
       </GROUP>
-      <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="Components">
+      <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="GUI">
+        <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>
+        <FILE id="L6k8eI" name="LFOBox.h" compile="0" resource="0" file="Source/LFOBox.h"/>
         <FILE id="zk1SbU" name="LevelMeter.cpp" compile="1" resource="0" file="Source/LevelMeter.cpp"/>
         <FILE id="X2xK9H" name="LevelMeter.h" compile="0" resource="0" file="Source/LevelMeter.h"/>
         <FILE id="UbOjbd" name="DriveKnob.cpp" compile="1" resource="0" file="Source/DriveKnob.cpp"/>
