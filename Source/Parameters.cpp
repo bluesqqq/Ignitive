@@ -8,6 +8,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_IN_GAIN, "In Gain", 0.0f, 2.0f, 1.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_OUT_GAIN, "Out Gain", 0.0f, 2.0f, 1.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_MIX, "Mix", 0.0f, 1.0f, 1.0f));
+	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_BYPASS, "Bypass", false));
+	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_LIMITER, "Limiter", false));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_DRIVE, "Drive", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Character", 0.0f, 1.0f, 0.0f));
@@ -19,6 +21,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	juce::StringArray characterNames;
 	for (const auto& def : DistortionProcessor::characterDefs) characterNames.add(def);
 	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_TYPE, "Character Type", characterNames, 0));
+
+	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_OVERSAMPLE, "Oversample", false));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_FEEDBACK, "Feedback", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_FEEDBACK_DELAY, "Feedback Delay", 0.0f, 1.0f, 0.5f));

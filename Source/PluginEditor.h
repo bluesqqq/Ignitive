@@ -16,9 +16,15 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
     private:
         IgnitiveAudioProcessor& audioProcessor;
 
+        // Fonts
+        juce::Font digitalFont;
+        juce::Font uavosdFont;
+
+        // Look And Feels
         DistortionLAF distortionLAF;
 
-        KnobLAF knobLAF;
+        IgnitiveLAF ignitiveLAF;
+        MixLAF mixLAF;
 
         BirdsEyeLAF birdsEyeLAF;
 
@@ -27,16 +33,20 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 		EnvelopeBox envBox;
         LFOBox lfoBox;
 
-        LevelMeter inMeter, outMeter;
-
         juce::Viewport modMatrixViewport;
         ModMatrixComponent modMatrixComponent;
+
+        LevelMeter inMeter;
+        LevelMeter outMeter;
 
         // Gain
         juce::Slider inGainSlider, mixSlider, outGainSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment inGainAttach{ audioProcessor.parameters, Parameters::ID_IN_GAIN, inGainSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment mixAttach{ audioProcessor.parameters, Parameters::ID_MIX, mixSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment outGainAttach{ audioProcessor.parameters, Parameters::ID_OUT_GAIN, outGainSlider };
+
+        juce::ToggleButton limiterButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment limiterAttach{ audioProcessor.parameters, Parameters::ID_LIMITER, limiterButton };
 
 		// Distortion
 		DriveKnob driveKnob{ audioProcessor, Parameters::ID_DRIVE };
@@ -49,6 +59,9 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         juce::ComboBox characterTypeSelector;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;
+
+        juce::ToggleButton oversampleButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
 
         // Feedback
         juce::Slider feedbackSlider, feedbackDelaySlider;
@@ -68,6 +81,20 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         juce::Slider lfoSpeedSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment lfoSpeedAttach{ audioProcessor.parameters, Parameters::ID_LFO_SPEED, lfoSpeedSlider };
+
+        juce::ToggleButton bypassButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment bypassAttach{ audioProcessor.parameters, Parameters::ID_BYPASS, bypassButton };
+
+        bool showingEnvelope = true;
+
+        // Bounds
+        float modParamNamesFontSize = 14.0f;
+        juce::Rectangle<float> modParamNamesBox{ 15.0f, 760.0f, 205.0f, 25.0f };
+
+        juce::StringArray modParamNames{"---", "---", "---"};
+
+        juce::StringArray modParamNamesEnvelope{ "Attack", "Decay", "Gate" };
+        juce::StringArray modParamNamesLFO{ "Speed", "---", "---" };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 

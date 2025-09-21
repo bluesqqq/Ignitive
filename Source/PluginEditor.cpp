@@ -1,10 +1,12 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
-      inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
-      lfoBox(p) {
+IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcessor& p)
+    : AudioProcessorEditor(&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
+    lfoBox(p),
+    digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
+    uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
+    inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -21,32 +23,34 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 	// ==============// GAIN //==============//
     inGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     inGainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-	inGainSlider.setLookAndFeel(&knobLAF);
+	inGainSlider.setLookAndFeel(&ignitiveLAF);
 	inGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
 	addAndMakeVisible(inGainSlider);
 
-    mixSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    mixSlider.setLookAndFeel(&knobLAF);
-    mixSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    mixSlider.setLookAndFeel(&mixLAF);
     addAndMakeVisible(mixSlider);
 
     outGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     outGainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    outGainSlider.setLookAndFeel(&knobLAF);
+    outGainSlider.setLookAndFeel(&ignitiveLAF);
     outGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(outGainSlider);
 
-    addAndMakeVisible(inMeter);
-    addAndMakeVisible(outMeter);
+    bypassButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(bypassButton);
+
+    oversampleButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(oversampleButton);
+
+    limiterButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(limiterButton);
 
     // ==============// DISTORTION + FEEDBACK //==============//
     addAndMakeVisible(driveKnob);
 
     colorSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-
-
-
     colorSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     colorSlider.setLookAndFeel(&birdsEyeLAF);
     colorSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
@@ -70,13 +74,13 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    feedbackSlider.setLookAndFeel(&knobLAF);
+    feedbackSlider.setLookAndFeel(&ignitiveLAF);
     feedbackSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(feedbackSlider);
 
     feedbackDelaySlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackDelaySlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    feedbackDelaySlider.setLookAndFeel(&knobLAF);
+    feedbackDelaySlider.setLookAndFeel(&ignitiveLAF);
     feedbackDelaySlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(feedbackDelaySlider);
 
@@ -84,19 +88,19 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
     attackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     attackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    attackSlider.setLookAndFeel(&knobLAF);
+    attackSlider.setLookAndFeel(&ignitiveLAF);
     attackSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(attackSlider);
 
     decaySlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     decaySlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    decaySlider.setLookAndFeel(&knobLAF);
+    decaySlider.setLookAndFeel(&ignitiveLAF);
     decaySlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
 	addAndMakeVisible(decaySlider);
 
     gateSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     gateSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    gateSlider.setLookAndFeel(&knobLAF);
+    gateSlider.setLookAndFeel(&ignitiveLAF);
     gateSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
 	addAndMakeVisible(gateSlider);
 
@@ -104,7 +108,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
     lfoSpeedSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     lfoSpeedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lfoSpeedSlider.setLookAndFeel(&knobLAF);
+    lfoSpeedSlider.setLookAndFeel(&ignitiveLAF);
     lfoSpeedSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(lfoSpeedSlider);
 
@@ -113,17 +117,17 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
     lfoSpeedSlider.setVisible(false);
 
     envLFOToggleButton.onClick = [this] {
-        bool showingEnv = envLFOToggleButton.getIndex() == 0;
+        showingEnvelope = envLFOToggleButton.getIndex() == 0;
 
-        attackSlider.setVisible(showingEnv);
-        decaySlider.setVisible(showingEnv);
-		gateSlider.setVisible(showingEnv);
-        envBox.setVisible(showingEnv);
+        attackSlider.setVisible(showingEnvelope);
+        decaySlider.setVisible(showingEnvelope);
+		gateSlider.setVisible(showingEnvelope);
+        envBox.setVisible(showingEnvelope);
 
-        lfoBox.setVisible(!showingEnv);
-        lfoSpeedSlider.setVisible(!showingEnv);
+        lfoBox.setVisible(!showingEnvelope);
+        lfoSpeedSlider.setVisible(!showingEnvelope);
 
-        modMatrixComponent.setSourceIDFilter(showingEnv ? Parameters::ID_ENV : Parameters::ID_LFO);
+        modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
 
         resized();
     };
@@ -132,6 +136,9 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor (IgnitiveAudioProcess
 
 	addAndMakeVisible(envBox);
 
+
+    addAndMakeVisible(inMeter);
+    addAndMakeVisible(outMeter);
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -140,6 +147,53 @@ IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
 void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
     if (backgroundImage.isValid()) g.drawImage(backgroundImage, getLocalBounds().toFloat());
     else g.fillAll(juce::Colours::grey);
+
+    digitalFont.setHeight(modParamNamesFontSize);
+    g.setFont(digitalFont);
+    g.setColour(juce::Colours::yellow);
+
+    const juce::StringArray& usingArray = showingEnvelope ? modParamNamesEnvelope : modParamNamesLFO;
+
+    float sectionWidth = modParamNamesBox.getWidth() / 3.0f;
+
+    juce::Random r;
+    juce::String symbols = ".#:_+=@!";
+
+    // Go through the first three elements of the using array
+    for (int i = 0; i < modParamNames.size(); ++i) {
+        juce::String target = usingArray[i];
+
+        juce::String& current = modParamNames.getReference(i);
+
+        if (current.length() < target.length())
+            current = current.paddedRight(target.length(), ' ');
+        else if (current.length() > target.length())
+            current = current.substring(0, target.length());
+
+        juce::String newString;
+        for (int j = 0; j < target.length(); ++j) {
+            juce::juce_wchar c = current[j];
+            juce::juce_wchar t = target[j];
+
+            if (c != t) {
+                int choice = r.nextInt(symbols.length() + 1);
+                c = choice < symbols.length() ? symbols[choice] : t;
+            }
+
+            newString += juce::String::charToString(c);
+        }
+
+        current = newString;
+
+        juce::Rectangle<float> sectionRect(
+            modParamNamesBox.getX() + i * sectionWidth,
+            modParamNamesBox.getY(),
+            sectionWidth,
+            modParamNamesBox.getHeight()
+        );
+
+        g.drawText(current, sectionRect.toNearestInt(), juce::Justification::centred);
+    }
 }
 
 void IgnitiveAudioProcessorEditor::resized() {
@@ -147,36 +201,40 @@ void IgnitiveAudioProcessorEditor::resized() {
 
     filterComponent.setBounds(area);
 
-    modMatrixViewport.setBounds(260 + 10, 580 + 10, 200 - 20, 200 - 20);
+    modMatrixViewport.setBounds(275 + 5, 620 + 5, 190 - 10, 165 - 10);
 
-    modMatrixComponent.setSize(160, 250);
+    modMatrixComponent.setSize(165, 250);
 
-    inGainSlider.setBounds(20, 20, 40, 40);
-    mixSlider.setBounds(280, 20, 40, 40);
-    outGainSlider.setBounds(340, 20, 40, 40);
+    inGainSlider.setBounds(10, 535, 60, 60);
+    mixSlider.setBounds(275, 540, 190, 50);
+    outGainSlider.setBounds(200, 535, 60, 60);
 
     // Distortion
-    driveKnob.setBounds(140, 220, 200, 200);
-    colorSlider.setBounds(97, 403, 60, 60);
-    characterTypeSelector.setBounds(7, 300, 112, 40);
-    distortionTypeSelector.setBounds(361, 300, 112, 40);
+    driveKnob.setBounds(140, 185, 200, 200);
+    colorSlider.setBounds(97, 368, 60, 60);
+    characterTypeSelector.setBounds(7, 265, 112, 40);
+    distortionTypeSelector.setBounds(361, 265, 112, 40);
 
     // Feedback
-    feedbackSlider.setBounds(354, 383, 80, 80);
-    feedbackDelaySlider.setBounds(296, 452, 40, 40);
+    feedbackSlider.setBounds(354, 348, 80, 80);
+    feedbackDelaySlider.setBounds(296, 417, 40, 40);
 
     // LFO + ENV
-    envLFOToggleButton.setBounds(230, 620, 20, 40);
+    envLFOToggleButton.setBounds(237, 640, 20, 40);
 
-    attackSlider.setBounds(20, 740, 40, 40);
-    decaySlider.setBounds(100, 740, 40, 40);
-    gateSlider.setBounds(180, 740, 40, 40);
-	envBox.setBounds(20, 580, 200, 140);
+    attackSlider.setBounds(30, 710, 40, 40);
+    decaySlider.setBounds(97, 710, 40, 40);
+    gateSlider.setBounds(165, 710, 40, 40);
+	envBox.setBounds(15, 620, 205, 80);
 
-    lfoBox.setBounds(20, 580, 200, 140);
+    lfoBox.setBounds(15, 620, 205, 80);
 
-    lfoSpeedSlider.setBounds(20, 740, 40, 40);
+    lfoSpeedSlider.setBounds(30, 710, 40, 40);
 
-    inMeter.setBounds(412, 12, 22, 56);
-    outMeter.setBounds(446, 12, 22, 56);
+    bypassButton.setBounds    (325, 10 - 3,  75,  25 + 3);
+    oversampleButton.setBounds(80,  535 - 3, 110, 25 + 3);
+    limiterButton.setBounds   (80,  570 - 3, 80,  25 + 3);
+
+    inMeter.setBounds(62, 587, 14, 14);
+    outMeter.setBounds(252, 587, 14, 14);
 }

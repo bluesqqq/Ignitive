@@ -10,41 +10,44 @@ FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& params, Fil
 
     lpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     lpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lpCutoffKnob.setLookAndFeel(&knobLAF);
+    lpCutoffKnob.setLookAndFeel(&ignitiveLAF);
     lpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(lpCutoffKnob);
 
     lpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     lpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lpResonanceKnob.setLookAndFeel(&knobLAF);
+    lpResonanceKnob.setLookAndFeel(&ignitiveLAF);
     lpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(lpResonanceKnob);
 
     hpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     hpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    hpCutoffKnob.setLookAndFeel(&knobLAF);
+    hpCutoffKnob.setLookAndFeel(&ignitiveLAF);
     hpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(hpCutoffKnob);
 
     hpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     hpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    hpResonanceKnob.setLookAndFeel(&knobLAF);
+    hpResonanceKnob.setLookAndFeel(&ignitiveLAF);
     hpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(hpResonanceKnob);
 }
 
 void FilterComponent::resized() {
     // Highpass on left, lowpass on right
-    hpCutoffKnob.setBounds(40, 130, 60, 60);
-    hpResonanceKnob.setBounds(40, 220, 40, 40);
-    lpCutoffKnob.setBounds(380, 130, 60, 60);
-    lpResonanceKnob.setBounds(400, 220, 40, 40);
+    hpCutoffKnob.setBounds(40, 95, 60, 60);
+    hpResonanceKnob.setBounds(40, 185, 40, 40);
+    lpCutoffKnob.setBounds(380, 95, 60, 60);
+    lpResonanceKnob.setBounds(400, 185, 40, 40);
 }
 
 void FilterComponent::paint(juce::Graphics& g) {
-    juce::Rectangle<float> screen(110.0f, 120.0f, 260.0f, 80.0f);
+    juce::Rectangle<float> screen(110.0f, 85.0f, 260.0f, 80.0f);
     screen.reduce(5.0f, 5.0f);
-    juce::Path path;
+
+    const int pixelSize = 5;
+    int wPixels = (int)screen.getWidth() / pixelSize;
+    int hPixels = (int)screen.getHeight() / pixelSize;
 
     float lpCutoff = filter.lpFilter.getCutoffFrequency();
     float lpResonance = filter.lpFilter.getResonance();
@@ -52,19 +55,20 @@ void FilterComponent::paint(juce::Graphics& g) {
     float hpCutoff = filter.hpFilter.getCutoffFrequency();
     float hpResonance = filter.hpFilter.getResonance();
 
-    int numberOfPoints = 200; // more points = smoother curve
+    // Prepare horizontal frequency mapping
     std::vector<float> filterCurve;
-    filterCurve.reserve(numberOfPoints);
+    filterCurve.reserve(wPixels);
 
     auto lpCoeffs = *juce::dsp::IIR::Coefficients<float>::makeLowPass(44100, lpCutoff, lpResonance);
     auto hpCoeffs = *juce::dsp::IIR::Coefficients<float>::makeHighPass(44100, hpCutoff, hpResonance);
 
-    for (int i = 0; i < numberOfPoints; ++i) {
-        float pos = (float)i / (float)(numberOfPoints - 1);
-        float freq = 20.0f * std::pow(10.0f, pos * 3.0f); // 20Hz-20kHz log scale
+    for (int ix = 0; ix < wPixels; ++ix) {
+        float pos = (float)ix / (float)(wPixels - 1);
+        float freq = 20.0f * std::pow(10.0f, pos * 3.0f); // log scale 20Hz-20kHz
         float omega = 2.0f * juce::MathConstants<float>::pi * freq / 44100;
         std::complex<float> z = std::polar(1.0f, -omega);
 
+        // Evil ahh formula
         std::complex<float> Hlp = (lpCoeffs.coefficients[0] + lpCoeffs.coefficients[1] * z + lpCoeffs.coefficients[2] * z * z)
             / (1.0f + lpCoeffs.coefficients[3] * z + lpCoeffs.coefficients[4] * z * z);
 
@@ -72,24 +76,42 @@ void FilterComponent::paint(juce::Graphics& g) {
             / (1.0f + hpCoeffs.coefficients[3] * z + hpCoeffs.coefficients[4] * z * z);
 
         float combined = std::abs(Hlp * Hhp);
-
         float db = 20.0f * std::log10(std::max(combined, 1e-6f));
         float normalized = juce::jlimit(0.0f, 1.0f, juce::jmap(db, graphBottomDB, graphTopDB, 0.0f, 1.0f));
 
         filterCurve.push_back(normalized);
     }
 
-    float width = screen.getWidth() / (float)filterCurve.size();
-    for (int i = 0; i < filterCurve.size(); ++i) {
-        float x = screen.getX() + width * i;
-        float y = juce::jmap(filterCurve[i], screen.getY() + screen.getHeight(), screen.getY());
-        if (i == 0) path.startNewSubPath(x, y);
-        else path.lineTo(x, y);
-    }
-
+    // Draw pixels
     g.setColour(juce::Colours::green);
-    g.strokePath(path, juce::PathStrokeType(3.0f));
+    float bottomY = screen.getY() + screen.getHeight();
+    float cx = 100.0f + 280.0f / 2.0f;
+    float cy = 145.0f + 280.0f / 2.0f;
+    float radius = 280.0f / 2.0f;
+
+    for (int ix = 0; ix < filterCurve.size(); ++ix) {
+        int pixelCount = (int)(filterCurve[ix] * hPixels);
+
+        for (int iy = 0; iy < pixelCount; ++iy) {
+            float y = bottomY - (iy + 1) * pixelSize;
+            float px = screen.getX() + ix * pixelSize + pixelSize / 2.0f;
+            float py = y + pixelSize / 2.0f;
+
+            // only draw if outside the circle
+            if ((px - cx) * (px - cx) + (py - cy) * (py - cy) > radius * radius) {
+                juce::Rectangle<float> pixel(screen.getX() + ix * pixelSize, y, pixelSize - 1.0f, pixelSize - 1.0f);
+
+                if (iy == pixelCount - 1) // top pixel in this column
+                    g.setColour(highlightColor);
+                else
+                    g.setColour(backgroundColor);
+
+                g.fillRect(pixel);
+            }
+        }
+    }
 }
+
 
 
 void FilterComponent::timerCallback() {

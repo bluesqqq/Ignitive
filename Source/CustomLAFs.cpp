@@ -66,24 +66,6 @@ void DistortionLAF::drawComboBox(juce::Graphics& g, int width, int height, bool 
     g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centredLeft);
 }
 
-void KnobLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
-    g.setColour(juce::Colours::black);
-    g.fillEllipse(x, y, width, height);
-
-    g.setColour(juce::Colours::white);
-    g.fillEllipse(x + 2, y + 2, width - 4, height - 4);
-
-    g.setColour(juce::Colours::black);
-
-    float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle) - juce::MathConstants<float>::halfPi;
-    float radius = width / 2;
-    int centerX = x + width / 2;
-    int centerY = y + height / 2;
-    g.drawLine(centerX, centerY, centerX + std::cos(angle) * radius, centerY + std::sin(angle) * radius, 3);
-}
-
-
-
 void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
     juce::Rectangle<float> bounds = slider.getLocalBounds().toFloat().reduced(4.0f);
 
@@ -247,4 +229,165 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
     g.setColour(juce::Colours::red);
     g.fillEllipse(pupilBounds);
 
+}
+
+void IgnitiveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
+    g.setColour(juce::Colours::black);
+    g.fillEllipse(x, y, width, height);
+
+    g.setColour(juce::Colours::white);
+    g.fillEllipse(x + 2, y + 2, width - 4, height - 4);
+
+    g.setColour(juce::Colours::black);
+
+    float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle) - juce::MathConstants<float>::halfPi;
+    float radius = width / 2;
+    int centerX = x + width / 2;
+    int centerY = y + height / 2;
+    g.drawLine(centerX, centerY, centerX + std::cos(angle) * radius, centerY + std::sin(angle) * radius, 3);
+}
+
+void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
+    bool buttonDown = toggleButton.getToggleState();
+    auto bounds = toggleButton.getLocalBounds().toFloat();
+
+    auto buttonBase = bounds.withTrimmedTop(buttonHeight);
+
+    float currentHeight = shouldDrawButtonAsDown ? -2 : (buttonDown ? 0 : buttonHeight);
+
+    auto buttonTop = buttonBase.translated(0, -currentHeight).getIntersection(bounds);
+
+    // Base
+    g.setColour(juce::Colours::black);
+    g.fillRoundedRectangle(buttonBase, 5.0f);
+
+    //Top
+    juce::Colour topColor(shouldDrawButtonAsDown ? 0xff666c7b : (buttonDown ? 0xff7b818f : 0xffffffff));
+    juce::Colour textColor(shouldDrawButtonAsDown || buttonDown ? juce::Colours::red : juce::Colours::black);
+
+    g.setColour(topColor);
+    g.fillRoundedRectangle(buttonTop, 5.0f);
+
+    static juce::Font customFont = [] {
+        auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf,
+            BinaryData::uavosd_ttfSize);
+        return juce::Font(typeface);
+        }();
+
+    g.setFont(customFont.withHeight(11.0f));
+
+    g.setColour(textColor);
+    g.drawText("TEST", buttonTop, juce::Justification::centred);
+    buttonTop.reduce(1.0f, 1.0f);
+
+    g.setColour(juce::Colours::black);
+    g.drawRoundedRectangle(buttonTop, 4.0f, 2.1f);
+}
+
+constexpr int ditherMap[4][4] = {
+    { 1,  8,  2, 10 },
+    {12,  4, 14,  6 },
+    { 3, 11,  1,  9 },
+    {15,  7, 13,  5 }
+};
+
+void MixLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
+    auto bounds = slider.getLocalBounds().toFloat().reduced(5.0f);
+
+    int w = bounds.getWidth() / 5;
+    int h = bounds.getHeight() / 5;
+
+    float mix = slider.getValue();
+
+    g.setColour(juce::Colours::red);
+
+    float xPosInterval = 1.0f / (float)w;
+    float yPosInterval = xPosInterval / (float)h;
+
+    juce::Point<float> mousePos = slider.getMouseXYRelative().toFloat();
+
+    int barWidth = 2;
+
+    int ditherPixelsWidth = 30;
+
+    int barX = mix * (w - barWidth);
+
+    for (int ix = 0; ix < w; ++ix) {
+        float pos = ix * xPosInterval;
+        float alpha = 1.0f + (mix - pos) * 2.0f;
+        alpha = juce::jlimit(0.0f, 1.0f, alpha);
+
+        if (ix >= barX && ix < barX + barWidth) {
+            for (int iy = 0; iy < h; ++iy) {
+                juce::Rectangle<float> pixel(bounds.getX() + 1.0f + ix * 5.0f, bounds.getY() + 1.0f + iy * 5.0f, 3.0f, 3.0f);
+                g.setColour(juce::Colours::white);
+                g.fillRect(pixel);
+            }
+        } else if (ix < barX) {
+            if (ix > barX - ditherPixelsWidth) {
+                for (int iy = 0; iy < h; ++iy) {
+                    int alpha = juce::jmap(ix, barX - ditherPixelsWidth, barX, 0, 16);
+                    int mapValue = ditherMap[ix % 4][iy % 4];
+
+                    if (mapValue >= alpha) {
+                        g.setColour(backgroundColor);
+                    } else {
+                        g.setColour(highlightColor);
+                    }
+
+                    juce::Rectangle<float> pixel(bounds.getX() + 1.0f + ix * 5.0f, bounds.getY() + 1.0f + iy * 5.0f, 3.0f, 3.0f);
+                    g.fillRect(pixel);
+                }
+            } else {
+                for (int iy = 0; iy < h; ++iy) {
+                    juce::Rectangle<float> pixel(bounds.getX() + 1.0f + ix * 5.0f, bounds.getY() + 1.0f + iy * 5.0f, 3.0f, 3.0f);
+                    g.setColour(backgroundColor);
+                    g.fillRect(pixel);
+                }
+            }
+        }
+
+        /*
+        for (int iy = 0; iy < h; ++iy) {
+
+            int mapValue = ditherMap[ix % 4][iy % 4];
+
+            float px = bounds.getX() + 1.0f + ix * 5.0f + 1.5f;
+            float py = bounds.getY() + 1.0f + iy * 5.0f + 1.5f;
+
+            float dx = px - mousePos.x;
+            float dy = py - mousePos.y;
+            float dist = std::sqrt(dx * dx + dy * dy);
+
+            if (dist < mouseFadeRadius) {
+                float mouseAlpha = 0.0f;
+                mouseAlpha = (1.0f - dist / mouseFadeRadius) * mouseFadeDepth;
+                mouseAlpha = -mouseAlpha;
+
+                alpha = juce::jlimit(0.0f, 1.0f, alpha + mouseAlpha);
+            }
+
+            juce::Rectangle<float> pixel(bounds.getX() + 1.0f + ix * 5.0f,
+                bounds.getY() + 1.0f + iy * 5.0f,
+                3.0f, 3.0f);
+
+            if (alpha > 0.5f) {
+                float scaled = (alpha - 0.5f) * 2.0f * 15.0f;
+                if (mapValue <= (int)(scaled + 0.5f))
+                    g.setColour(highlightColor);
+                else
+                    g.setColour(backgroundColor);
+                g.fillRect(pixel);
+            }
+            else if (alpha > 0.0f) {
+                float scaled = alpha * 2.0f * 15.0f;
+                if (mapValue <= (int)(scaled + 0.5f)) {
+                    g.setColour(backgroundColor);
+                    g.fillRect(pixel);
+                }
+            }
+            
+        }
+        */
+    }
 }

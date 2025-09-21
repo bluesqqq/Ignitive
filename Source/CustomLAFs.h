@@ -3,6 +3,29 @@
 #include <JuceHeader.h>
 #include "DistortionProcessor.h"
 
+class IgnitiveLAF : public juce::LookAndFeel_V4 {
+    private:
+        float buttonHeight = 3.0f;
+
+    public:
+        void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override;
+
+        void drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+};
+
+class MixLAF : public juce::LookAndFeel_V4 {
+    private:
+        juce::Colour highlightColor = juce::Colour::fromRGB(255, 0, 0);
+        juce::Colour backgroundColor = juce::Colour::fromRGB(127, 0, 0);
+
+        float mouseFadeRadius = 25.0f;
+        float mouseFadeDepth = 0.5f;
+    public:
+        void drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
+            float sliderPos, float minSliderPos, float maxSliderPos,
+            juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) override;
+};
+
 class DriveLAF : public juce::LookAndFeel_V4 {
     private:
         DistortionProcessor& distortion;
@@ -17,11 +40,6 @@ class DistortionLAF : public juce::LookAndFeel_V4 {
         void drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown,
             int buttonX, int buttonY, int buttonW, int buttonH,
             juce::ComboBox& comboBox);
-};
-
-class KnobLAF : public juce::LookAndFeel_V4 {
-public:
-    void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider);
 };
 
 class ModSlotLAF : public juce::LookAndFeel_V4 {

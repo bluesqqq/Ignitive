@@ -5,16 +5,19 @@ LevelMeter::LevelMeter(GainProcessor& gainProcessor) : gainProcessor(gainProcess
 }
 
 void LevelMeter::paint(juce::Graphics& g) {
-	auto bounds = getLocalBounds().toFloat().reduced(5.0f);
+	auto bounds = getLocalBounds().toFloat().reduced(3.0f);
 
 	float level = gainProcessor.getPeak();
 
-	float meterHeight = juce::jmap(juce::jmin(1.0f, level), 0.0f, bounds.getHeight());
+	if (level > 1.0f) {
+		g.setColour(juce::Colours::red);
+		g.fillEllipse(bounds);
+	} else if (level > 0.5f) {
+		float alpha = juce::jmap(level, 0.5f, 1.0f, 0.0f, 1.0f);
 
-	juce::Rectangle<float> meter(bounds.getX(), bounds.getY() + bounds.getHeight() - meterHeight, bounds.getWidth(), meterHeight);
-
-	g.setColour(level <= 1.0f ? juce::Colours::green : juce::Colours::red);
-	g.fillRect(meter);
+		g.setColour(juce::Colours::green.withAlpha(alpha));
+		g.fillEllipse(bounds);
+	}
 }
 
 void LevelMeter::timerCallback() {

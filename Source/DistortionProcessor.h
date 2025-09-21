@@ -10,8 +10,8 @@
 enum class DistortionType {
 	HardClip,
 	Tube,
-	Fuzz,
-	Downsample,
+	Tape,
+	Overdrive,
 	NumDefinitions
 };
 
@@ -19,7 +19,8 @@ enum class CharacterType {
 	Bend,
 	Asym,
 	Fold,
-	Rectify
+	Rectify,
+	Bitcrush
 };
 
 struct DistortionDefinition {
@@ -47,7 +48,7 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 
 	public:
 		static const std::array<DistortionDefinition, 4> distortionDefs;
-		static const std::array<juce::String, 4> characterDefs;
+		static const std::array<juce::String, 5> characterDefs;
 
 		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID);
 

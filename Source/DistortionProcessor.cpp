@@ -27,19 +27,23 @@ const std::array<DistortionDefinition, 4> DistortionProcessor::distortionDefs = 
         }
     },
     {
-        "Downsample",
+        "Overdrive",
         [](float sample, float drive) -> float {
-            int numSteps = juce::jmax(2, (int)std::lround(64.0f - drive * 62.0f)); // Get the number of steps based on drive (from 64 to 4)
-            return std::floor(sample * numSteps + 0.5f) / numSteps;
+            if (drive == 0.0f) return sample;
+
+            float k = (1.0f + drive * 20);
+
+            return sample >= 0 ? std::min(sample / k + 1.0f - (1.0f / k), sample * k) : std::max(sample / k - 1.0f + (1.0f / k), sample * k);
         }
-    },
+    }
 }};
 
-const std::array<juce::String, 4> DistortionProcessor::characterDefs = {
+const std::array<juce::String, 5> DistortionProcessor::characterDefs = {
     "Bend",
     "Asym",
     "Fold",
-    "Rectify"
+    "Rectify",
+    "Bitcrush"
 };
 
 DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID)
@@ -140,27 +144,18 @@ float DistortionProcessor::distort(float x, float d, float c) {
             break;
         }
     }
-    // BEND
-    //float distortion = d + c * (1.0f - std::fabsf(x));
-
-    // ASYM
-    //float offset = (c - 0.5f) * 1.5f;
-    //if (x <= offset) distortion += (1.0f / (offset + 1.0f)) * (x + 1.0f);
-    //else distortion += (1.0f / (offset - 1.0f)) * (x - 1.0f);
-
-    /*
-    const float minDrive = 0.5f;
-    const float maxDrive = 1.2f;
-    float tilt = (c - 0.5f) * 2.0f;
-
-    float side = (x >= 0.0f ? 1.0f : -1.0f);
-
-    float driveFactor = juce::jmap(tilt * side, -1.0f, 1.0f, minDrive, maxDrive);
-    */
 
     distortion = juce::jlimit(0.0f, 2.0f, distortion);
 
     x = def.process(x, distortion);
+
+    if (characterType == CharacterType::Bitcrush) {
+        float steps = juce::jmap(c, 64.0f, 2.0f);
+
+        x = std::round(x * steps) / steps;
+    }
+
+    
 
     return x;
 }

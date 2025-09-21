@@ -7,7 +7,7 @@
 
 class FilterComponent : public juce::Component, private juce::Timer {
     private:
-		KnobLAF knobLAF;
+		IgnitiveLAF ignitiveLAF;
 
         juce::Slider lpCutoffKnob, lpResonanceKnob;
         juce::Slider hpCutoffKnob, hpResonanceKnob;
@@ -19,6 +19,9 @@ class FilterComponent : public juce::Component, private juce::Timer {
 
         float graphBottomDB = -48.0f;
         float graphTopDB = 12.0f;
+
+        juce::Colour highlightColor = juce::Colour::fromRGB(255, 165, 0);
+        juce::Colour backgroundColor = juce::Colour::fromRGB(127, 82, 0);
 
     public:
         FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter);
