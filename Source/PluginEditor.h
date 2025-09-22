@@ -21,8 +21,6 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::Font uavosdFont;
 
         // Look And Feels
-        DistortionLAF distortionLAF;
-
         IgnitiveLAF ignitiveLAF{ uavosdFont };
         MixLAF mixLAF;
 
@@ -95,6 +93,10 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         juce::StringArray modParamNamesEnvelope{ "Attack", "Decay", "Gate" };
         juce::StringArray modParamNamesLFO{ "Speed", "---", "---" };
+
+        juce::TextButton randomizeButton;
+
+        juce::TextButton settingsButton;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 

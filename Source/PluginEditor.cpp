@@ -18,6 +18,8 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     // ==============// MOD MATRIX //==============//
     addAndMakeVisible(modMatrixComponent);
 
+    modMatrixViewport.setScrollBarThickness(10);
+    modMatrixViewport.setLookAndFeel(&ignitiveLAF);
     modMatrixViewport.setViewedComponent(&modMatrixComponent, false);
     addAndMakeVisible(modMatrixViewport);
 
@@ -63,14 +65,14 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     auto* distTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
     distortionTypeSelector.addItemList(distTypeParameter->getAllValueStrings(), 1);
     distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
-    distortionTypeSelector.setLookAndFeel(&distortionLAF);
+    distortionTypeSelector.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(distortionTypeSelector);
     distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
 
     auto* charTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_CHARACTER_TYPE);
     characterTypeSelector.addItemList(charTypeParameter->getAllValueStrings(), 1);
     characterTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
-    characterTypeSelector.setLookAndFeel(&distortionLAF);
+    characterTypeSelector.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(characterTypeSelector);
     characterTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_CHARACTER_TYPE, characterTypeSelector));
 
@@ -143,6 +145,12 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 
     addAndMakeVisible(inMeter);
     addAndMakeVisible(outMeter);
+
+    randomizeButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(randomizeButton);
+
+    settingsButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(settingsButton);
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -241,4 +249,7 @@ void IgnitiveAudioProcessorEditor::resized() {
 
     inMeter.setBounds(62, 587, 14, 14);
     outMeter.setBounds(252, 587, 14, 14);
+
+    randomizeButton.setBounds(130, 10 - 3, 25, 25 + 3);
+    settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
 }

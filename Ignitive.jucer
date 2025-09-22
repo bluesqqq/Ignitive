@@ -7,7 +7,7 @@
   <MAINGROUP id="Q8mVPC" name="Ignitive">
     <GROUP id="{9C013130-8D00-8247-5718-18BB695B4028}" name="Resources">
       <FILE id="Zs484S" name="digital.ttf" compile="0" resource="1" file="Source/digital.ttf"/>
-      <FILE id="GhFZau" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
+      <FILE id="immBrt" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
       <FILE id="TLYDMF" name="uav-osd.ttf" compile="0" resource="1" file="Source/uav-osd.ttf"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">

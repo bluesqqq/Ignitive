@@ -4,6 +4,8 @@ DriveLAF::DriveLAF(DistortionProcessor& dist) : distortion(dist) {}
 
 void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
     float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle);
+    float angleRange = rotaryEndAngle - rotaryStartAngle;
+
     int centerX = x + width / 2;
     int centerY = y + height / 2;
     float radius = width / 2 - 8;
@@ -11,17 +13,41 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     float modifiedValue = distortion.getModifiedDriveValue();
     float modifiedAngle = juce::jmap(modifiedValue, rotaryStartAngle, rotaryEndAngle);
 
-    // Parameter arc
+    float modStartAngle = (modifiedAngle >= angle) ? angle : modifiedAngle;
+    float modEndAngle   = (modifiedAngle >= angle) ? modifiedAngle : angle;
+
+    float arcLength = radius * angleRange;
+    int arcSegments = arcLength / 5;
+    float arcInterval = angleRange / (float)arcSegments;
+    float gap = arcInterval / 5;
+
+    for (int i = 0; i < arcSegments; i++) {
+        float startAng = rotaryStartAngle + arcInterval * i;
+        float endAng = startAng + arcInterval - gap;
+
+        juce::Path arc;
+        arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, startAng, endAng, true);
+
+        if (startAng <= modStartAngle) {
+            g.setColour(juce::Colours::red);
+            g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
+        } else if (startAng <= modEndAngle) {
+            g.setColour(juce::Colours::yellow);
+            g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
+        }
+    }
+
+    /*
     juce::Path arc;
     arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, angle, true);
     g.setColour(juce::Colours::red);
     g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
 
-    // Modified arc
     juce::Path modArc;
     modArc.addCentredArc(centerX, centerY, radius, radius, 0.0f, angle, modifiedAngle, true);
     g.setColour(juce::Colours::yellow);
     g.strokePath(modArc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
+    */
 
     // Waveshape
 	std::vector<float> waveshape = distortion.getWaveshape(128);
@@ -52,28 +78,14 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     g.strokePath(path, juce::PathStrokeType(5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 }
 
-void DistortionLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox) {
-    g.setColour(juce::Colours::red);
-
-    static juce::Font customFont = [] {
-        auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf,
-            BinaryData::digital_ttfSize);
-        return juce::Font(typeface);
-        }();
-
-    g.setFont(customFont.withHeight(22.0f));
-
-    g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centredLeft);
-}
-
 void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
     juce::Rectangle<float> bounds = slider.getLocalBounds().toFloat().reduced(4.0f);
 
     float gapSize = 2.0f;
-    int segments = 10;
+    int segments = 8;
 
     // Center pivot point
-    float centerWidth = 6.0f;
+    float centerWidth = 4.0f;
 
     float gaplessWidth = bounds.getWidth() - (gapSize * (float)segments * 2.0f);
     float segmentWidth = (gaplessWidth - centerWidth) / ((float)segments * 2.0f);
@@ -96,7 +108,7 @@ void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, in
     float centerX = bounds.getX() + (segmentWidth + gapSize) * segments;
     juce::Rectangle<float> center(centerX, bounds.getY(), centerWidth, bounds.getHeight());
 
-    g.setColour(juce::Colours::yellow);
+    g.setColour(juce::Colours::white);
     g.fillRect(center);
 
     // Positive values
@@ -106,12 +118,11 @@ void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, in
 
         if (value <= slider.getValue()) {
             g.setColour(juce::Colours::yellow);
-            g.fillRect(segment);
         }
         else {
-            g.setColour(juce::Colour::fromRGB(80, 80, 0));
-            g.drawRect(segment);
+            g.setColour(juce::Colour::fromRGB(127, 127, 0));
         }
+        g.fillRect(segment);
     }
 }
 
@@ -127,23 +138,6 @@ void ModSlotLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isB
     g.setFont(customFont.withHeight(18.0f));
 
     g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centred);
-}
-
-void ModSlotLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
-    auto bounds = button.getLocalBounds().toFloat();
-
-    float size = std::min(bounds.getWidth(), bounds.getHeight()) * 0.5f; // size of the X square
-    auto center = bounds.getCentre();
-
-    float halfSize = size * 0.5f;
-    juce::Point<float> topLeft(center.x - halfSize, center.y - halfSize);
-    juce::Point<float> topRight(center.x + halfSize, center.y - halfSize);
-    juce::Point<float> bottomLeft(center.x - halfSize, center.y + halfSize);
-    juce::Point<float> bottomRight(center.x + halfSize, center.y + halfSize);
-
-    g.setColour(juce::Colours::yellow);
-    g.drawLine(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, 2.0f);
-    g.drawLine(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, 2.0f);
 }
 
 void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
@@ -277,6 +271,76 @@ void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggle
     g.setColour(juce::Colours::black);
     g.drawRoundedRectangle(buttonTop, 4.0f, 2.1f);
 }
+
+void IgnitiveLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
+    auto bounds = button.getLocalBounds().toFloat();
+
+    auto buttonBase = bounds.withTrimmedTop(buttonHeight);
+
+    float currentHeight = shouldDrawButtonAsDown ? 1 : buttonHeight;
+
+    auto buttonTop = buttonBase.translated(0, -currentHeight).getIntersection(bounds);
+
+    // Base
+    g.setColour(juce::Colours::black);
+    g.fillRoundedRectangle(buttonBase, 5.0f);
+
+    // Top
+    juce::Colour topColor(shouldDrawButtonAsDown ? 0xff7b818f : 0xffffffff);
+    juce::Colour textColor(shouldDrawButtonAsDown ? juce::Colours::red : juce::Colours::black);
+
+    g.setColour(topColor);
+    g.fillRoundedRectangle(buttonTop, 5.0f);
+
+    buttonTop.reduce(1.0f, 1.0f);
+
+    g.setColour(juce::Colours::black);
+    g.drawRoundedRectangle(buttonTop, 4.0f, 2.1f);
+}
+
+void IgnitiveLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox) {
+    g.setColour(juce::Colours::red);
+
+    static juce::Font customFont = [] {
+        auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf,
+            BinaryData::digital_ttfSize);
+        return juce::Font(typeface);
+        }();
+
+    g.setFont(customFont.withHeight(22.0f));
+
+    g.drawText(comboBox.getText(), comboBox.getLocalBounds().toFloat().reduced(4), juce::Justification::centred);
+}
+
+void IgnitiveLAF::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, int x, int y, int width, int height, bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, bool isMouseDown) {
+    auto bounds = scrollBar.getLocalBounds().toFloat();
+
+    const int pixelSize = 5;
+    int wPixels = (int)bounds.getWidth() / pixelSize;
+    int hPixels = (int)bounds.getHeight() / pixelSize;
+
+    int thumbStartPixel = thumbStartPosition / pixelSize;
+    int thumbSizePixel = thumbSize / pixelSize;
+    int thumbEndPixel = thumbStartPixel + thumbSizePixel;
+    
+    g.setColour(juce::Colours::yellow);
+    
+    // Todo: move this
+    juce::Colour backgroundColor = juce::Colour::fromRGB(127, 127, 0);
+
+    for (int ix = 0; ix < wPixels; ix++) {
+        for (int iy = thumbStartPixel; iy <= thumbEndPixel; iy++) {
+            if (iy == thumbStartPixel || iy == thumbEndPixel) g.setColour(backgroundColor);
+            else g.setColour(juce::Colours::yellow);
+
+            juce::Rectangle<float> pixel(bounds.getX() + ix * pixelSize, bounds.getY() + iy * pixelSize, pixelSize - 1.0f, pixelSize - 1.0f);
+
+            g.fillRect(pixel);
+        }
+    }
+}
+
+
 
 constexpr int ditherMap[4][4] = {
     { 1,  8,  2, 10 },

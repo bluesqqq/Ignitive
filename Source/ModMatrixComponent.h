@@ -63,20 +63,31 @@ public:
 	}
 
 	void paint(juce::Graphics& g) override {
-		auto area = getLocalBounds();
+		auto bounds = getLocalBounds();
+
+		const int pixelSize = 5;
+		int wPixels = bounds.getWidth() / pixelSize;
+		float pixelY = bounds.getY() + bounds.getHeight() - pixelSize;
 
 		g.setColour(juce::Colours::yellow);
-		g.drawLine(0, area.getHeight() - 1, area.getWidth(), area.getHeight() - 1);
+
+		for (int ix = 0; ix < wPixels; ix++) {
+			juce::Rectangle<float> pixel(bounds.getX() + ix * pixelSize, pixelY, pixelSize - 1.0f, pixelSize - 1.0f);
+
+			g.fillRect(pixel);
+		}
 	}
 
 	void resized() override {
-		auto area = getLocalBounds();
+		auto bounds = getLocalBounds();
+
+		bounds = bounds.withTrimmedBottom(5);
 
 		// Split remaining 90% in half
-		auto leftHalf = area.removeFromLeft(area.getWidth() / 2);
+		auto leftHalf = bounds.removeFromLeft(bounds.getWidth() / 2);
 		destinationBox.setBounds(leftHalf);
 
-		depthSlider.setBounds(area); // remaining right half
+		depthSlider.setBounds(bounds); // remaining right half
 	}
 };
 

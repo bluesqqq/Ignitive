@@ -46,9 +46,9 @@ const std::array<juce::String, 5> DistortionProcessor::characterDefs = {
     "Bitcrush"
 };
 
-DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID)
+DistortionProcessor::DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& matrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID, const juce::String& oversampleID)
     : parameters(params), modMatrix(matrix),
-      driveID(driveID), characterID(characterID), typeID(typeID), characterTypeID(characterTypeID),
+      driveID(driveID), characterID(characterID), typeID(typeID), characterTypeID(characterTypeID), oversampleID(oversampleID),
       index(0) {
 }
 
@@ -65,28 +65,36 @@ void DistortionProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
 void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
     updateParameters();
 
-    auto& inBlock  = context.getInputBlock();
+    auto& inBlock = context.getInputBlock();
     auto& outBlock = context.getOutputBlock();
 
-    // Upsample
-    auto oversampledBlock = oversampler->processSamplesUp(inBlock);
+    if (oversample) {
+        auto oversampledBlock = oversampler->processSamplesUp(inBlock);
 
-    // Process
-    for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
-        float d = modMatrix.getValue(Parameters::ID_DRIVE, sample/4);
-        float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample/4);
+        for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
+            float d = modMatrix.getValue(Parameters::ID_DRIVE, sample / 4);
+            float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample / 4);
 
-        for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
-            auto* samples = oversampledBlock.getChannelPointer(channel);
-            samples[sample] = distort(samples[sample], d, c);
+            for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
+                auto* samples = oversampledBlock.getChannelPointer(channel);
+                samples[sample] = distort(samples[sample], d, c);
+            }
+        }
+
+        oversampler->processSamplesDown(outBlock);
+    } else {
+        for (size_t sample = 0; sample < outBlock.getNumSamples(); ++sample) {
+            float d = modMatrix.getValue(Parameters::ID_DRIVE, sample);
+            float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample);
+
+            for (size_t channel = 0; channel < outBlock.getNumChannels(); ++channel) {
+                auto* samples = outBlock.getChannelPointer(channel);
+                samples[sample] = distort(samples[sample], d, c);
+            }
         }
     }
-
-    // Downsample
-    auto oversampledContext = juce::dsp::ProcessContextReplacing<float>(oversampledBlock);
-    
-    oversampler->processSamplesDown(outBlock);
 }
+
 
 void DistortionProcessor::reset() {
 }
@@ -96,6 +104,8 @@ void DistortionProcessor::updateParameters() {
     characterType = static_cast<CharacterType>(parameters.getRawParameterValue(characterTypeID)->load());
 
     index = distortionType;
+
+    oversample = parameters.getRawParameterValue(oversampleID)->load();
 }
 
 std::vector<float> DistortionProcessor::getWaveshape(unsigned int points) {

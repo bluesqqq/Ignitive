@@ -38,6 +38,7 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 		float distort(float sample, float drive, float character);
 
 		int index;
+		bool oversample = false;
 
 		CharacterType characterType = CharacterType::Asym;
 
@@ -46,11 +47,13 @@ class DistortionProcessor : public juce::dsp::ProcessorBase {
 		juce::String typeID;
 		juce::String characterTypeID;
 
+		juce::String oversampleID;
+
 	public:
 		static const std::array<DistortionDefinition, 4> distortionDefs;
 		static const std::array<juce::String, 5> characterDefs;
 
-		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID);
+		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID, const juce::String& oversampleID);
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override;
 		void process(const juce::dsp::ProcessContextReplacing<float>& context) override;

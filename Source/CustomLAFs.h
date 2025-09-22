@@ -14,6 +14,12 @@ class IgnitiveLAF : public juce::LookAndFeel_V4 {
         void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override;
 
         void drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+
+        void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+
+        void drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox);
+
+        void drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, int x, int y, int width, int height, bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, bool isMouseDown) override;
 };
 
 class MixLAF : public juce::LookAndFeel_V4 {
@@ -23,6 +29,7 @@ class MixLAF : public juce::LookAndFeel_V4 {
 
         float mouseFadeRadius = 25.0f;
         float mouseFadeDepth = 0.5f;
+
     public:
         void drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
             float sliderPos, float minSliderPos, float maxSliderPos,
@@ -38,13 +45,6 @@ class DriveLAF : public juce::LookAndFeel_V4 {
         void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider);
 };
 
-class DistortionLAF : public juce::LookAndFeel_V4 {
-    public:
-        void drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown,
-            int buttonX, int buttonY, int buttonW, int buttonH,
-            juce::ComboBox& comboBox);
-};
-
 class ModSlotLAF : public juce::LookAndFeel_V4 {
     public:
         void drawLinearSlider(juce::Graphics& g , int x, int y, int width, int height,
@@ -54,9 +54,6 @@ class ModSlotLAF : public juce::LookAndFeel_V4 {
         void drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown,
             int buttonX, int buttonY, int buttonW, int buttonH,
             juce::ComboBox& comboBox);
-
-        void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
-            bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 };
 
 class BirdsEyeLAF : public juce::LookAndFeel_V4 {
