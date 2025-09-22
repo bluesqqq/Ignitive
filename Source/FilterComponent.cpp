@@ -1,11 +1,12 @@
 ﻿#include "FilterComponent.h"
 
-FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter)
+FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
     : lpCutoffAttach(params, filter.lpCutoffID, lpCutoffKnob),
     lpResonanceAttach(params, filter.lpResonanceID, lpResonanceKnob),
     hpCutoffAttach(params, filter.hpCutoffID, hpCutoffKnob),
     hpResonanceAttach(params, filter.hpResonanceID, hpResonanceKnob),
-    filter(filter) {
+    filter(filter),
+    ignitiveLAF(ignitiveLAF) {
     startTimer(1000 / 60);
 
     lpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);

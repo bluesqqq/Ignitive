@@ -7,7 +7,6 @@
 
 class FilterComponent : public juce::Component, private juce::Timer {
     private:
-		IgnitiveLAF ignitiveLAF;
 
         juce::Slider lpCutoffKnob, lpResonanceKnob;
         juce::Slider hpCutoffKnob, hpResonanceKnob;
@@ -17,6 +16,8 @@ class FilterComponent : public juce::Component, private juce::Timer {
 
         FilterProcessor& filter;
 
+        IgnitiveLAF& ignitiveLAF;
+
         float graphBottomDB = -48.0f;
         float graphTopDB = 12.0f;
 
@@ -24,7 +25,7 @@ class FilterComponent : public juce::Component, private juce::Timer {
         juce::Colour backgroundColor = juce::Colour::fromRGB(127, 82, 0);
 
     public:
-        FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter);
+        FilterComponent(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF);
 
         void resized() override;
 

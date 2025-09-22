@@ -268,16 +268,10 @@ void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggle
     g.setColour(topColor);
     g.fillRoundedRectangle(buttonTop, 5.0f);
 
-    static juce::Font customFont = [] {
-        auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf,
-            BinaryData::uavosd_ttfSize);
-        return juce::Font(typeface);
-        }();
-
-    g.setFont(customFont.withHeight(11.0f));
+    g.setFont(font.withHeight(11.0f));
 
     g.setColour(textColor);
-    g.drawText("TEST", buttonTop, juce::Justification::centred);
+    g.drawText(toggleButton.getButtonText(), buttonTop, juce::Justification::centred);
     buttonTop.reduce(1.0f, 1.0f);
 
     g.setColour(juce::Colours::black);

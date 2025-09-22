@@ -23,7 +23,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         // Look And Feels
         DistortionLAF distortionLAF;
 
-        IgnitiveLAF ignitiveLAF;
+        IgnitiveLAF ignitiveLAF{ uavosdFont };
         MixLAF mixLAF;
 
         BirdsEyeLAF birdsEyeLAF;
@@ -69,7 +69,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackDelayAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK_DELAY, feedbackDelaySlider };
 
         // Filter
-		FilterComponent filterComponent { audioProcessor.parameters, audioProcessor.ignitive.filter };
+		FilterComponent filterComponent;
 
         // Envelope + LFO
         juce::Slider attackSlider, decaySlider, gateSlider;

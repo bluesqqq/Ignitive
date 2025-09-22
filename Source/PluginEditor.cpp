@@ -6,7 +6,8 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     lfoBox(p),
     digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
     uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
-    inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
+    inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
+    filterComponent(p.parameters, p.ignitive.filter, ignitiveLAF) {
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -39,12 +40,15 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(outGainSlider);
 
     bypassButton.setLookAndFeel(&ignitiveLAF);
+    bypassButton.setButtonText("BYPASS");
     addAndMakeVisible(bypassButton);
 
     oversampleButton.setLookAndFeel(&ignitiveLAF);
+    oversampleButton.setButtonText("OVERSAMPLE");
     addAndMakeVisible(oversampleButton);
 
     limiterButton.setLookAndFeel(&ignitiveLAF);
+    limiterButton.setButtonText("LIMITER");
     addAndMakeVisible(limiterButton);
 
     // ==============// DISTORTION + FEEDBACK //==============//

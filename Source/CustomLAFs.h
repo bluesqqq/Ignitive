@@ -7,7 +7,10 @@ class IgnitiveLAF : public juce::LookAndFeel_V4 {
     private:
         float buttonHeight = 3.0f;
 
+        juce::Font font;
+
     public:
+        IgnitiveLAF(const juce::Font& font) : font(font) {}
         void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override;
 
         void drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
