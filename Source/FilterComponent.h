@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "SwitchButtonAttachment.h"
-#include "CustomLAFs.h"
+#include "IgnitiveLAF.h"
 #include "FilterProcessor.h"
 
 class FilterComponent : public juce::Component, private juce::Timer {

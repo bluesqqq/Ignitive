@@ -4,56 +4,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #include "IgnitiveEngine.h"
-
-class Preset {
-    private:
-        juce::String name;
-
-    protected:
-        virtual std::unique_ptr<juce::XmlElement> getXml() = 0;
-
-    public:
-        Preset(const juce::String& name) : name(name) { }
-
-        juce::String getName() const { return name; }
-
-        juce::ValueTree getState() {
-            auto xml = getXml();
-            if (xml == nullptr) return {};
-
-            auto state = juce::ValueTree::fromXml(*xml);
-            return state.isValid() ? state : juce::ValueTree{};
-        }
-};
-
-class UserPreset : public Preset {
-    private:
-        juce::File file;
-
-    protected:
-        std::unique_ptr<juce::XmlElement> getXml() override {
-            if (!file.exists()) return {};
-            return juce::XmlDocument::parse(file);
-        }
-
-    public:
-        UserPreset(const juce::String& name, const juce::File& file) : Preset(name), file(file) {}
-};
-
-class FactoryPreset : public Preset {
-    private:
-        const char* binaryData = nullptr;
-        int binarySize = 0;
-
-    protected:
-        std::unique_ptr<juce::XmlElement> getXml() override {
-            juce::String xmlString = juce::String::fromUTF8(binaryData, binarySize);
-            return juce::parseXML(xmlString);
-        }
-
-    public:
-        FactoryPreset(const juce::String& name, const char* binaryData, int binarySize) : Preset(name), binaryData(binaryData), binarySize(binarySize) {}
-};
+#include "Presets.h"
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
@@ -163,7 +114,7 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void randomize() {
             // This works fine for now but it could be improved especially for distortion and character type selections.
 
-            for (auto& id : Parameters::modulatableParameters) {
+            for (auto& id : Parameters::randomizeParameters) {
                 auto* p = parameters.getParameter(id);
                 if (p != nullptr) {
                     float randomValue = juce::Random::getSystemRandom().nextFloat();

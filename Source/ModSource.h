@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <JuceHeader.h>
 
 class ModSource {
@@ -8,11 +7,7 @@ class ModSource {
 		juce::AudioBuffer<float> modulationBuffer;
 
 	public:
-		virtual void prepare(const juce::dsp::ProcessSpec& spec) {
-			modulationBuffer.setSize(1, spec.maximumBlockSize);
-		}
+		virtual void prepare(const juce::dsp::ProcessSpec& spec);
 
-		float getValue(int sampleIndex) const {
-			return modulationBuffer.getSample(0, sampleIndex);
-		}
+		float getValue(int sample) const;
 };

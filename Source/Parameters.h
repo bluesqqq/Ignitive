@@ -35,7 +35,7 @@ class Parameters {
 			ID_ENV = "envelope",
 			ID_LFO = "lfo";
 
-		inline static const std::vector<juce::String> modulatableParameters = {
+		inline static const std::vector<juce::String> randomizeParameters = {
 			ID_DRIVE,
 			ID_CHARACTER,
 			ID_FEEDBACK,

@@ -14,6 +14,8 @@
       <FILE id="XKYbxp" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
+      <FILE id="kXgbYu" name="Presets.cpp" compile="1" resource="0" file="Source/Presets.cpp"/>
+      <FILE id="HDTsBO" name="Presets.h" compile="0" resource="0" file="Source/Presets.h"/>
       <FILE id="jA2Oay" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
       <FILE id="vMNfJV" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
       <FILE id="LCvnI7" name="IgnitiveEngine.cpp" compile="1" resource="0"
@@ -21,20 +23,22 @@
       <FILE id="xA3w4z" name="IgnitiveEngine.h" compile="0" resource="0"
             file="Source/IgnitiveEngine.h"/>
       <GROUP id="{B4AC0B65-BF83-95A7-C8C8-8DA3F731F934}" name="Modulation">
-        <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
-              file="Source/EnvelopeFollower.cpp"/>
-        <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
-              file="Source/EnvelopeFollower.h"/>
-        <FILE id="wqQXGy" name="LFO.cpp" compile="1" resource="0" file="Source/LFO.cpp"/>
-        <FILE id="feKrpe" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
+        <GROUP id="{7D890011-CF95-135C-AE7D-7622C2DAA3D6}" name="Sources">
+          <FILE id="wUsJiS" name="EnvelopeFollower.cpp" compile="1" resource="0"
+                file="Source/EnvelopeFollower.cpp"/>
+          <FILE id="PRWaI1" name="EnvelopeFollower.h" compile="0" resource="0"
+                file="Source/EnvelopeFollower.h"/>
+          <FILE id="wqQXGy" name="LFO.cpp" compile="1" resource="0" file="Source/LFO.cpp"/>
+          <FILE id="feKrpe" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
+          <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>
+          <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
+        </GROUP>
         <FILE id="Z1XP2v" name="ModDestination.cpp" compile="1" resource="0"
               file="Source/ModDestination.cpp"/>
         <FILE id="eNUE5P" name="ModDestination.h" compile="0" resource="0"
               file="Source/ModDestination.h"/>
         <FILE id="hX8wej" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
         <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
-        <FILE id="BSsXVq" name="ModSource.cpp" compile="1" resource="0" file="Source/ModSource.cpp"/>
-        <FILE id="ULt31k" name="ModSource.h" compile="0" resource="0" file="Source/ModSource.h"/>
       </GROUP>
       <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
         <FILE id="PH9Bcu" name="GainProcessor.cpp" compile="1" resource="0"
@@ -56,6 +60,8 @@
       <GROUP id="{64F03D32-2006-7F89-08D2-4863ACCD9A4D}" name="LookAndFeels">
         <FILE id="HesNyq" name="CustomLAFs.cpp" compile="1" resource="0" file="Source/CustomLAFs.cpp"/>
         <FILE id="g69yeC" name="CustomLAFs.h" compile="0" resource="0" file="Source/CustomLAFs.h"/>
+        <FILE id="tdtaGC" name="IgnitiveLAF.cpp" compile="1" resource="0" file="Source/IgnitiveLAF.cpp"/>
+        <FILE id="wRpcZv" name="IgnitiveLAF.h" compile="0" resource="0" file="Source/IgnitiveLAF.h"/>
       </GROUP>
       <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="GUI">
         <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>

@@ -14,7 +14,6 @@ class ModDestination {
 		ModDestination(const juce::String& displayName = "NO NAME") : displayName(displayName) {}
 
 		void prepare(const juce::dsp::ProcessSpec& spec);
-
 		void update(float value);
 
 		float getValue(int sampleIndex) const;

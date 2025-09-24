@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "FilterComponent.h"
 #include "CustomLAFs.h"
+#include "IgnitiveLAF.h"
 #include "SwitchButtonAttachment.h"
 #include "EnvelopeBox.h"
 #include "LFOBox.h"
@@ -52,8 +53,8 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::ComboBox distortionTypeSelector;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> distortionTypeAttach;
 
-        juce::Slider colorSlider;
-        juce::AudioProcessorValueTreeState::SliderAttachment colorAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER, colorSlider };
+        juce::Slider characterSlider;
+        juce::AudioProcessorValueTreeState::SliderAttachment characterAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER, characterSlider };
 
         juce::ComboBox characterTypeSelector;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;

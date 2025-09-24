@@ -95,11 +95,11 @@ class ModMatrixComponent : public juce::Component {
 	private:
 		juce::OwnedArray<ModSlotComponent> modSlots;
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
-
-			ModMatrix& modMatrix;
+		ModMatrix& modMatrix;
 
 		juce::String sourceIDFilter;
+
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
 
 		void rebuildSlots() {
 			modSlots.clear(true);

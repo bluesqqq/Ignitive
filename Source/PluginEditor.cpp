@@ -2,17 +2,24 @@
 #include "PluginEditor.h"
 
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), envBox(p), modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
-    lfoBox(p),
-    digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
-    uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
-    inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
-    filterComponent(p.parameters, p.ignitive.filter, ignitiveLAF) {
+    : AudioProcessorEditor(&p), 
+      audioProcessor(p), 
+      envBox(p), lfoBox(p),
+      filterComponent(p.parameters, p.ignitive.filter, ignitiveLAF),
+      modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
+      digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
+      uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
+      inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
+
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
 
-    // ==============// FILTERS //==============//
+    bypassButton.setLookAndFeel(&ignitiveLAF);
+    bypassButton.setButtonText("BYPASS");
+    addAndMakeVisible(bypassButton);
+
+    // ==============// Filter //==============//
     addAndMakeVisible(filterComponent);
 
     // ==============// MOD MATRIX //==============//
@@ -29,6 +36,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 	inGainSlider.setLookAndFeel(&ignitiveLAF);
 	inGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
 	addAndMakeVisible(inGainSlider);
+    addAndMakeVisible(inMeter);
 
     mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -40,10 +48,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     outGainSlider.setLookAndFeel(&ignitiveLAF);
     outGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(outGainSlider);
-
-    bypassButton.setLookAndFeel(&ignitiveLAF);
-    bypassButton.setButtonText("BYPASS");
-    addAndMakeVisible(bypassButton);
+    addAndMakeVisible(outMeter);
 
     oversampleButton.setLookAndFeel(&ignitiveLAF);
     oversampleButton.setButtonText("OVERSAMPLE");
@@ -60,11 +65,11 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     // ==============// DISTORTION + FEEDBACK //==============//
     addAndMakeVisible(driveKnob);
 
-    colorSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    colorSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    colorSlider.setLookAndFeel(&birdsEyeLAF);
-    colorSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
-    addAndMakeVisible(colorSlider);
+    characterSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    characterSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    characterSlider.setLookAndFeel(&birdsEyeLAF);
+    characterSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(characterSlider);
 
     auto* distTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
     distortionTypeSelector.addItemList(distTypeParameter->getAllValueStrings(), 1);
@@ -146,31 +151,18 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 
 	addAndMakeVisible(envBox);
 
-
-    addAndMakeVisible(inMeter);
-    addAndMakeVisible(outMeter);
-
-
-    saveButton.setLookAndFeel(&ignitiveLAF);
-    addAndMakeVisible(saveButton);
-
     randomizeButton.setLookAndFeel(&ignitiveLAF);
+    randomizeButton.onClick = [this]() { audioProcessor.randomize(); };
     addAndMakeVisible(randomizeButton);
 
-    randomizeButton.onClick = [this]() {
-        audioProcessor.randomize();
-    };
-
+    // TODO: this needs to bring up a settings menu
     settingsButton.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(settingsButton);
 
     // ==============// PRESETS //==============//
     saveButton.setLookAndFeel(&ignitiveLAF);
+    saveButton.onClick = [this]() { audioProcessor.savePreset(); };
     addAndMakeVisible(saveButton);
-
-    saveButton.onClick = [this]() {
-        audioProcessor.savePreset();
-    };
 
     addAndMakeVisible(presetSelector);
 
@@ -244,19 +236,19 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
 void IgnitiveAudioProcessorEditor::resized() {
     auto area = getLocalBounds();
 
+    // ========/ Header Panel /========
+    randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
+    saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
+    presetSelector.setBounds(165, 10, 150, 25);
+    settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
+    bypassButton.setBounds(325, 10 - 3, 75, 25 + 3);
+
+    // =========/ Main Panel /=========
     filterComponent.setBounds(area);
-
-    modMatrixViewport.setBounds(275 + 5, 620 + 5, 190 - 10, 165 - 10);
-
-    modMatrixComponent.setSize(165, 250);
-
-    inGainSlider.setBounds(10, 535, 60, 60);
-    mixSlider.setBounds(275, 540, 190, 50);
-    outGainSlider.setBounds(200, 535, 60, 60);
 
     // Distortion
     driveKnob.setBounds(140, 185, 200, 200);
-    colorSlider.setBounds(97, 368, 60, 60);
+    characterSlider.setBounds(97, 368, 60, 60);
     characterTypeSelector.setBounds(7, 265, 112, 40);
     distortionTypeSelector.setBounds(361, 265, 112, 40);
 
@@ -264,29 +256,31 @@ void IgnitiveAudioProcessorEditor::resized() {
     feedbackSlider.setBounds(354, 348, 80, 80);
     feedbackDelaySlider.setBounds(296, 417, 40, 40);
 
-    // LFO + ENV
+    // =========/ Gain Panel /=========
+    inGainSlider.setBounds(10, 535, 60, 60);
+    inMeter.setBounds(62, 587, 14, 14);
+
+    oversampleButton.setBounds(80, 535 - 3, 110, 25 + 3);
+    limiterButton.setBounds(80, 570 - 3, 80, 25 + 3);
+    softClipButton.setBounds(165, 570 - 3, 25, 25 + 3);
+
+    outGainSlider.setBounds(200, 535, 60, 60);
+    outMeter.setBounds(252, 587, 14, 14);
+
+    mixSlider.setBounds(275, 540, 190, 50);
+
+    // =========/ Mod Panel /=========
+    modMatrixViewport.setBounds(275 + 5, 620 + 5, 190 - 10, 165 - 10);
+    modMatrixComponent.setSize(165, 250);
     envLFOToggleButton.setBounds(237, 640, 20, 40);
 
+    // ENV
     attackSlider.setBounds(30, 710, 40, 40);
     decaySlider.setBounds(97, 710, 40, 40);
     gateSlider.setBounds(165, 710, 40, 40);
 	envBox.setBounds(15, 620, 205, 80);
 
+    // LFO
     lfoBox.setBounds(15, 620, 205, 80);
-
     lfoSpeedSlider.setBounds(30, 710, 40, 40);
-
-    bypassButton.setBounds    (325, 10 - 3,  75,  25 + 3);
-    oversampleButton.setBounds(80,  535 - 3, 110, 25 + 3);
-    limiterButton.setBounds   (80,  570 - 3, 80,  25 + 3);
-    softClipButton.setBounds  (165, 570 - 3, 25, 25 + 3);
-
-    inMeter.setBounds(62, 587, 14, 14);
-    outMeter.setBounds(252, 587, 14, 14);
-
-    randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
-    saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
-    settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
-
-    presetSelector.setBounds(165, 10, 150, 25);
 }

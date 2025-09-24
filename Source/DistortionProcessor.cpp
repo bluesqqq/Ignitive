@@ -195,7 +195,7 @@ float sign(float x) {
 float DistortionProcessor::distort(float sample, float drive, float character) {
     auto& def = distortionDefs[index];
 
-    drive += 1;
+    drive = 1 + drive * 19; // Gets drive into (1-20) range
 
     // Distortion Modifier (Character)
     switch (characterType) {
@@ -228,8 +228,6 @@ float DistortionProcessor::distort(float sample, float drive, float character) {
             break;
         }
     }
-
-    drive = std::max(0.0f, drive) * 20.0f;
 
     // Apply drive then distort
     sample *= drive;
