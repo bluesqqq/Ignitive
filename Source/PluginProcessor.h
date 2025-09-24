@@ -47,83 +47,15 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void setStateInformation (const void* data, int sizeInBytes) override;
         
         // PRESETS
-        bool loadPreset(Preset* preset) {
-            if (preset == nullptr) return false;
+        bool loadPreset(Preset* preset);
+        bool loadPreset(int index);
 
-            auto state = preset->getState();
-            if (!state.isValid()) return false;
+        // Saves the current patch as a preset
+        void savePreset();
 
-            if (!ignitive.modMatrix.loadModConnectionsFromState(state)) return false;
-            parameters.replaceState(state);
+        juce::File getUserPresetFolder() const;
 
-            return true;
-        }
+        void loadAllPresets();
 
-        bool loadPreset(int index) {
-            if (index < 0 || index >= presets.size()) return false;
-
-            auto& preset = presets[index];
-            return loadPreset(preset.get());
-        }
-
-        void savePreset() {
-            auto dir = getUserPresetFolder();
-
-            auto chooser = std::make_shared<juce::FileChooser>("Save Preset", dir, "*.xml");
-
-            chooser->launchAsync(juce::FileBrowserComponent::saveMode |
-                juce::FileBrowserComponent::canSelectFiles,
-                [this, chooser](const juce::FileChooser& fc) {
-                    auto file = fc.getResult();
-                    if (file.exists() || file.getParentDirectory().exists()) {
-                        auto state = parameters.copyState();
-                        ignitive.modMatrix.saveModConnectionsToState(state);
-
-                        if (auto xml = state.createXml())
-                            xml->writeTo(file);
-                    }
-                });
-        }
-
-        juce::File getUserPresetFolder() const {
-            auto baseDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
-
-            juce::File dir = baseDir.getChildFile("Ignitive").getChildFile("Presets");
-
-            if (!dir.exists())
-                dir.createDirectory();
-
-            return dir;
-        }
-
-        void loadAllPresets() {
-            presets.clear();
-
-            // Factory Presets
-
-            // User Presets
-            auto dir = getUserPresetFolder();
-            auto files = dir.findChildFiles(juce::File::findFiles, false, "*.xml");
-
-            for (auto& file : files) {
-                auto name = file.getFileNameWithoutExtension();
-                presets.push_back(std::make_unique<UserPreset>(name, file));
-            }
-        }
-
-        void randomize() {
-            // This works fine for now but it could be improved especially for distortion and character type selections.
-
-            for (auto& id : Parameters::randomizeParameters) {
-                auto* p = parameters.getParameter(id);
-                if (p != nullptr) {
-                    float randomValue = juce::Random::getSystemRandom().nextFloat();
-                    p->setValueNotifyingHost(randomValue);
-                }
-            }
-
-            ignitive.modMatrix.randomizeConnections();
-
-            parameters.state = parameters.copyState();
-        }
+        void randomize();
 };

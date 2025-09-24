@@ -1,49 +1,12 @@
-﻿#include "FilterComponent.h"
+﻿#include "FilterCurve.h"
 
-FilterComponent::FilterComponent(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
-    : lpCutoffAttach(params, filter.lpCutoffID, lpCutoffKnob),
-    lpResonanceAttach(params, filter.lpResonanceID, lpResonanceKnob),
-    hpCutoffAttach(params, filter.hpCutoffID, hpCutoffKnob),
-    hpResonanceAttach(params, filter.hpResonanceID, hpResonanceKnob),
-    filter(filter),
-    ignitiveLAF(ignitiveLAF) {
+FilterCurve::FilterCurve(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
+    : filter(filter), ignitiveLAF(ignitiveLAF) {
     startTimer(1000 / 60);
-
-    lpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    lpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lpCutoffKnob.setLookAndFeel(&ignitiveLAF);
-    lpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
-    addAndMakeVisible(lpCutoffKnob);
-
-    lpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    lpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lpResonanceKnob.setLookAndFeel(&ignitiveLAF);
-    lpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
-    addAndMakeVisible(lpResonanceKnob);
-
-    hpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    hpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    hpCutoffKnob.setLookAndFeel(&ignitiveLAF);
-    hpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
-    addAndMakeVisible(hpCutoffKnob);
-
-    hpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    hpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    hpResonanceKnob.setLookAndFeel(&ignitiveLAF);
-    hpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
-    addAndMakeVisible(hpResonanceKnob);
 }
 
-void FilterComponent::resized() {
-    // Highpass on left, lowpass on right
-    hpCutoffKnob.setBounds(40, 95, 60, 60);
-    hpResonanceKnob.setBounds(40, 185, 40, 40);
-    lpCutoffKnob.setBounds(380, 95, 60, 60);
-    lpResonanceKnob.setBounds(400, 185, 40, 40);
-}
-
-void FilterComponent::paint(juce::Graphics& g) {
-    juce::Rectangle<float> screen(110.0f, 85.0f, 260.0f, 80.0f);
+void FilterCurve::paint(juce::Graphics& g) {
+    auto screen = getLocalBounds().toFloat();
     screen.reduce(5.0f, 5.0f);
 
     const int pixelSize = 5;
@@ -86,8 +49,8 @@ void FilterComponent::paint(juce::Graphics& g) {
     // Draw pixels
     g.setColour(juce::Colours::green);
     float bottomY = screen.getY() + screen.getHeight();
-    float cx = 100.0f + 280.0f / 2.0f;
-    float cy = 145.0f + 280.0f / 2.0f;
+    float cx = screen.getY() + screen.getWidth() / 2;
+    float cy = 200.0f;
     float radius = 280.0f / 2.0f;
 
     for (int ix = 0; ix < filterCurve.size(); ++ix) {
@@ -115,6 +78,6 @@ void FilterComponent::paint(juce::Graphics& g) {
 
 
 
-void FilterComponent::timerCallback() {
+void FilterCurve::timerCallback() {
     repaint();
 }

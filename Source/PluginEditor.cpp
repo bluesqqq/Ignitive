@@ -5,7 +5,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     : AudioProcessorEditor(&p), 
       audioProcessor(p), 
       envBox(p), lfoBox(p),
-      filterComponent(p.parameters, p.ignitive.filter, ignitiveLAF),
+      FilterCurve(p.parameters, p.ignitive.filter, ignitiveLAF),
       modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
       digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
       uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
@@ -20,7 +20,31 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(bypassButton);
 
     // ==============// Filter //==============//
-    addAndMakeVisible(filterComponent);
+    lpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    lpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    lpCutoffKnob.setLookAndFeel(&ignitiveLAF);
+    lpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(lpCutoffKnob);
+
+    lpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    lpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    lpResonanceKnob.setLookAndFeel(&ignitiveLAF);
+    lpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(lpResonanceKnob);
+
+    hpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    hpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    hpCutoffKnob.setLookAndFeel(&ignitiveLAF);
+    hpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(hpCutoffKnob);
+
+    hpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    hpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    hpResonanceKnob.setLookAndFeel(&ignitiveLAF);
+    hpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    addAndMakeVisible(hpResonanceKnob);
+
+    addAndMakeVisible(FilterCurve);
 
     // ==============// MOD MATRIX //==============//
     addAndMakeVisible(modMatrixComponent);
@@ -164,6 +188,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     saveButton.onClick = [this]() { audioProcessor.savePreset(); };
     addAndMakeVisible(saveButton);
 
+    presetSelector.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(presetSelector);
 
     presetSelector.onChange = [this]() {
@@ -180,7 +205,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         presetSelector.addItem(preset->getName(), itemID++);
     }
 
-    presetSelector.setSelectedId(1);
+    presetSelector.setText("No Preset Selected", false);
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -244,7 +269,14 @@ void IgnitiveAudioProcessorEditor::resized() {
     bypassButton.setBounds(325, 10 - 3, 75, 25 + 3);
 
     // =========/ Main Panel /=========
-    filterComponent.setBounds(area);
+
+    // Filter
+    hpCutoffKnob.setBounds(40, 95, 60, 60);
+    hpResonanceKnob.setBounds(40, 185, 40, 40);
+    lpCutoffKnob.setBounds(380, 95, 60, 60);
+    lpResonanceKnob.setBounds(400, 185, 40, 40);
+
+    FilterCurve.setBounds(110.0f, 85.0f, 260.0f, 80.0f);
 
     // Distortion
     driveKnob.setBounds(140, 185, 200, 200);

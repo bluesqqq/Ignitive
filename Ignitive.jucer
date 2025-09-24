@@ -83,10 +83,8 @@
         <FILE id="pXKB6G" name="SwitchButton.cpp" compile="1" resource="0"
               file="Source/SwitchButton.cpp"/>
         <FILE id="xz4JLY" name="SwitchButton.h" compile="0" resource="0" file="Source/SwitchButton.h"/>
-        <FILE id="qNS6SN" name="FilterComponent.cpp" compile="1" resource="0"
-              file="Source/FilterComponent.cpp"/>
-        <FILE id="VV09RB" name="FilterComponent.h" compile="0" resource="0"
-              file="Source/FilterComponent.h"/>
+        <FILE id="qNS6SN" name="FilterCurve.cpp" compile="1" resource="0" file="Source/FilterCurve.cpp"/>
+        <FILE id="VV09RB" name="FilterCurve.h" compile="0" resource="0" file="Source/FilterCurve.h"/>
       </GROUP>
       <FILE id="gMSk4r" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

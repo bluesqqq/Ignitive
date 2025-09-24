@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "FilterComponent.h"
+#include "FilterCurve.h"
 #include "CustomLAFs.h"
 #include "IgnitiveLAF.h"
 #include "SwitchButtonAttachment.h"
@@ -71,7 +71,15 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackDelayAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK_DELAY, feedbackDelaySlider };
 
         // Filter
-		FilterComponent filterComponent;
+        juce::Slider lpCutoffKnob, lpResonanceKnob;
+        juce::Slider hpCutoffKnob, hpResonanceKnob;
+
+        juce::AudioProcessorValueTreeState::SliderAttachment lpCutoffAttach{ audioProcessor.parameters, Parameters::ID_LP_CUTOFF, lpCutoffKnob};
+        juce::AudioProcessorValueTreeState::SliderAttachment lpResonanceAttach{ audioProcessor.parameters, Parameters::ID_LP_RESONANCE, lpResonanceKnob };
+        juce::AudioProcessorValueTreeState::SliderAttachment hpCutoffAttach{ audioProcessor.parameters, Parameters::ID_HP_CUTOFF, hpCutoffKnob };
+        juce::AudioProcessorValueTreeState::SliderAttachment hpResonanceAttach{ audioProcessor.parameters, Parameters::ID_HP_RESONANCE, hpResonanceKnob };
+
+		FilterCurve FilterCurve;
 
         // Envelope + LFO
         juce::Slider attackSlider, decaySlider, gateSlider;
