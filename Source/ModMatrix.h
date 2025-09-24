@@ -97,4 +97,36 @@ class ModMatrix {
 
 			return result;
 		}
+
+		bool loadModConnectionsFromState(const juce::ValueTree& state) {
+			auto mods = state.getChildWithName("ModConnections");
+			if (!mods.isValid()) return false;
+
+			connections.clear();
+
+			for (int i = 0; i < mods.getNumChildren(); ++i) {
+				auto conn = mods.getChild(i);
+				makeConnection(conn["source"].toString(), conn["destination"].toString(), (float)conn["depth"]);
+			}
+
+			return true;
+		}
+
+		void saveModConnectionsToState(juce::ValueTree& state) {
+			juce::ValueTree mods("ModConnections");
+
+			for (auto& c : connections) {
+				juce::ValueTree conn("Connection");
+				conn.setProperty("source", c.sourceID, nullptr);
+				conn.setProperty("destination", c.destinationID, nullptr);
+				conn.setProperty("depth", c.depth, nullptr);
+				mods.addChild(conn, -1, nullptr);
+			}
+
+			state.addChild(mods, -1, nullptr);
+		}
+
+		void randomizeConnections() {
+			// Todo: Implement this
+		}
 };

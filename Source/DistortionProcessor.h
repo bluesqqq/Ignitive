@@ -7,17 +7,11 @@
 #include <cmath>
 #include "ModMatrix.h"
 
-enum class DistortionType {
-	HardClip,
-	Tube,
-	Tape,
-	Overdrive,
-	NumDefinitions
-};
-
 enum class CharacterType {
-	Bend,
-	Asym,
+	BendPlus,
+	BendMinus,
+	AsymPositive,
+	AsymNegative,
 	Fold,
 	Rectify,
 	Bitcrush
@@ -25,33 +19,31 @@ enum class CharacterType {
 
 struct DistortionDefinition {
 	const char* name;
-	float (*process)(float, float);
+	float (*process)(float);
 };
 
 class DistortionProcessor : public juce::dsp::ProcessorBase {
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
 		ModMatrix& modMatrix;
-
 		std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
 
-		float distort(float sample, float drive, float character);
-
-		int index;
-		bool oversample = false;
-
-		CharacterType characterType = CharacterType::Asym;
-
+		// Parameter IDs
 		juce::String driveID;
 		juce::String characterID;
 		juce::String typeID;
 		juce::String characterTypeID;
-
 		juce::String oversampleID;
 
+		int index;
+		bool oversample = false;
+		CharacterType characterType = CharacterType::AsymPositive;
+
+		float distort(float sample, float drive, float character);
+
 	public:
-		static const std::array<DistortionDefinition, 4> distortionDefs;
-		static const std::array<juce::String, 5> characterDefs;
+		static const std::vector<DistortionDefinition> distortionDefs;
+		static const std::array<juce::String, 7> characterDefs;
 
 		DistortionProcessor(juce::AudioProcessorValueTreeState& params, ModMatrix& modMatrix, const juce::String& driveID, const juce::String& characterID, const juce::String& typeID, const juce::String& characterTypeID, const juce::String& oversampleID);
 

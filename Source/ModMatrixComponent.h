@@ -92,30 +92,30 @@ public:
 };
 
 class ModMatrixComponent : public juce::Component {
-private:
-	juce::OwnedArray<ModSlotComponent> modSlots;
+	private:
+		juce::OwnedArray<ModSlotComponent> modSlots;
 
-	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModMatrixComponent)
 
-		ModMatrix& modMatrix;
+			ModMatrix& modMatrix;
 
-	juce::String sourceIDFilter;
+		juce::String sourceIDFilter;
 
-	void rebuildSlots() {
-		modSlots.clear(true);
+		void rebuildSlots() {
+			modSlots.clear(true);
 
-		auto& connections = modMatrix.getConnections();
+			auto& connections = modMatrix.getConnections();
 
-		for (auto& connection : connections) {
-			if (sourceIDFilter.isEmpty() || connection.sourceID == sourceIDFilter) {
-				auto* slot = new ModSlotComponent(&connection, modMatrix);
-				modSlots.add(slot);
-				addAndMakeVisible(slot);
+			for (auto& connection : connections) {
+				if (sourceIDFilter.isEmpty() || connection.sourceID == sourceIDFilter) {
+					auto* slot = new ModSlotComponent(&connection, modMatrix);
+					modSlots.add(slot);
+					addAndMakeVisible(slot);
+				}
 			}
-		}
 
-		resized();
-	}
+			resized();
+		}
 
 	public:
 		ModMatrixComponent(ModMatrix& matrix) : modMatrix(matrix), sourceIDFilter("") {

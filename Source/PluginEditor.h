@@ -21,7 +21,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::Font uavosdFont;
 
         // Look And Feels
-        IgnitiveLAF ignitiveLAF{ uavosdFont };
+        IgnitiveLAF ignitiveLAF{ uavosdFont, digitalFont };
         MixLAF mixLAF;
 
         BirdsEyeLAF birdsEyeLAF;
@@ -61,6 +61,9 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::ToggleButton oversampleButton;
         juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
 
+        juce::ToggleButton softClipButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment softClipAttach{ audioProcessor.parameters, Parameters::ID_SOFTCLIP, softClipButton };
+
         // Feedback
         juce::Slider feedbackSlider, feedbackDelaySlider;
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK, feedbackSlider };
@@ -94,9 +97,13 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::StringArray modParamNamesEnvelope{ "Attack", "Decay", "Gate" };
         juce::StringArray modParamNamesLFO{ "Speed", "---", "---" };
 
+        juce::TextButton saveButton;
+
         juce::TextButton randomizeButton;
 
         juce::TextButton settingsButton;
+
+        juce::ComboBox presetSelector;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 
@@ -106,4 +113,5 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
 
         void paint (juce::Graphics&) override;
         void resized() override;
+
 };

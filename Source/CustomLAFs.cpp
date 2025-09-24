@@ -28,10 +28,10 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
         juce::Path arc;
         arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, startAng, endAng, true);
 
-        if (startAng <= modStartAngle) {
+        if (startAng < modStartAngle) {
             g.setColour(juce::Colours::red);
             g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
-        } else if (startAng <= modEndAngle) {
+        } else if (startAng < modEndAngle) {
             g.setColour(juce::Colours::yellow);
             g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
         }
@@ -50,32 +50,53 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
     */
 
     // Waveshape
-	std::vector<float> waveshape = distortion.getWaveshape(128);
+    std::vector<float> waveshape = distortion.getWaveshape(128);
+
+    // Find max absolute value
+    float maxVal = 1.0f;
+    for (auto v : waveshape)
+        maxVal = std::max(maxVal, std::fabs(v));
 
     juce::Path path;
 
     float border = 20;
+    float reducedWidth = width - border * 2;
+    reducedWidth = std::sin(juce::MathConstants<float>::halfPi / 2) * reducedWidth;
 
-	float reducedWidth = width - border * 2;
+    float segmentWidth = reducedWidth / (float)waveshape.size();
+    float start = (width - reducedWidth) / 2;
+    float halfHeight = height / 2;
 
-	reducedWidth = sin(juce::MathConstants<float>::halfPi / 2) * reducedWidth;
+    // Reference line (-1,-1) -> (1,1)
+    juce::Path refLine;
+    float refX0 = start;                      // corresponds to -1
+    float refX1 = start + reducedWidth;       // corresponds to +1
+    float refY0 = halfHeight + (1.0f / maxVal) * (reducedWidth * 0.5f);  // -1 (bottom)
+    float refY1 = halfHeight - (1.0f / maxVal) * (reducedWidth * 0.5f);  // +1 (top)
 
-	float segmentWidth = reducedWidth / (float)(waveshape.size());
+    refLine.startNewSubPath(refX0, refY0);
+    refLine.lineTo(refX1, refY1);
 
-	float start = (width - reducedWidth) / 2;
+    refLine.startNewSubPath(start + reducedWidth / 2.0f, start);
+    refLine.lineTo(start + reducedWidth / 2.0f, start + reducedWidth);
 
-	float halfHeight = height / 2;
+    g.setColour(juce::Colours::darkgrey);
+    g.strokePath(refLine, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
+    // Waveshape path
     for (int i = 0; i < waveshape.size(); ++i) {
         float x = start + i * segmentWidth;
-        float y = halfHeight - (waveshape[i] * (reducedWidth * 0.5));
+
+        // scale by maxVal instead of assuming -1..1
+        float y = halfHeight - (waveshape[i] / maxVal) * (reducedWidth * 0.5f);
 
         if (i == 0) path.startNewSubPath(x, y);
         else        path.lineTo(x, y);
     }
 
     g.setColour(juce::Colours::red);
-    g.strokePath(path, juce::PathStrokeType(5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    g.strokePath(path, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
 }
 
 void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
@@ -149,6 +170,7 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
 
     juce::Rectangle<float> bounds(x, y, width, height);
 
+    float value = slider.getValue();
     float modifiedValue = distortion.getModifiedCharacterValue();
 
     // BLINKING
@@ -168,7 +190,7 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
         blinking = false;
     }
 
-    if (!blinking) targetEyelidPosition = 0.5f + modifiedValue / 2.0f;
+    if (!blinking) targetEyelidPosition = 0.5f + value / 2.0f;
 
     eyelidPosition = juce::jmap(0.35f * deltaTimeNorm, eyelidPosition, targetEyelidPosition);
 
@@ -262,7 +284,7 @@ void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggle
     g.setColour(topColor);
     g.fillRoundedRectangle(buttonTop, 5.0f);
 
-    g.setFont(font.withHeight(11.0f));
+    g.setFont(uavFont.withHeight(11.0f));
 
     g.setColour(textColor);
     g.drawText(toggleButton.getButtonText(), buttonTop, juce::Justification::centred);
@@ -340,7 +362,19 @@ void IgnitiveLAF::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, i
     }
 }
 
+void IgnitiveLAF::drawPopupMenuBackground(juce::Graphics& g, int width, int height) {
+    g.setColour(popupStroke);
+    g.fillRoundedRectangle(0, 0, width, height, 5.0f);
 
+    g.setColour(popupBackground);
+    g.fillRect(5, 5, width - 10, height - 10);
+}
+
+void IgnitiveLAF::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area, bool isSeparator, bool isActive, bool isHighlighted, bool isTicked, bool hasSubMenu, const juce::String& text, const juce::String& shortcutKeyText, const juce::Drawable* icon, const juce::Colour* textColour) {
+    g.setFont(digitalFont.withHeight(18.0f));
+    g.setColour(juce::Colours::red);
+    g.drawText(text, area, juce::Justification::centred);
+}
 
 constexpr int ditherMap[4][4] = {
     { 1,  8,  2, 10 },

@@ -9,7 +9,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_OUT_GAIN, "Out Gain", 0.0f, 2.0f, 1.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_MIX, "Mix", 0.0f, 1.0f, 1.0f));
 	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_BYPASS, "Bypass", false));
-	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_LIMITER, "Limiter", false));
+	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_LIMITER, "Limiter", true));
+	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_SOFTCLIP, "Soft Clip", false));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_DRIVE, "Drive", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Character", 0.0f, 1.0f, 0.0f));

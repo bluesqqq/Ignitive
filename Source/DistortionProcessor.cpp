@@ -1,46 +1,114 @@
 #include "DistortionProcessor.h"
 
-const std::array<DistortionDefinition, 4> DistortionProcessor::distortionDefs = { {
+const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { {
     {
         "Hard Clip",
-        [](float sample, float drive) -> float {
-            return juce::jlimit(-1.0f, 1.0f, sample * (1.0f + drive * 20.0f));
+        [](float sample) -> float {
+            return sample;
+        }
+    },
+    {
+        "Soft Clip",
+        [](float sample) -> float {
+            return std::tanhf(sample);
         }
     },
     {
         "Tube",
-        [](float sample, float drive) -> float {
-            if (drive <= 0.0f) return sample;
-            float k = drive * 20.0f;
-            return std::tanhf(sample * k) / std::tanhf(k);
+        [](float sample) -> float {
+            return sample;
         }
     },
     {
-        "Tape",
-        [](float sample, float drive) -> float {
-            if (drive <= 0.0f) return sample;
-
-            float k = 1.0f + drive * 5.0f;
-            float x = sample * k;
-
-            return (x / (1.0f + fabsf(x)));
+        "Test 1",
+        [](float sample) -> float {
+            if (sample < -0.5)
+                return (sample + 0.5) * 2;
+            else if (sample <= 0.5)
+                return (std::sinf(sample * juce::MathConstants<float>::twoPi * 4) * 0.3);
+           
+            return std::atanf(sample - 0.5) * 1.5f;
         }
     },
     {
-        "Overdrive",
-        [](float sample, float drive) -> float {
-            if (drive == 0.0f) return sample;
+        "Test 2",
+        [](float sample) -> float {
+            if (sample < -0)
+                return -std::fabsf(2 * sample + 1) + 1;
+            
+            return sample;
+        }
+    },
+    {
+        "Test 3",
+        [](float sample) -> float {
+            float absSample = std::fabsf(sample);
+            return absSample * std::sinf((sample / (1.0f + 0.05f * absSample)) * juce::MathConstants<float>::halfPi);
+        }
+    },
+    {
+        "Test 4",
+        [](float sample) -> float {
+            if (sample < -10) return sin(sample * juce::MathConstants<float>::pi) - 20;
+            else if (sample < 0.25) return sample * 2;
+            else if (sample <= 4) return 0.5;
 
-            float k = (1.0f + drive * 20);
+            return (sample - 4) * (sample - 15) * 0.3 + 0.5;
+        }
+    },
+    {
+        "Test 5",
+        [](float sample) -> float {
+            return (20 / juce::MathConstants<float>::pi) * std::atanf(0.2f * sample) + std::sinf(std::powf(std::fabsf(sample / 3.0f), 2.0f));
+        }
+    },
+    {
+        "Test 6",
+        [](float sample) -> float {
+            if (sample < 0) return std::min(0.0f, std::sinf(sample * juce::MathConstants<float>::pi) * sample);
+            
+            return sample;
+        }
+    },
+    {
+        "Test 7",
+        [](float sample) -> float {
+            if (sample < 0) {
+                float c = sample + 4;
+                
+                return juce::jlimit(sample, -sample, sample * (sample + 2) * c * c * c);
+            }
 
-            return sample >= 0 ? std::min(sample / k + 1.0f - (1.0f / k), sample * k) : std::max(sample / k - 1.0f + (1.0f / k), sample * k);
+            float a = std::powf(sample, 1.6) - 1.0f;
+            float b = sample + 1.0f;
+            return a - b * std::floor(a / b);
+        }
+    },
+    {
+        "Test 8",
+        [](float sample) -> float {
+            return sample + std::ceilf(std::fmodf(sample, 1.0f) - 0.5f) * sample * 0.3f;
+        }
+    },
+    {
+        "Test 9",
+        [](float sample) -> float {
+            return juce::jlimit((sample - 20.0f) / 20.0f, (sample + 20.0f) / 20.0f, sample);
+        }
+    },
+    {
+        "Test 10",
+        [](float sample) -> float {
+            return 0.05f * sample * std::abs(sample) + 0.5f * std::sin(0.9f * sample);
         }
     }
 }};
 
-const std::array<juce::String, 5> DistortionProcessor::characterDefs = {
-    "Bend",
-    "Asym",
+const std::array<juce::String, 7> DistortionProcessor::characterDefs = {
+    "Bend+",
+    "Bend-",
+    "Asym+",
+    "Asym-",
     "Fold",
     "Rectify",
     "Bitcrush"
@@ -100,11 +168,8 @@ void DistortionProcessor::reset() {
 }
 
 void DistortionProcessor::updateParameters() {
-    int distortionType = parameters.getRawParameterValue(typeID)->load();
+    index = parameters.getRawParameterValue(typeID)->load();
     characterType = static_cast<CharacterType>(parameters.getRawParameterValue(characterTypeID)->load());
-
-    index = distortionType;
-
     oversample = parameters.getRawParameterValue(oversampleID)->load();
 }
 
@@ -127,45 +192,54 @@ float sign(float x) {
     return -1.0;
 }
 
-float DistortionProcessor::distort(float x, float d, float c) {
+float DistortionProcessor::distort(float sample, float drive, float character) {
     auto& def = distortionDefs[index];
 
-    float distortion = d;
+    drive += 1;
 
+    // Distortion Modifier (Character)
     switch (characterType) {
-        case CharacterType::Bend: {
-            distortion += fabsf(x * c * 2.0f) - c;
+        case CharacterType::BendPlus: { // More drive near -1, 1, less near 0
+            drive *= fabsf(sample * character * 2.0f) + 1 - character;
             break;
         }
-        case CharacterType::Asym: {
-            distortion += x * c;
+        case CharacterType::BendMinus: { // More drive near 0, less near -1, 1
+            drive *= -fabsf(sample * character * 2.0f) + 1 + character;
+            break;
+        }
+        case CharacterType::AsymPositive: { // More drive near 1, less near -1
+            drive *= sample * character + 1;
+            break;
+        }
+        case CharacterType::AsymNegative: { // More drive near -1, less near 1
+            drive *= -sample * character + 1;
             break;
         }
         case CharacterType::Fold: {
-            x *= 1.0f + c * 8.0f;
-            float xm = x - 1.0f;
-            xm = xm - 4.0f * std::floor(xm * 0.25f); // faster than fmod for positive mod
+            sample *= 1.0f + character * 8.0f;
+            float xm = sample - 1.0f;
+            xm = xm - 4.0f * std::floor(xm * 0.25f);
 
-            x = std::fabs(xm - 2.0f) - 1.0f;
+            sample = std::fabs(xm - 2.0f) - 1.0f;
             break;
         }
         case CharacterType::Rectify: {
-            x = (1 - c) * x + c * std::fabsf(x);
+            sample = (1 - character) * sample + character * std::fabsf(sample);
             break;
         }
     }
 
-    distortion = juce::jlimit(0.0f, 2.0f, distortion);
+    drive = std::max(0.0f, drive) * 20.0f;
 
-    x = def.process(x, distortion);
+    // Apply drive then distort
+    sample *= drive;
+    sample = def.process(sample);
 
     if (characterType == CharacterType::Bitcrush) {
-        float steps = juce::jmap(c, 64.0f, 2.0f);
+        float steps = juce::jmap(character, 64.0f, 2.0f);
 
-        x = std::round(x * steps) / steps;
+        sample = std::round(sample * steps) / steps;
     }
 
-    
-
-    return x;
+    return sample;
 }

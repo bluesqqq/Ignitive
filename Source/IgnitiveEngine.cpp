@@ -49,6 +49,16 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         auto numSamples = block.getNumSamples();
         auto numChannels = block.getNumChannels();
 
+        bool limiterEnabled = parameters.getRawParameterValue(Parameters::ID_LIMITER)->load();
+        bool softClip = parameters.getRawParameterValue(Parameters::ID_SOFTCLIP)->load();
+        float mix = parameters.getRawParameterValue(Parameters::ID_MIX)->load();
+
+        // Store the dry (unprocessed) signal
+        juce::AudioBuffer<float> dryBuffer(numChannels, numSamples);
+        for (size_t ch = 0; ch < numChannels; ++ch) {
+            dryBuffer.copyFrom(ch, 0, block.getChannelPointer(ch), numSamples);
+        }
+
         /*
           Chain Layout:
 
@@ -75,14 +85,38 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         filter.process(context);
         distortion.process(context);
 
-        // Post filter has to be processed per sample due to feedback's ordering
-        // See graph above for visual explanation
         for (size_t sample = 0; sample < numSamples; ++sample) {
             feedback.processBlockSample(block, sample);
             feedback.processWriteBlockSample(block, sample);
         }
 
         outGain.process(context);
+
+        // Limiter
+        if (limiterEnabled) {
+            for (size_t ch = 0; ch < numChannels; ++ch) {
+                auto* channelData = block.getChannelPointer(ch);
+                if (softClip) {
+                    for (size_t sample = 0; sample < numSamples; ++sample) {
+                        channelData[sample] = std::tanh(channelData[sample]);
+                    }
+                } else {
+                    for (size_t sample = 0; sample < numSamples; ++sample) {
+                        channelData[sample] = juce::jlimit(-1.0f, 1.0f, channelData[sample]);
+                    }
+                }
+            }
+        }
+
+        // DRY / WET
+        for (size_t ch = 0; ch < numChannels; ++ch) {
+            auto* wetSignal = block.getChannelPointer(ch);
+            const auto* drySignal = dryBuffer.getReadPointer(ch);
+
+            for (size_t sample = 0; sample < numSamples; ++sample) {
+                wetSignal[sample] = juce::jmap(mix, drySignal[sample], wetSignal[sample]);
+            }
+        }
     }
 }
 

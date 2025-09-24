@@ -53,6 +53,10 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     limiterButton.setButtonText("LIMITER");
     addAndMakeVisible(limiterButton);
 
+    softClipButton.setLookAndFeel(&ignitiveLAF);
+    softClipButton.setButtonText("");
+    addAndMakeVisible(softClipButton);
+
     // ==============// DISTORTION + FEEDBACK //==============//
     addAndMakeVisible(driveKnob);
 
@@ -146,11 +150,45 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(inMeter);
     addAndMakeVisible(outMeter);
 
+
+    saveButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(saveButton);
+
     randomizeButton.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(randomizeButton);
 
+    randomizeButton.onClick = [this]() {
+        audioProcessor.randomize();
+    };
+
     settingsButton.setLookAndFeel(&ignitiveLAF);
     addAndMakeVisible(settingsButton);
+
+    // ==============// PRESETS //==============//
+    saveButton.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(saveButton);
+
+    saveButton.onClick = [this]() {
+        audioProcessor.savePreset();
+    };
+
+    addAndMakeVisible(presetSelector);
+
+    presetSelector.onChange = [this]() {
+        int selectedID = presetSelector.getSelectedId();
+        if (selectedID > 0 && selectedID <= audioProcessor.presets.size()) {
+            if (audioProcessor.loadPreset(selectedID - 1))
+                // I'm using this to reload it, maybe ill just make the reload public eventually
+                modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
+        }
+    };
+
+    int itemID = 1;
+    for (auto& preset : audioProcessor.presets) {
+        presetSelector.addItem(preset->getName(), itemID++);
+    }
+
+    presetSelector.setSelectedId(1);
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -197,12 +235,7 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
 
         current = newString;
 
-        juce::Rectangle<float> sectionRect(
-            modParamNamesBox.getX() + i * sectionWidth,
-            modParamNamesBox.getY(),
-            sectionWidth,
-            modParamNamesBox.getHeight()
-        );
+        juce::Rectangle<float> sectionRect(modParamNamesBox.getX() + i * sectionWidth, modParamNamesBox.getY(), sectionWidth, modParamNamesBox.getHeight());
 
         g.drawText(current, sectionRect.toNearestInt(), juce::Justification::centred);
     }
@@ -246,10 +279,14 @@ void IgnitiveAudioProcessorEditor::resized() {
     bypassButton.setBounds    (325, 10 - 3,  75,  25 + 3);
     oversampleButton.setBounds(80,  535 - 3, 110, 25 + 3);
     limiterButton.setBounds   (80,  570 - 3, 80,  25 + 3);
+    softClipButton.setBounds  (165, 570 - 3, 25, 25 + 3);
 
     inMeter.setBounds(62, 587, 14, 14);
     outMeter.setBounds(252, 587, 14, 14);
 
-    randomizeButton.setBounds(130, 10 - 3, 25, 25 + 3);
+    randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
+    saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
     settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
+
+    presetSelector.setBounds(165, 10, 150, 25);
 }

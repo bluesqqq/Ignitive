@@ -10,6 +10,7 @@ class Parameters {
 			ID_MIX                   = "mix",
 			ID_BYPASS                = "bypass",
 			ID_LIMITER               = "limiter",
+			ID_SOFTCLIP              = "softClip",
 
 			ID_DRIVE                 = "driveAmount",
 			ID_CHARACTER             = "driveColor",
@@ -33,6 +34,21 @@ class Parameters {
 
 			ID_ENV = "envelope",
 			ID_LFO = "lfo";
+
+		inline static const std::vector<juce::String> modulatableParameters = {
+			ID_DRIVE,
+			ID_CHARACTER,
+			ID_FEEDBACK,
+			ID_FEEDBACK_DELAY,
+			ID_LP_CUTOFF,
+			ID_LP_RESONANCE,
+			ID_HP_CUTOFF,
+			ID_HP_RESONANCE,
+			ID_ENV_ATTACK,
+			ID_ENV_DECAY,
+			ID_ENV_GATE,
+			ID_LFO_SPEED
+		};
 
 		static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

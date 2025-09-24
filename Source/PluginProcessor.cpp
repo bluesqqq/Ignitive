@@ -6,6 +6,8 @@ IgnitiveAudioProcessor::IgnitiveAudioProcessor()
     : AudioProcessor (BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, "Parameter", Parameters::createParameterLayout()),
       ignitive(parameters, *this) {
+
+    loadAllPresets();
 }
 
 IgnitiveAudioProcessor::~IgnitiveAudioProcessor() {
@@ -70,7 +72,6 @@ void IgnitiveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
-   
 
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> context(block);
@@ -82,14 +83,25 @@ bool IgnitiveAudioProcessor::hasEditor() const { return true; }
 juce::AudioProcessorEditor* IgnitiveAudioProcessor::createEditor() { return new IgnitiveAudioProcessorEditor (*this); }
 
 void IgnitiveAudioProcessor::getStateInformation (juce::MemoryBlock& destData) {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = parameters.copyState();
+
+    ignitive.modMatrix.saveModConnectionsToState(state);
+
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+
+    copyXmlToBinary(*xml, destData);
 }
 
 void IgnitiveAudioProcessor::setStateInformation (const void* data, int sizeInBytes) {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState != nullptr && xmlState->hasTagName(parameters.state.getType())) {
+        juce::ValueTree tree = juce::ValueTree::fromXml(*xmlState);
+
+        parameters.replaceState(tree.createCopy());
+
+        ignitive.modMatrix.loadModConnectionsFromState(tree);
+    }
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new IgnitiveAudioProcessor(); }

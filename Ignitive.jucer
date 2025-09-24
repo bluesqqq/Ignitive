@@ -6,9 +6,12 @@
               pluginManufacturer="bluesq">
   <MAINGROUP id="Q8mVPC" name="Ignitive">
     <GROUP id="{9C013130-8D00-8247-5718-18BB695B4028}" name="Resources">
-      <FILE id="Zs484S" name="digital.ttf" compile="0" resource="1" file="Source/digital.ttf"/>
-      <FILE id="immBrt" name="Ignitive.png" compile="0" resource="1" file="Source/Ignitive.png"/>
-      <FILE id="TLYDMF" name="uav-osd.ttf" compile="0" resource="1" file="Source/uav-osd.ttf"/>
+      <GROUP id="{DDE8211F-D4F6-08C3-5F2F-AA088D112569}" name="Fonts">
+        <FILE id="Fk4MLn" name="digital.ttf" compile="0" resource="1" file="Resources/Fonts/digital.ttf"/>
+        <FILE id="AweTFQ" name="uav-osd.ttf" compile="0" resource="1" file="Resources/Fonts/uav-osd.ttf"/>
+      </GROUP>
+      <GROUP id="{B97A24D1-7C43-70C8-171D-7E5A7BC89C64}" name="Presets"/>
+      <FILE id="XKYbxp" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <FILE id="jA2Oay" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
