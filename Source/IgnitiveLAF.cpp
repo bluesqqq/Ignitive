@@ -92,7 +92,6 @@ void IgnitiveLAF::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, i
 
     const int pixelSize = 5;
     int wPixels = (int)bounds.getWidth() / pixelSize;
-    int hPixels = (int)bounds.getHeight() / pixelSize;
 
     int thumbStartPixel = thumbStartPosition / pixelSize;
     int thumbSizePixel = thumbSize / pixelSize;
@@ -127,4 +126,21 @@ void IgnitiveLAF::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int
     g.setFont(digitalFont.withHeight(18.0f));
     g.setColour(juce::Colours::red);
     g.drawText(text, area, juce::Justification::centred);
+}
+
+void IgnitiveLAF::drawImageButton(juce::Graphics& g, juce::Image* image, int imageX, int imageY, int imageW, int imageH, const juce::Colour& overlayColour, float imageOpacity, juce::ImageButton& imageButton) {
+    auto bounds = imageButton.getLocalBounds().toFloat();
+
+    drawButtonBackground(g, imageButton,
+        imageButton.findColour(juce::TextButton::buttonColourId),
+        imageButton.isMouseOver(),
+        imageButton.isDown());
+
+    if (image == nullptr || !image->isValid()) return;
+
+    if (imageButton.isDown())
+        imageY += 2; // push the icon down visually
+
+    g.setOpacity(imageOpacity);
+    g.drawImage(*image, imageX, imageY, imageW, imageH, 0, 0, image->getWidth(), image->getHeight());
 }

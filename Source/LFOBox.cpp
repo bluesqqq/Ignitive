@@ -1,6 +1,13 @@
 #include "LFOBox.h"
 
 void LFOBox::paint(juce::Graphics& g) {
+    auto& follower = audioProcessor.ignitive.lfo;
+
+    while (follower.popFifo(900)) {
+        float v = follower.readFifo();
+        pushLFOValue(v);
+    }
+
     auto lfoBox = getLocalBounds().toFloat().reduced(5.0f);
     g.setColour(juce::Colours::orange);
 
@@ -43,16 +50,4 @@ void LFOBox::paint(juce::Graphics& g) {
 
 void LFOBox::pushLFOValue(float newValue) {
     lfoValues.push_back(newValue);
-}
-
-
-void LFOBox::timerCallback() {
-    auto& follower = audioProcessor.ignitive.lfo;
-
-    while (follower.popFifo(900)) {
-        float v = follower.readFifo();
-        pushLFOValue(v);
-    }
-
-    repaint();
 }

@@ -5,12 +5,14 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     : AudioProcessorEditor(&p), 
       audioProcessor(p), 
       envBox(p), lfoBox(p),
-      FilterCurve(p.parameters, p.ignitive.filter, ignitiveLAF),
+      filterCurve(p.parameters, p.ignitive.filter, ignitiveLAF),
       modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
       digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
       uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
-      inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain) {
+      inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
+      paramsDisplay(digitalFont) {
 
+    startTimerHz(60);
     setSize (480, 800);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
@@ -44,7 +46,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     hpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
     addAndMakeVisible(hpResonanceKnob);
 
-    addAndMakeVisible(FilterCurve);
+    addAndMakeVisible(filterCurve);
 
     // ==============// MOD MATRIX //==============//
     addAndMakeVisible(modMatrixComponent);
@@ -124,7 +126,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(feedbackDelaySlider);
 
     // ==============// ENV + LFO //==============//
-
+    addAndMakeVisible(paramsDisplay);
     attackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     attackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     attackSlider.setLookAndFeel(&ignitiveLAF);
@@ -152,6 +154,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(lfoSpeedSlider);
 
     addAndMakeVisible(envLFOToggleButton);
+    paramsDisplay.setState(showingEnvelope);
     lfoBox.setVisible(false);
     lfoSpeedSlider.setVisible(false);
 
@@ -167,6 +170,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         lfoSpeedSlider.setVisible(!showingEnvelope);
 
         modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
+        paramsDisplay.setState(showingEnvelope);
 
         resized();
     };
@@ -176,19 +180,30 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 	addAndMakeVisible(envBox);
 
     randomizeButton.setLookAndFeel(&ignitiveLAF);
+    auto randomizeIcon = juce::ImageCache::getFromMemory(BinaryData::random_icon_png, BinaryData::random_icon_pngSize);
+    randomizeButton.setImages(true, true, true, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black);
     randomizeButton.onClick = [this]() { audioProcessor.randomize(); };
     addAndMakeVisible(randomizeButton);
+    randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
+
 
     // TODO: this needs to bring up a settings menu
     settingsButton.setLookAndFeel(&ignitiveLAF);
+    auto settingsIcon = juce::ImageCache::getFromMemory(BinaryData::settings_icon_png, BinaryData::settings_icon_pngSize);
+    settingsButton.setImages(true, true, true, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black);
     addAndMakeVisible(settingsButton);
+    settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
 
     // ==============// PRESETS //==============//
     saveButton.setLookAndFeel(&ignitiveLAF);
+    auto saveIcon = juce::ImageCache::getFromMemory(BinaryData::save_icon_png, BinaryData::save_icon_pngSize);
+    saveButton.setImages(true, true, true, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black);
     saveButton.onClick = [this]() { audioProcessor.savePreset(); };
     addAndMakeVisible(saveButton);
+    saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
 
     presetSelector.setLookAndFeel(&ignitiveLAF);
+    presetSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
     addAndMakeVisible(presetSelector);
 
     presetSelector.onChange = [this]() {
@@ -214,53 +229,21 @@ IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
 void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
     if (backgroundImage.isValid()) g.drawImage(backgroundImage, getLocalBounds().toFloat());
     else g.fillAll(juce::Colours::grey);
+}
 
-    digitalFont.setHeight(modParamNamesFontSize);
-    g.setFont(digitalFont);
-    g.setColour(juce::Colours::yellow);
-
-    const juce::StringArray& usingArray = showingEnvelope ? modParamNamesEnvelope : modParamNamesLFO;
-
-    float sectionWidth = modParamNamesBox.getWidth() / 3.0f;
-
-    juce::Random r;
-    juce::String symbols = ".#:_+=@!";
-
-    // Go through the first three elements of the using array
-    for (int i = 0; i < modParamNames.size(); ++i) {
-        juce::String target = usingArray[i];
-
-        juce::String& current = modParamNames.getReference(i);
-
-        if (current.length() < target.length())
-            current = current.paddedRight(target.length(), ' ');
-        else if (current.length() > target.length())
-            current = current.substring(0, target.length());
-
-        juce::String newString;
-        for (int j = 0; j < target.length(); ++j) {
-            juce::juce_wchar c = current[j];
-            juce::juce_wchar t = target[j];
-
-            if (c != t) {
-                int choice = r.nextInt(symbols.length() + 1);
-                c = choice < symbols.length() ? symbols[choice] : t;
-            }
-
-            newString += juce::String::charToString(c);
-        }
-
-        current = newString;
-
-        juce::Rectangle<float> sectionRect(modParamNamesBox.getX() + i * sectionWidth, modParamNamesBox.getY(), sectionWidth, modParamNamesBox.getHeight());
-
-        g.drawText(current, sectionRect.toNearestInt(), juce::Justification::centred);
+void IgnitiveAudioProcessorEditor::timerCallback() {
+    characterSlider.repaint();
+    driveKnob.repaint();
+    filterCurve.repaint();
+    if (showingEnvelope) {
+        envBox.repaint();
+    } else {
+        lfoBox.repaint();
     }
+    paramsDisplay.repaint();
 }
 
 void IgnitiveAudioProcessorEditor::resized() {
-    auto area = getLocalBounds();
-
     // ========/ Header Panel /========
     randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
     saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
@@ -276,7 +259,7 @@ void IgnitiveAudioProcessorEditor::resized() {
     lpCutoffKnob.setBounds(380, 95, 60, 60);
     lpResonanceKnob.setBounds(400, 185, 40, 40);
 
-    FilterCurve.setBounds(110.0f, 85.0f, 260.0f, 80.0f);
+    filterCurve.setBounds(110.0f, 85.0f, 260.0f, 80.0f);
 
     // Distortion
     driveKnob.setBounds(140, 185, 200, 200);
@@ -315,4 +298,6 @@ void IgnitiveAudioProcessorEditor::resized() {
     // LFO
     lfoBox.setBounds(15, 620, 205, 80);
     lfoSpeedSlider.setBounds(30, 710, 40, 40);
+
+    paramsDisplay.setBounds(15, 760, 205, 25);
 }

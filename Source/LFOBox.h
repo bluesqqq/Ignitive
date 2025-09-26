@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-class LFOBox : public juce::Component, private juce::Timer {
+class LFOBox : public juce::Component {
 private:
     std::deque<float> lfoValues;
     IgnitiveAudioProcessor& audioProcessor;
@@ -14,13 +14,9 @@ private:
     juce::Colour backgroundColor = juce::Colour::fromRGB(127, 82, 0);
 
 public:
-    LFOBox(IgnitiveAudioProcessor& ap) : audioProcessor(ap) {
-        startTimerHz(60);
-    }
+    LFOBox(IgnitiveAudioProcessor& ap) : audioProcessor(ap) {}
 
     void paint(juce::Graphics& g) override;
 
     void pushLFOValue(float newValue);
-
-    void timerCallback() override;
 };

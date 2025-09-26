@@ -2,6 +2,13 @@
 #include "LFOBox.h"
 
 void EnvelopeBox::paint(juce::Graphics& g) {
+    auto& follower = audioProcessor.ignitive.envelope;
+
+    while (follower.popFifo(900)) {
+        float v = follower.readFifo();
+        pushEnvelopeValue(v);
+    }
+
     auto envBox = getLocalBounds().toFloat().reduced(5.0f);
     g.setColour(juce::Colours::yellow);
 
@@ -38,15 +45,4 @@ void EnvelopeBox::paint(juce::Graphics& g) {
 
 void EnvelopeBox::pushEnvelopeValue(float newValue) {
     envelopeValues.push_back(newValue);
-}
-
-void EnvelopeBox::timerCallback() {
-    auto& follower = audioProcessor.ignitive.envelope;
-
-    while (follower.popFifo(900)) {
-        float v = follower.readFifo();
-        pushEnvelopeValue(v);
-    }
-
-    repaint();
 }

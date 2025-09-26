@@ -2,7 +2,6 @@
 
 FilterCurve::FilterCurve(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
     : filter(filter), ignitiveLAF(ignitiveLAF) {
-    startTimer(1000 / 60);
 }
 
 void FilterCurve::paint(juce::Graphics& g) {
@@ -74,10 +73,4 @@ void FilterCurve::paint(juce::Graphics& g) {
             }
         }
     }
-}
-
-
-
-void FilterCurve::timerCallback() {
-    repaint();
 }

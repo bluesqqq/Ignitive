@@ -12,8 +12,9 @@
 #include "DriveKnob.h"
 #include "Parameters.h"
 #include "LevelMeter.h"
+#include "ParametersDisplay.h"
 
-class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
+class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer {
     private:
         IgnitiveAudioProcessor& audioProcessor;
 
@@ -79,7 +80,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::AudioProcessorValueTreeState::SliderAttachment hpCutoffAttach{ audioProcessor.parameters, Parameters::ID_HP_CUTOFF, hpCutoffKnob };
         juce::AudioProcessorValueTreeState::SliderAttachment hpResonanceAttach{ audioProcessor.parameters, Parameters::ID_HP_RESONANCE, hpResonanceKnob };
 
-		FilterCurve FilterCurve;
+		FilterCurve filterCurve;
 
         // Envelope + LFO
         juce::Slider attackSlider, decaySlider, gateSlider;
@@ -106,11 +107,13 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         juce::StringArray modParamNamesEnvelope{ "Attack", "Decay", "Gate" };
         juce::StringArray modParamNamesLFO{ "Speed", "---", "---" };
 
-        juce::TextButton saveButton;
+        ParametersDisplay paramsDisplay;
 
-        juce::TextButton randomizeButton;
+        juce::ImageButton saveButton;
 
-        juce::TextButton settingsButton;
+        juce::ImageButton randomizeButton;
+
+        juce::ImageButton settingsButton;
 
         juce::ComboBox presetSelector;
 
@@ -121,6 +124,9 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor {
         ~IgnitiveAudioProcessorEditor() override;
 
         void paint (juce::Graphics&) override;
+
+        void timerCallback() override;
+
         void resized() override;
 
 };

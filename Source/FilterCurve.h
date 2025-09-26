@@ -5,7 +5,7 @@
 #include "IgnitiveLAF.h"
 #include "FilterProcessor.h"
 
-class FilterCurve : public juce::Component, private juce::Timer {
+class FilterCurve : public juce::Component {
     private:
         FilterProcessor& filter;
 
@@ -21,6 +21,4 @@ class FilterCurve : public juce::Component, private juce::Timer {
         FilterCurve(juce::AudioProcessorValueTreeState& parameters, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF);
 
         void paint(juce::Graphics& g) override;
-
-        void timerCallback() override;
 };

@@ -12,6 +12,10 @@
       </GROUP>
       <GROUP id="{B97A24D1-7C43-70C8-171D-7E5A7BC89C64}" name="Presets"/>
       <FILE id="XKYbxp" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
+      <FILE id="oGJCsO" name="random_icon.png" compile="0" resource="1" file="Resources/random_icon.png"/>
+      <FILE id="RClKEp" name="save_icon.png" compile="0" resource="1" file="Resources/save_icon.png"/>
+      <FILE id="nUlXzf" name="settings_icon.png" compile="0" resource="1"
+            file="Resources/settings_icon.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
       <FILE id="kXgbYu" name="Presets.cpp" compile="1" resource="0" file="Source/Presets.cpp"/>
@@ -64,6 +68,10 @@
         <FILE id="wRpcZv" name="IgnitiveLAF.h" compile="0" resource="0" file="Source/IgnitiveLAF.h"/>
       </GROUP>
       <GROUP id="{3604B140-1039-7695-0BCF-860221E1B3E9}" name="GUI">
+        <FILE id="VeDEDp" name="ParametersDisplay.cpp" compile="1" resource="0"
+              file="Source/ParametersDisplay.cpp"/>
+        <FILE id="XBGxAD" name="ParametersDisplay.h" compile="0" resource="0"
+              file="Source/ParametersDisplay.h"/>
         <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>
         <FILE id="L6k8eI" name="LFOBox.h" compile="0" resource="0" file="Source/LFOBox.h"/>
         <FILE id="zk1SbU" name="LevelMeter.cpp" compile="1" resource="0" file="Source/LevelMeter.cpp"/>
