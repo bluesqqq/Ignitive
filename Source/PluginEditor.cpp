@@ -220,7 +220,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         presetSelector.addItem(preset->getName(), itemID++);
     }
 
-    presetSelector.setText("No Preset Selected", false);
+    presetSelector.setText("No Preset", false);
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {

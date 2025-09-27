@@ -45,6 +45,10 @@
         <FILE id="tvasJy" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
       </GROUP>
       <GROUP id="{11B1EC8D-3D1F-0935-6254-765AFADBD924}" name="DSP">
+        <FILE id="kLXfhA" name="LimiterProcessor.cpp" compile="1" resource="0"
+              file="Source/LimiterProcessor.cpp"/>
+        <FILE id="XWiZGN" name="LimiterProcessor.h" compile="0" resource="0"
+              file="Source/LimiterProcessor.h"/>
         <FILE id="PH9Bcu" name="GainProcessor.cpp" compile="1" resource="0"
               file="Source/GainProcessor.cpp"/>
         <FILE id="mR7Hpp" name="GainProcessor.h" compile="0" resource="0" file="Source/GainProcessor.h"/>

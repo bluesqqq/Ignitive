@@ -39,6 +39,7 @@ void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
     distortion.prepare(spec);
     feedback.prepare(spec);
     filter.prepare(spec);
+    limiter.prepare(spec);
     envelope.prepare(spec);
     lfo.prepare(spec);
     modMatrix.prepare(spec);
@@ -98,18 +99,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
 
         // Limiter
         if (limiterEnabled) {
-            for (size_t ch = 0; ch < numChannels; ++ch) {
-                auto* channelData = block.getChannelPointer(ch);
-                if (softClip) {
-                    for (size_t sample = 0; sample < numSamples; ++sample) {
-                        channelData[sample] = std::tanh(channelData[sample]);
-                    }
-                } else {
-                    for (size_t sample = 0; sample < numSamples; ++sample) {
-                        channelData[sample] = juce::jlimit(-1.0f, 1.0f, channelData[sample]);
-                    }
-                }
-            }
+            limiter.process(context);
         }
 
         // DRY / WET
@@ -131,4 +121,5 @@ void IgnitiveEngine::reset() {
     distortion.reset();
     feedback.reset();
     filter.reset();
+    limiter.reset();
 }

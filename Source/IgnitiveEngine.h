@@ -6,6 +6,7 @@
 #include "DistortionProcessor.h"
 #include "FeedbackProcessor.h"
 #include "FilterProcessor.h"
+#include "LimiterProcessor.h"
 
 #include "EnvelopeFollower.h"
 #include "LFO.h"
@@ -23,6 +24,7 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         DistortionProcessor distortion;
         FeedbackProcessor feedback;
         FilterProcessor filter;
+        LimiterProcessor limiter;
 
         EnvelopeFollower envelope;
         LFO lfo;
