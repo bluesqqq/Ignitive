@@ -35,7 +35,20 @@ class Parameters {
 			ID_ENV = "envelope",
 			ID_LFO = "lfo";
 
-		static const std::vector<juce::String> randomizeParameters;
+		static inline const std::vector<juce::String> randomizeParameters = {
+			ID_DRIVE,
+			ID_CHARACTER,
+			ID_FEEDBACK,
+			ID_FEEDBACK_DELAY,
+			ID_LP_CUTOFF,
+			ID_LP_RESONANCE,
+			ID_HP_CUTOFF,
+			ID_HP_RESONANCE,
+			ID_ENV_ATTACK,
+			ID_ENV_DECAY,
+			ID_ENV_GATE,
+			ID_LFO_SPEED
+		};
 
 		static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

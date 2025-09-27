@@ -25,9 +25,12 @@ void FeedbackProcessor::process(const juce::dsp::ProcessContextReplacing<float>&
     const auto numChannels = block.getNumChannels();
     const auto numSamples = block.getNumSamples();
 
+    ModDestination* feedbackDest = modMatrix.getDestination(amountID);
+    ModDestination* delayDest = modMatrix.getDestination(delayID);
+
     for (size_t sample = 0; sample < numSamples; ++sample) {
-        float fb   = modMatrix.getValue(Parameters::ID_FEEDBACK, sample);
-        float dSec = modMatrix.getValue(Parameters::ID_FEEDBACK_DELAY, sample);
+        float fb   = feedbackDest->getValue(sample);
+        float dSec = delayDest->getValue(sample);
         float delaySamples = dSec * (float)sampleRate;
 
         for (size_t channel = 0; channel < numChannels; ++channel) {
@@ -44,8 +47,8 @@ void FeedbackProcessor::reset() {
 }
 
 void FeedbackProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
-    float fb = modMatrix.getValue(amountID, sample) * 0.8f;
-    float dSec = juce::jmap(modMatrix.getValue(delayID, sample), 0.001f, 0.200f);
+    float fb = modMatrix.getValue(amountID, sample) * 0.8f; // Yikes
+    float dSec = juce::jmap(modMatrix.getValue(delayID, sample), 0.001f, 0.200f); // Double Yikes
     float delaySamples = dSec * (float)sampleRate;
 
     for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {

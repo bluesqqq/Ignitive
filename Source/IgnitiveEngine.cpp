@@ -33,6 +33,9 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
+    inGain.prepare(spec);
+    outGain.prepare(spec);
+
     distortion.prepare(spec);
     feedback.prepare(spec);
     filter.prepare(spec);
@@ -86,6 +89,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         distortion.process(context);
 
         for (size_t sample = 0; sample < numSamples; ++sample) {
+            // this is so inefficient, needs to be fixed
             feedback.processBlockSample(block, sample);
             feedback.processWriteBlockSample(block, sample);
         }
@@ -120,8 +124,10 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
     }
 }
 
-
 void IgnitiveEngine::reset() {
+    inGain.reset();
+    outGain.reset();
+
     distortion.reset();
     feedback.reset();
     filter.reset();

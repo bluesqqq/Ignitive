@@ -136,12 +136,15 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
     auto& inBlock = context.getInputBlock();
     auto& outBlock = context.getOutputBlock();
 
+    ModDestination* drive     = modMatrix.getDestination(Parameters::ID_DRIVE);
+    ModDestination* character = modMatrix.getDestination(Parameters::ID_CHARACTER);
+
     if (oversample) {
         auto oversampledBlock = oversampler->processSamplesUp(inBlock);
 
         for (size_t sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
-            float d = modMatrix.getValue(Parameters::ID_DRIVE, sample / 4);
-            float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample / 4);
+            float d = drive->getValue(sample / 4);
+            float c = character->getValue(sample / 4);
 
             for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel) {
                 auto* samples = oversampledBlock.getChannelPointer(channel);
@@ -152,8 +155,8 @@ void DistortionProcessor::process(const juce::dsp::ProcessContextReplacing<float
         oversampler->processSamplesDown(outBlock);
     } else {
         for (size_t sample = 0; sample < outBlock.getNumSamples(); ++sample) {
-            float d = modMatrix.getValue(Parameters::ID_DRIVE, sample);
-            float c = modMatrix.getValue(Parameters::ID_CHARACTER, sample);
+            float d = drive->getValue(sample / 4);
+            float c = character->getValue(sample / 4);
 
             for (size_t channel = 0; channel < outBlock.getNumChannels(); ++channel) {
                 auto* samples = outBlock.getChannelPointer(channel);

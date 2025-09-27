@@ -17,11 +17,15 @@ void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& c
     auto numSamples = block.getNumSamples();
     auto numChannels = block.getNumChannels();
 
+    ModDestination* lpCutDest = modMatrix.getDestination(lpCutoffID);
+    ModDestination* lpResDest = modMatrix.getDestination(lpResonanceID);
+    ModDestination* hpCutDest = modMatrix.getDestination(hpCutoffID);
+    ModDestination* hpResDest = modMatrix.getDestination(hpResonanceID);
     for (size_t sample = 0; sample < numSamples; ++sample) {
-        float lpCutoff    = modMatrix.getValue(lpCutoffID, sample);
-        float lpResonance = modMatrix.getValue(lpResonanceID, sample);
-        float hpCutoff    = modMatrix.getValue(hpCutoffID, sample);
-        float hpResonance = modMatrix.getValue(hpResonanceID, sample);
+        float lpCutoff    = lpCutDest->getValue(sample);
+        float lpResonance = lpResDest->getValue(sample);
+        float hpCutoff    = hpCutDest->getValue(sample);
+        float hpResonance = hpResDest->getValue(sample);
 
         float lpCutoffHz = 20.0f * std::pow(10.0f, lpCutoff * 3.0f);
         float lpResonanceQ = juce::jmap(lpResonance, 0.707f, 4.0f);

@@ -4,13 +4,14 @@ GainProcessor::GainProcessor(juce::AudioProcessorValueTreeState& params, const j
 }
 
 void GainProcessor::prepare(const juce::dsp::ProcessSpec& spec) {
-	gain.reset(spec.sampleRate, 0.02);
+    auto secondsPerBlock = spec.maximumBlockSize / spec.sampleRate;
+	gain.reset(spec.sampleRate, 0.05);
 }
 
 void GainProcessor::process(const juce::dsp::ProcessContextReplacing<float>& context) {
 	float gainValue = parameters.getRawParameterValue(gainID)->load();
 
-	gain.setTargetValue(gainValue);
+    if (std::abs(gainValue - gain.getTargetValue()) > 0.001f) gain.setTargetValue(gainValue);
 
     auto& block = context.getOutputBlock();
 

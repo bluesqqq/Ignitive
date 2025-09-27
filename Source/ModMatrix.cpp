@@ -39,7 +39,8 @@ ModSource* ModMatrix::getSource(const juce::String& id) {
 }
 
 ModDestination* ModMatrix::getDestination(const juce::String& id) {
-	if (destinationMap.count(id)) return destinationMap[id].get();
+	auto it = destinationMap.find(id);
+	if (it != destinationMap.end()) return it->second.get();
 	return nullptr;
 }
 
@@ -60,6 +61,7 @@ void ModMatrix::update() {
 int ModMatrix::getNumOfConnections() const { return connections.size(); }
 
 float ModMatrix::getValue(const juce::String& destinationID, int sample) {
+	// This runs every sample, which is a problem
 	ModDestination* destination = getDestination(destinationID);
 
 	if (!destination) return 0.0f;
