@@ -4,23 +4,32 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
     {
         "Hard Clip",
         [](float sample) -> float {
-            return sample;
-        }
-    },
-    {
-        "Soft Clip",
-        [](float sample) -> float {
-            return std::tanhf(sample);
+            return juce::jlimit(-1.0f, 1.0f, sample);
         }
     },
     {
         "Tube",
         [](float sample) -> float {
-            return sample;
+            return std::tanhf(sample);
         }
     },
     {
-        "Test 1",
+        "Overdrive",
+        [](float sample) -> float {
+            if (sample < -1.0f) return 0.05f * sample - 0.95f;
+            else if (sample <= 1.0f) return sample;
+            
+            return 0.05f * sample + 0.95f;
+        }
+    },
+    {
+        "Clippy",
+        [](float sample) -> float {
+            return std::tanhf(sample) + sample * 0.05f;
+        }
+    },
+    {
+        "Analog Buzz",
         [](float sample) -> float {
             if (sample < -0.5)
                 return (sample + 0.5) * 2;
@@ -31,7 +40,7 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
         }
     },
     {
-        "Test 2",
+        "Tooth",
         [](float sample) -> float {
             if (sample < -0)
                 return -std::fabsf(2 * sample + 1) + 1;
@@ -40,14 +49,14 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
         }
     },
     {
-        "Test 3",
+        "Wavebreaker",
         [](float sample) -> float {
             float absSample = std::fabsf(sample);
             return absSample * std::sinf((sample / (1.0f + 0.05f * absSample)) * juce::MathConstants<float>::halfPi);
         }
     },
     {
-        "Test 4",
+        "Mouth Breather",
         [](float sample) -> float {
             if (sample < -10) return sin(sample * juce::MathConstants<float>::pi) - 20;
             else if (sample < 0.25) return sample * 2;
@@ -57,13 +66,13 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
         }
     },
     {
-        "Test 5",
+        "Formantive",
         [](float sample) -> float {
             return (20 / juce::MathConstants<float>::pi) * std::atanf(0.2f * sample) + std::sinf(std::powf(std::fabsf(sample / 3.0f), 2.0f));
         }
     },
     {
-        "Test 6",
+        "Sinegate",
         [](float sample) -> float {
             if (sample < 0) return std::min(0.0f, std::sinf(sample * juce::MathConstants<float>::pi) * sample);
             
@@ -71,7 +80,7 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
         }
     },
     {
-        "Test 7",
+        "Fractal",
         [](float sample) -> float {
             if (sample < 0) {
                 float c = sample + 4;
@@ -85,19 +94,13 @@ const std::vector<DistortionDefinition> DistortionProcessor::distortionDefs = { 
         }
     },
     {
-        "Test 8",
+        "Stepper",
         [](float sample) -> float {
             return sample + std::ceilf(std::fmodf(sample, 1.0f) - 0.5f) * sample * 0.3f;
         }
     },
     {
-        "Test 9",
-        [](float sample) -> float {
-            return juce::jlimit((sample - 20.0f) / 20.0f, (sample + 20.0f) / 20.0f, sample);
-        }
-    },
-    {
-        "Test 10",
+        "Voice Box",
         [](float sample) -> float {
             return 0.05f * sample * std::abs(sample) + 0.5f * std::sin(0.9f * sample);
         }
