@@ -17,8 +17,11 @@ class ModSource {
 		juce::Range<float> displayRange;
 
 		ModSource(const juce::Colour& displayColor, const juce::Range<float>& displayRange);
+
 		virtual void prepare(const juce::dsp::ProcessSpec& spec);
+		virtual void process(const juce::dsp::AudioBlock<float>& block) = 0;
 		virtual void reset();
+
 		float getValue(int sample) const;
 
 		bool popFifo(int samples);

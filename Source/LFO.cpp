@@ -7,10 +7,10 @@ LFO::LFO(juce::AudioProcessorValueTreeState& params, const juce::String& speedID
 	valueGetters.push_back([this]() { return juce::String(speedHz, 1) + " hz"; });
 }
 
-void LFO::update() {
+void LFO::process(const juce::dsp::AudioBlock<float>& block) {
 	speedHz = juce::jmap(parameters.getRawParameterValue(speedID)->load(), 0.1f, 10.0f);
 
-	const int numSamples = modulationBuffer.getNumSamples();
+	const int numSamples = block.getNumSamples();
 	float* buffer = modulationBuffer.getWritePointer(0);
 
 	const float phaseIncrement = 2.0f * juce::MathConstants<float>::pi * speedHz / sampleRate;

@@ -71,7 +71,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         // Envelope processing
         envelope.process(block);
 
-        lfo.update();
+        lfo.process(block);
 
         modMatrix.update();
 

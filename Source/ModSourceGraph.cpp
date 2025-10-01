@@ -79,4 +79,6 @@ void ModSourceGraph::paint(juce::Graphics& g) {
         }
 
     }
+
+    //g.drawText(juce::String(source->getSamplesProcessed()) + " samples", box, juce::Justification::topRight);
 }

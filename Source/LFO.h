@@ -15,5 +15,5 @@ class LFO : public ModSource, public ParametersDisplayInterface {
 	public:
 		LFO(juce::AudioProcessorValueTreeState& parameters, const juce::String& speedID);
 
-		void update();
+		void process(const juce::dsp::AudioBlock<float>& block) override;
 };

@@ -79,7 +79,7 @@ class EnvelopeFollower : public ModSource, public ParametersDisplayInterface {
             peakFollower.prepare(spec);
 		}
 
-		void process(const juce::dsp::AudioBlock<float>& block);
+		void process(const juce::dsp::AudioBlock<float>& block) override;
 
         void reset() override;
 };
