@@ -47,8 +47,11 @@ void FeedbackProcessor::reset() {
 }
 
 void FeedbackProcessor::processBlockSample(juce::dsp::AudioBlock<float>& block, size_t sample) {
-    float fb = modMatrix.getValue(amountID, sample) * 0.8f; // Yikes
-    float dSec = juce::jmap(modMatrix.getValue(delayID, sample), 0.001f, 0.200f); // Double Yikes
+    ModDestination* feedbackAmount = modMatrix.getDestination(amountID);
+    ModDestination* feedbackDecay = modMatrix.getDestination(delayID);
+
+    float fb = juce::jlimit(0.0f, 1.0f, feedbackAmount->getValue(sample)) * 0.8f; // Yikes
+    float dSec = juce::jmap(juce::jlimit(0.0f, 1.0f, feedbackDecay->getValue(sample)), 0.001f, 0.200f); // Double Yikes
     float delaySamples = dSec * (float)sampleRate;
 
     for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {

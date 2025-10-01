@@ -11,7 +11,7 @@
         <FILE id="AweTFQ" name="uav-osd.ttf" compile="0" resource="1" file="Resources/Fonts/uav-osd.ttf"/>
       </GROUP>
       <GROUP id="{B97A24D1-7C43-70C8-171D-7E5A7BC89C64}" name="Presets"/>
-      <FILE id="XKYbxp" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
+      <FILE id="I2cH3F" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
       <FILE id="oGJCsO" name="random_icon.png" compile="0" resource="1" file="Resources/random_icon.png"/>
       <FILE id="RClKEp" name="save_icon.png" compile="0" resource="1" file="Resources/save_icon.png"/>
       <FILE id="nUlXzf" name="settings_icon.png" compile="0" resource="1"
@@ -76,18 +76,24 @@
               file="Source/ParametersDisplay.cpp"/>
         <FILE id="XBGxAD" name="ParametersDisplay.h" compile="0" resource="0"
               file="Source/ParametersDisplay.h"/>
-        <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>
-        <FILE id="L6k8eI" name="LFOBox.h" compile="0" resource="0" file="Source/LFOBox.h"/>
+        <GROUP id="{071FE411-106B-5672-98F6-9F85E91F3307}" name="Modulation">
+          <FILE id="ymo2l0" name="ModSlotComponent.cpp" compile="1" resource="0"
+                file="Source/ModSlotComponent.cpp"/>
+          <FILE id="lJXTPp" name="ModSlotComponent.h" compile="0" resource="0"
+                file="Source/ModSlotComponent.h"/>
+          <FILE id="zo8Oms" name="ModMatrixComponent.cpp" compile="1" resource="0"
+                file="Source/ModMatrixComponent.cpp"/>
+          <FILE id="LMVNG8" name="ModMatrixComponent.h" compile="0" resource="0"
+                file="Source/ModMatrixComponent.h"/>
+          <FILE id="WHJ974" name="EnvelopeBox.cpp" compile="1" resource="0" file="Source/EnvelopeBox.cpp"/>
+          <FILE id="H2Oszj" name="EnvelopeBox.h" compile="0" resource="0" file="Source/EnvelopeBox.h"/>
+          <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>
+          <FILE id="L6k8eI" name="LFOBox.h" compile="0" resource="0" file="Source/LFOBox.h"/>
+        </GROUP>
         <FILE id="zk1SbU" name="LevelMeter.cpp" compile="1" resource="0" file="Source/LevelMeter.cpp"/>
         <FILE id="X2xK9H" name="LevelMeter.h" compile="0" resource="0" file="Source/LevelMeter.h"/>
         <FILE id="UbOjbd" name="DriveKnob.cpp" compile="1" resource="0" file="Source/DriveKnob.cpp"/>
         <FILE id="PTXjOK" name="DriveKnob.h" compile="0" resource="0" file="Source/DriveKnob.h"/>
-        <FILE id="zo8Oms" name="ModMatrixComponent.cpp" compile="1" resource="0"
-              file="Source/ModMatrixComponent.cpp"/>
-        <FILE id="LMVNG8" name="ModMatrixComponent.h" compile="0" resource="0"
-              file="Source/ModMatrixComponent.h"/>
-        <FILE id="WHJ974" name="EnvelopeBox.cpp" compile="1" resource="0" file="Source/EnvelopeBox.cpp"/>
-        <FILE id="H2Oszj" name="EnvelopeBox.h" compile="0" resource="0" file="Source/EnvelopeBox.h"/>
         <FILE id="Q1sC8V" name="SwitchButtonAttachment.cpp" compile="1" resource="0"
               file="Source/SwitchButtonAttachment.cpp"/>
         <FILE id="VQpya6" name="SwitchButtonAttachment.h" compile="0" resource="0"

@@ -10,8 +10,10 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
       digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
       uavosdFont(juce::Typeface::createSystemTypefaceFor(BinaryData::uavosd_ttf, BinaryData::uavosd_ttfSize)),
       inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
-      paramsDisplay(digitalFont) {
+      paramsDisplay(digitalFont),
+      characterPolarityButton("Character Polarity", digitalFont) {
 
+    // START
     startTimerHz(60);
     setSize (480, 800);
 
@@ -26,24 +28,28 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     lpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     lpCutoffKnob.setLookAndFeel(&ignitiveLAF);
     lpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+	lpCutoffKnob.setTooltip("Lowpass filter cutoff frequency");
     addAndMakeVisible(lpCutoffKnob);
 
     lpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     lpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     lpResonanceKnob.setLookAndFeel(&ignitiveLAF);
     lpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    lpResonanceKnob.setTooltip("Lowpass filter resonance");
     addAndMakeVisible(lpResonanceKnob);
 
     hpCutoffKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     hpCutoffKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     hpCutoffKnob.setLookAndFeel(&ignitiveLAF);
     hpCutoffKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    hpCutoffKnob.setTooltip("Highpass filter cutoff frequency");
     addAndMakeVisible(hpCutoffKnob);
 
     hpResonanceKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     hpResonanceKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     hpResonanceKnob.setLookAndFeel(&ignitiveLAF);
     hpResonanceKnob.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    hpResonanceKnob.setTooltip("Highpass filter resonance");
     addAndMakeVisible(hpResonanceKnob);
 
     addAndMakeVisible(filterCurve);
@@ -61,68 +67,114 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     inGainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 	inGainSlider.setLookAndFeel(&ignitiveLAF);
 	inGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    inGainSlider.setTooltip("In gain");
 	addAndMakeVisible(inGainSlider);
     addAndMakeVisible(inMeter);
 
     mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     mixSlider.setLookAndFeel(&mixLAF);
+    mixSlider.setTooltip("Dry/wet mix");
     addAndMakeVisible(mixSlider);
 
     outGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     outGainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     outGainSlider.setLookAndFeel(&ignitiveLAF);
     outGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    outGainSlider.setTooltip("Out gain");
     addAndMakeVisible(outGainSlider);
     addAndMakeVisible(outMeter);
 
     oversampleButton.setLookAndFeel(&ignitiveLAF);
     oversampleButton.setButtonText("OVERSAMPLE");
+    oversampleButton.setTooltip("Toggle distortion oversampling on/off");
     addAndMakeVisible(oversampleButton);
 
     limiterButton.setLookAndFeel(&ignitiveLAF);
     limiterButton.setButtonText("LIMITER");
+    limiterButton.setTooltip("Toggle limiter on/off");
     addAndMakeVisible(limiterButton);
 
     softClipButton.setLookAndFeel(&ignitiveLAF);
     softClipButton.setButtonText("");
+    softClipButton.setTooltip("unused");
     addAndMakeVisible(softClipButton);
 
-    // ==============// DISTORTION + FEEDBACK //==============//
+    // ==============// DISTORTION //==============//
+
+    // Drive
     addAndMakeVisible(driveKnob);
 
+    auto distortionMenu = distortionTypeSelector.getRootMenu();
+    DistortionProcessor::makeDistortionAlgosMenu(*distortionMenu);
+
+    auto* distTypeParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE));
+    distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+    distortionTypeSelector.setLookAndFeel(&ignitiveLAF);
+    addAndMakeVisible(distortionTypeSelector);
+
+    /* I'm not using a ComboBoxAttachment here because when connected to a ComboBox, it
+    *  updates to the item's index (in order that the menu appears), instead of the ID of
+    * the selected item.
+    * 
+    * Since I'm reordering the distortion algorithms into submenus (see DistortionProcessor::makeDistortionAlgosMenu())
+    * I can't guarantee the indexes will line up. Instead, I'm just using the item's ID as
+    * the index + 1 (since PopupMenus are 1-indexed in JUCE).
+    * 
+    * I could have used custom unique ID's for each distortion algorithm, but indexing seemed simpler.
+    */
+    distortionTypeSelector.onChange = [this, distTypeParameter] {
+        auto selectedID = distortionTypeSelector.getSelectedId();
+        int index = selectedID - 1;
+        if (selectedID >= 0 && selectedID < DistortionProcessor::getNumAlgorithms()) {
+            distTypeParameter->operator=(index);
+        }
+	};
+
+    audioProcessor.parameters.addParameterListener(Parameters::ID_DISTORTION_TYPE, this);
+	distortionTypeSelector.setSelectedId(distTypeParameter->getIndex() + 1, juce::dontSendNotification);
+    
+    // Character 
     characterSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     characterSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     characterSlider.setLookAndFeel(&birdsEyeLAF);
     characterSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    characterSlider.setTooltip("Distortion character amount");
     addAndMakeVisible(characterSlider);
-
-    auto* distTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE);
-    distortionTypeSelector.addItemList(distTypeParameter->getAllValueStrings(), 1);
-    distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
-    distortionTypeSelector.setLookAndFeel(&ignitiveLAF);
-    addAndMakeVisible(distortionTypeSelector);
-    distortionTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_DISTORTION_TYPE, distortionTypeSelector));
 
     auto* charTypeParameter = audioProcessor.parameters.getParameter(Parameters::ID_CHARACTER_TYPE);
     characterTypeSelector.addItemList(charTypeParameter->getAllValueStrings(), 1);
     characterTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
     characterTypeSelector.setLookAndFeel(&ignitiveLAF);
+    characterTypeSelector.setTooltip("Distortion character type");
     addAndMakeVisible(characterTypeSelector);
     characterTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_CHARACTER_TYPE, characterTypeSelector));
 
+    characterTypeSelector.onChange = [this] {
+		characterPolarityButton.setVisible(DistortionProcessor::CharacterHasPolarity(characterTypeSelector.getSelectedItemIndex()));
+    };
 
+    addAndMakeVisible(characterPolarityButton);
+    characterPolarityButton.onIndexChange = [this](int newIndex) {
+        auto* characterPolarityParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_CHARACTER_POLARITY));
+        if (characterPolarityParameter != nullptr) {
+            characterPolarityParameter->operator=(newIndex);
+        }
+	};
 
+    // ==============// Feedback //==============//
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     feedbackSlider.setLookAndFeel(&ignitiveLAF);
     feedbackSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    feedbackSlider.setTooltip("Feedback amount");
     addAndMakeVisible(feedbackSlider);
 
     feedbackDelaySlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     feedbackDelaySlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     feedbackDelaySlider.setLookAndFeel(&ignitiveLAF);
     feedbackDelaySlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    feedbackSlider.setTooltip("Feedback delay time");
     addAndMakeVisible(feedbackDelaySlider);
 
     // ==============// ENV + LFO //==============//
@@ -131,18 +183,21 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     attackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     attackSlider.setLookAndFeel(&ignitiveLAF);
     attackSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    attackSlider.setTooltip("Envelope attack time");
     addAndMakeVisible(attackSlider);
 
     decaySlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     decaySlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     decaySlider.setLookAndFeel(&ignitiveLAF);
     decaySlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    decaySlider.setTooltip("Envelope decay time");
 	addAndMakeVisible(decaySlider);
 
     gateSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     gateSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     gateSlider.setLookAndFeel(&ignitiveLAF);
     gateSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    gateSlider.setTooltip("Envelope gate threshold");
 	addAndMakeVisible(gateSlider);
 
     addAndMakeVisible(lfoBox);
@@ -151,15 +206,15 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     lfoSpeedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     lfoSpeedSlider.setLookAndFeel(&ignitiveLAF);
     lfoSpeedSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, juce::MathConstants<float>::pi * 2.75f, true);
+    lfoSpeedSlider.setTooltip("LFO speed");
     addAndMakeVisible(lfoSpeedSlider);
 
-    addAndMakeVisible(envLFOToggleButton);
     paramsDisplay.setState(showingEnvelope);
     lfoBox.setVisible(false);
     lfoSpeedSlider.setVisible(false);
 
     envLFOToggleButton.onClick = [this] {
-        showingEnvelope = envLFOToggleButton.getIndex() == 0;
+        showingEnvelope = envLFOToggleButton.getToggleState();
 
         attackSlider.setVisible(showingEnvelope);
         decaySlider.setVisible(showingEnvelope);
@@ -174,6 +229,9 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 
         resized();
     };
+    envLFOToggleButton.setTooltip("Toggle envelope/lfo display");
+	envLFOToggleButton.setLookAndFeel(&switchLAF);
+    addAndMakeVisible(envLFOToggleButton);
 
     modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
 
@@ -182,7 +240,11 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     randomizeButton.setLookAndFeel(&ignitiveLAF);
     auto randomizeIcon = juce::ImageCache::getFromMemory(BinaryData::random_icon_png, BinaryData::random_icon_pngSize);
     randomizeButton.setImages(true, true, true, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black);
-    randomizeButton.onClick = [this]() { audioProcessor.randomize(); };
+    randomizeButton.onClick = [this]() {
+        audioProcessor.randomize();
+        modMatrixComponent.rebuildSlots();
+    };
+    randomizeButton.setTooltip("Randomize parameters");
     addAndMakeVisible(randomizeButton);
     randomizeButton.setBounds(95, 10 - 3, 25, 25 + 3);
 
@@ -191,6 +253,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     settingsButton.setLookAndFeel(&ignitiveLAF);
     auto settingsIcon = juce::ImageCache::getFromMemory(BinaryData::settings_icon_png, BinaryData::settings_icon_pngSize);
     settingsButton.setImages(true, true, true, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black);
+    settingsButton.setTooltip("Open settings panel");
     addAndMakeVisible(settingsButton);
     settingsButton.setBounds(410, 10 - 3, 25, 25 + 3);
 
@@ -199,19 +262,21 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     auto saveIcon = juce::ImageCache::getFromMemory(BinaryData::save_icon_png, BinaryData::save_icon_pngSize);
     saveButton.setImages(true, true, true, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black);
     saveButton.onClick = [this]() { audioProcessor.savePreset(); };
+    saveButton.setTooltip("Save current patch as preset");
     addAndMakeVisible(saveButton);
     saveButton.setBounds(130, 10 - 3, 25, 25 + 3);
 
     presetSelector.setLookAndFeel(&ignitiveLAF);
     presetSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+    presetSelector.setTooltip("Select preset");
     addAndMakeVisible(presetSelector);
 
     presetSelector.onChange = [this]() {
         int selectedID = presetSelector.getSelectedId();
         if (selectedID > 0 && selectedID <= audioProcessor.presets.size()) {
-            if (audioProcessor.loadPreset(selectedID - 1))
-                // I'm using this to reload it, maybe ill just make the reload public eventually
-                modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
+            if (audioProcessor.loadPreset(selectedID - 1)) {
+                modMatrixComponent.rebuildSlots();
+            }
         }
     };
 
@@ -224,6 +289,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
+    audioProcessor.parameters.removeParameterListener(Parameters::ID_DISTORTION_TYPE, this);
 }
 
 void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
@@ -266,6 +332,7 @@ void IgnitiveAudioProcessorEditor::resized() {
     characterSlider.setBounds(97, 368, 60, 60);
     characterTypeSelector.setBounds(7, 265, 112, 40);
     distortionTypeSelector.setBounds(361, 265, 112, 40);
+    characterPolarityButton.setBounds(7, 313, 35, 35);
 
     // Feedback
     feedbackSlider.setBounds(354, 348, 80, 80);

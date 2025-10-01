@@ -11,14 +11,16 @@ enum Direction {
 
 class SwitchButton : public juce::Button {
     private:
-        unsigned int index;
-        unsigned int numStates;
-        Direction direction;
+        unsigned int index = 0;
+        unsigned int numStates = 3;
+        Direction direction = RIGHT;
+
+        juce::Font font;
 
     public:
         std::function<void(int)> onIndexChange;
 
-        SwitchButton(const juce::String& buttonName, unsigned int numberOfStates = 1, Direction direction = RIGHT);
+        SwitchButton(const juce::String& buttonName, const juce::Font& font);
 
         void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 

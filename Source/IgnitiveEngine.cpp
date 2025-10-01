@@ -3,11 +3,11 @@
 
 IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce::AudioProcessor& p)
 	: parameters(params), processor(p), modMatrix(params), 
-	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_CHARACTER, Parameters::ID_DISTORTION_TYPE, Parameters::ID_CHARACTER_TYPE, Parameters::ID_OVERSAMPLE),
+	  distortion(parameters, modMatrix, Parameters::ID_DRIVE, Parameters::ID_CHARACTER, Parameters::ID_DISTORTION_TYPE, Parameters::ID_CHARACTER_TYPE, Parameters::ID_CHARACTER_POLARITY, Parameters::ID_OVERSAMPLE),
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
       filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE),
       inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN), 
-      lfo(parameters, Parameters::ID_LFO_SPEED) {
+      lfo(parameters, Parameters::ID_LFO_SPEED), envelope(parameters, Parameters::ID_ENV_ATTACK, Parameters::ID_ENV_DECAY, Parameters::ID_ENV_GATE) {
 
     modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
     modMatrix.addDestination(Parameters::ID_CHARACTER, "Character", params);
@@ -23,13 +23,7 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
     modMatrix.addSource(Parameters::ID_LFO, &lfo);
 
-    for (int i = 0; i < 8; i++) {
-        modMatrix.makeConnection(Parameters::ID_ENV, "", 0.0f);
-    }
-
-    for (int i = 0; i < 8; i++) {
-        modMatrix.makeConnection(Parameters::ID_LFO, "", 0.0f);
-    }
+    modMatrix.setEmptyConnections();
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
@@ -76,9 +70,6 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         inGain.process(context);
 
         // Envelope processing
-        envelope.setAttackTime(*parameters.getRawParameterValue(Parameters::ID_ENV_ATTACK));
-        envelope.setReleaseTime(*parameters.getRawParameterValue(Parameters::ID_ENV_DECAY));
-        envelope.setGate(*parameters.getRawParameterValue(Parameters::ID_ENV_GATE));
         envelope.process(block);
 
         lfo.update();

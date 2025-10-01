@@ -4,7 +4,7 @@
 void EnvelopeBox::paint(juce::Graphics& g) {
     auto& follower = audioProcessor.ignitive.envelope;
 
-    while (follower.popFifo(900)) {
+    while (follower.popFifo(200)) {
         float v = follower.readFifo();
         pushEnvelopeValue(v);
     }

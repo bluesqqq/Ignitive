@@ -32,10 +32,13 @@ void FilterProcessor::process(const juce::dsp::ProcessContextReplacing<float>& c
         float hpCutoffHz = 20.0f * std::pow(10.0f, hpCutoff * 3.0f);
         float hpResonanceQ = juce::jmap(hpResonance, 0.707f, 4.0f);
 
+        // TODO:
+        //    jassert (isPositiveAndBelow (newCutoffFrequencyHz, static_cast<SampleType> (sampleRate * 0.5)));
+        // needs to be below this
         lpFilter.setCutoffFrequency(juce::jlimit(0.0f, 20000.0f, lpCutoffHz));
-        lpFilter.setResonance(lpResonanceQ);
+        lpFilter.setResonance(juce::jmax(0.001f, lpResonanceQ));
         hpFilter.setCutoffFrequency(juce::jlimit(0.0f, 20000.0f, hpCutoffHz));
-        hpFilter.setResonance(hpResonanceQ);
+        hpFilter.setResonance(juce::jmax(0.001f, hpResonanceQ));
 
         for (size_t channel = 0; channel < numChannels; ++channel) {
             float* data = block.getChannelPointer(channel);

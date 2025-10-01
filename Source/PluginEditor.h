@@ -14,7 +14,7 @@
 #include "LevelMeter.h"
 #include "ParametersDisplay.h"
 
-class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer {
+class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer, public juce::AudioProcessorValueTreeState::Listener {
     private:
         IgnitiveAudioProcessor& audioProcessor;
 
@@ -24,6 +24,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
 
         // Look And Feels
         IgnitiveLAF ignitiveLAF{ uavosdFont, digitalFont };
+		SwitchLAF switchLAF;
         MixLAF mixLAF;
 
         BirdsEyeLAF birdsEyeLAF;
@@ -52,13 +53,14 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
 		DriveKnob driveKnob{ audioProcessor, Parameters::ID_DRIVE };
 
         juce::ComboBox distortionTypeSelector;
-        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> distortionTypeAttach;
 
         juce::Slider characterSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment characterAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER, characterSlider };
 
         juce::ComboBox characterTypeSelector;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;
+
+        SwitchButton characterPolarityButton;
 
         juce::ToggleButton oversampleButton;
         juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
@@ -88,7 +90,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
         juce::AudioProcessorValueTreeState::SliderAttachment decayAttach{ audioProcessor.parameters, Parameters::ID_ENV_DECAY, decaySlider };
         juce::AudioProcessorValueTreeState::SliderAttachment gateAttach{ audioProcessor.parameters, Parameters::ID_ENV_GATE, gateSlider };
 
-        SwitchButton envLFOToggleButton{ "Env LFO Toggle", 2, DOWN };
+        juce::ToggleButton envLFOToggleButton{ "Envelope / LFO" };
 
         juce::Slider lfoSpeedSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment lfoSpeedAttach{ audioProcessor.parameters, Parameters::ID_LFO_SPEED, lfoSpeedSlider };
@@ -117,6 +119,19 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
 
         juce::ComboBox presetSelector;
 
+        void parameterChanged(const juce::String& parameterID, float newValue) {
+            if (parameterID == Parameters::ID_DISTORTION_TYPE) {
+                auto* distTypeParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE));
+
+                if (distTypeParameter != nullptr) {
+                    int index = distTypeParameter->getIndex();
+                    juce::MessageManager::callAsync([this, index]() { distortionTypeSelector.setSelectedId(index + 1, juce::dontSendNotification); });
+                }
+            }
+        }
+
+        juce::TooltipWindow tooltipWindow{ this, 700 };
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 
     public:
@@ -128,5 +143,6 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
         void timerCallback() override;
 
         void resized() override;
+
 
 };

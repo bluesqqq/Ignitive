@@ -15,13 +15,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_DRIVE, "Drive", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Character", 0.0f, 1.0f, 0.0f));
 
-	juce::StringArray distortionNames;
-	for (const auto& def : DistortionProcessor::distortionDefs) distortionNames.add(def.name);
-	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_DISTORTION_TYPE, "Distortion Type", distortionNames, 0));
+	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_DISTORTION_TYPE, "Distortion Type", DistortionProcessor::getAlgorithmNames(), 0));
 
-	juce::StringArray characterNames;
-	for (const auto& def : DistortionProcessor::characterDefs) characterNames.add(def);
-	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_TYPE, "Character Type", characterNames, 0));
+	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_TYPE, "Character Type", DistortionProcessor::getCharacterNames(), 0));
+
+	params.push_back(std::make_unique<juce::AudioParameterChoice>(ID_CHARACTER_POLARITY, "Character Polarity", juce::StringArray{ "+", "-", "+/-"}, 0));
 
 	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_OVERSAMPLE, "Oversample", false));
 
@@ -33,8 +31,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_HP_CUTOFF,    "HP Cutoff", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_HP_RESONANCE, "HP Resonance", 0.0f, 1.0f, 0.0f));
 
-	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_ATTACK, "Envelope Attack", 0.0f, 0.5f, 0.0f));
-	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_DECAY, "Envelope Decay", 0.0f, 1.0f, 0.0f));
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_ATTACK, "Envelope Attack", 0.0f, 100.0f, 0.0f));
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_DECAY, "Envelope Decay", 0.0f, 200.0f, 10.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_GATE, "Envelope Gate", 0.0f, 1.0f, 0.0f));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_LFO_SPEED, "LFO Speed", 0.0f, 1.0f, 0.5f));

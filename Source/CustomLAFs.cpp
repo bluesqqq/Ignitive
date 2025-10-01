@@ -96,7 +96,6 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
 
     g.setColour(juce::Colours::red);
     g.strokePath(path, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
 }
 
 void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
@@ -353,4 +352,24 @@ void MixLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int he
         }
         */
     }
+}
+
+void SwitchLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
+    // Easier and more discrete than making a LookAndFeel
+
+    auto bounds = toggleButton.getLocalBounds().toFloat();
+
+    g.setColour(juce::Colours::black);
+    g.fillRoundedRectangle(bounds, 5.0f);
+
+    bounds.reduce(5.0f, 5.0f);
+
+    g.setColour(juce::Colours::white);
+
+    if (toggleButton.getToggleState()) {
+		bounds = bounds.withTrimmedBottom(bounds.getHeight() / 2.0f);
+    } else {
+        bounds = bounds.withTrimmedTop(bounds.getHeight() / 2.0f);
+	}
+	g.fillRoundedRectangle(bounds, 3.0f);
 }

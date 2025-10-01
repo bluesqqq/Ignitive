@@ -3,6 +3,11 @@
 #include <JuceHeader.h>
 #include "DistortionProcessor.h"
 
+class SwitchLAF : public juce::LookAndFeel_V4 {
+    public:
+        void drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+};
+
 class MixLAF : public juce::LookAndFeel_V4 {
     private:
         juce::Colour highlightColor = juce::Colour::fromRGB(255, 0, 0);

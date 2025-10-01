@@ -7,30 +7,10 @@ void ModMatrix::prepare(const juce::dsp::ProcessSpec& spec) {
 
 void ModMatrix::addDestination(const juce::String& id, const juce::String& displayName, juce::AudioProcessorValueTreeState& params) {
 	destinationMap[id] = std::make_unique<ModDestination>(displayName);
-	destinationIDs.push_back(id);
 }
 
 void ModMatrix::addSource(const juce::String& id, ModSource* modSource) {
 	sourceMap[id] = modSource;
-}
-
-ModConnection* ModMatrix::makeConnection(const juce::String& sourceID, const juce::String& destinationID, float depth) {
-	connections.push_back({ sourceID, destinationID, depth });
-	return &connections.back();
-}
-
-bool ModMatrix::removeConnection(const juce::String& sourceID, const juce::String& destinationID) {
-	auto it = std::remove_if(connections.begin(), connections.end(),
-		[&](const ModConnection& conn) {
-			return conn.sourceID == sourceID && conn.destinationID == destinationID;
-		});
-
-	if (it != connections.end()) {
-		connections.erase(it, connections.end());
-		return true;
-	}
-
-	return false;
 }
 
 ModSource* ModMatrix::getSource(const juce::String& id) {
@@ -82,20 +62,29 @@ std::vector<std::pair<juce::String, juce::String>> ModMatrix::getDestinationDisp
 
 bool ModMatrix::loadModConnectionsFromState(const juce::ValueTree& state) {
 	auto mods = state.getChildWithName("ModConnections");
-	if (!mods.isValid()) return false;
+	if (!mods.isValid()) {
+		connections.clear();
+		return false;
+	}
 
 	connections.clear();
 
 	for (int i = 0; i < mods.getNumChildren(); ++i) {
 		auto conn = mods.getChild(i);
-		makeConnection(conn["source"].toString(), conn["destination"].toString(), (float)conn["depth"]);
+		if (conn.hasType("Connection"))
+			connections.push_back({conn["source"].toString(), conn["destination"].toString(), (float)conn["depth"]});
 	}
 
 	return true;
 }
 
+
 void ModMatrix::saveModConnectionsToState(juce::ValueTree& state) {
-	juce::ValueTree mods("ModConnections");
+	juce::ValueTree mods = state.getChildWithName("ModConnections");
+	if (!mods.isValid())
+		mods = juce::ValueTree("ModConnections");
+	else
+		mods.removeAllChildren(nullptr); 
 
 	for (auto& c : connections) {
 		juce::ValueTree conn("Connection");
@@ -105,5 +94,6 @@ void ModMatrix::saveModConnectionsToState(juce::ValueTree& state) {
 		mods.addChild(conn, -1, nullptr);
 	}
 
-	state.addChild(mods, -1, nullptr);
+	if (!mods.getParent().isValid())
+		state.addChild(mods, -1, nullptr);
 }

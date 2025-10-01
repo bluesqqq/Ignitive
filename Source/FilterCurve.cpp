@@ -1,4 +1,4 @@
-﻿#include "FilterCurve.h"
+#include "FilterCurve.h"
 
 FilterCurve::FilterCurve(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
     : filter(filter), ignitiveLAF(ignitiveLAF) {

@@ -166,13 +166,17 @@ void IgnitiveAudioProcessor::loadAllPresets() {
 void IgnitiveAudioProcessor::randomize() {
     // This works fine for now but it could be improved especially for distortion and character type selections.
 
-    for (auto& id : Parameters::randomizeParameters) {
+    for (auto& id : Parameters::getRandomizeParameters()) {
         auto* p = parameters.getParameter(id);
         if (p != nullptr) {
             float randomValue = juce::Random::getSystemRandom().nextFloat();
             p->setValueNotifyingHost(randomValue);
         }
     }
+
+	parameters.getParameter(Parameters::ID_DISTORTION_TYPE)->setValueNotifyingHost(juce::Random::getSystemRandom().nextFloat());
+    parameters.getParameter(Parameters::ID_CHARACTER_TYPE)->setValueNotifyingHost(juce::Random::getSystemRandom().nextFloat());
+    parameters.getParameter(Parameters::ID_CHARACTER_POLARITY)->setValueNotifyingHost(juce::Random::getSystemRandom().nextFloat());
 
     ignitive.modMatrix.randomizeConnections();
 

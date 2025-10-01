@@ -13,9 +13,12 @@ class Parameters {
 			ID_SOFTCLIP              = "softClip",
 
 			ID_DRIVE                 = "driveAmount",
-			ID_CHARACTER             = "driveColor",
 			ID_DISTORTION_TYPE       = "distortionType",
+
+			ID_CHARACTER             = "driveColor",
 			ID_CHARACTER_TYPE        = "characterType",
+			ID_CHARACTER_POLARITY    = "characterPolarity",
+
 			ID_OVERSAMPLE            = "oversample",
 
 			ID_FEEDBACK              = "feedbackAmount",
@@ -35,20 +38,24 @@ class Parameters {
 			ID_ENV = "envelope",
 			ID_LFO = "lfo";
 
-		static inline const std::vector<juce::String> randomizeParameters = {
-			ID_DRIVE,
-			ID_CHARACTER,
-			ID_FEEDBACK,
-			ID_FEEDBACK_DELAY,
-			ID_LP_CUTOFF,
-			ID_LP_RESONANCE,
-			ID_HP_CUTOFF,
-			ID_HP_RESONANCE,
-			ID_ENV_ATTACK,
-			ID_ENV_DECAY,
-			ID_ENV_GATE,
-			ID_LFO_SPEED
-		};
+		static const std::vector<juce::String>& getRandomizeParameters()
+		{
+			static const std::vector<juce::String> params{
+				ID_DRIVE,
+				ID_CHARACTER,
+				ID_FEEDBACK,
+				ID_FEEDBACK_DELAY,
+				ID_LP_CUTOFF,
+				ID_LP_RESONANCE,
+				ID_HP_CUTOFF,
+				ID_HP_RESONANCE,
+				ID_ENV_ATTACK,
+				ID_ENV_DECAY,
+				ID_ENV_GATE,
+				ID_LFO_SPEED
+			};
+			return params;
+		}
 
 		static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
