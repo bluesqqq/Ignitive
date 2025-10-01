@@ -77,6 +77,10 @@
         <FILE id="XBGxAD" name="ParametersDisplay.h" compile="0" resource="0"
               file="Source/ParametersDisplay.h"/>
         <GROUP id="{071FE411-106B-5672-98F6-9F85E91F3307}" name="Modulation">
+          <FILE id="wLUuQi" name="ModSourceGraph.cpp" compile="1" resource="0"
+                file="Source/ModSourceGraph.cpp"/>
+          <FILE id="G3AzM6" name="ModSourceGraph.h" compile="0" resource="0"
+                file="Source/ModSourceGraph.h"/>
           <FILE id="ymo2l0" name="ModSlotComponent.cpp" compile="1" resource="0"
                 file="Source/ModSlotComponent.cpp"/>
           <FILE id="lJXTPp" name="ModSlotComponent.h" compile="0" resource="0"
@@ -85,10 +89,6 @@
                 file="Source/ModMatrixComponent.cpp"/>
           <FILE id="LMVNG8" name="ModMatrixComponent.h" compile="0" resource="0"
                 file="Source/ModMatrixComponent.h"/>
-          <FILE id="WHJ974" name="EnvelopeBox.cpp" compile="1" resource="0" file="Source/EnvelopeBox.cpp"/>
-          <FILE id="H2Oszj" name="EnvelopeBox.h" compile="0" resource="0" file="Source/EnvelopeBox.h"/>
-          <FILE id="OjHGzv" name="LFOBox.cpp" compile="1" resource="0" file="Source/LFOBox.cpp"/>
-          <FILE id="L6k8eI" name="LFOBox.h" compile="0" resource="0" file="Source/LFOBox.h"/>
         </GROUP>
         <FILE id="zk1SbU" name="LevelMeter.cpp" compile="1" resource="0" file="Source/LevelMeter.cpp"/>
         <FILE id="X2xK9H" name="LevelMeter.h" compile="0" resource="0" file="Source/LevelMeter.h"/>

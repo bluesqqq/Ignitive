@@ -4,7 +4,7 @@
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcessor& p)
     : AudioProcessorEditor(&p), 
       audioProcessor(p), 
-      envBox(p), lfoBox(p),
+	  modSourceGraph(p, nullptr),
       filterCurve(p.parameters, p.ignitive.filter, ignitiveLAF),
       modMatrixComponent(p.ignitive.modMatrix), birdsEyeLAF(p.ignitive.distortion),
       digitalFont(juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf, BinaryData::digital_ttfSize)),
@@ -200,8 +200,6 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     gateSlider.setTooltip("Envelope gate threshold");
 	addAndMakeVisible(gateSlider);
 
-    addAndMakeVisible(lfoBox);
-
     lfoSpeedSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     lfoSpeedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     lfoSpeedSlider.setLookAndFeel(&ignitiveLAF);
@@ -210,18 +208,17 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     addAndMakeVisible(lfoSpeedSlider);
 
     paramsDisplay.setState(showingEnvelope);
-    lfoBox.setVisible(false);
     lfoSpeedSlider.setVisible(false);
 
     envLFOToggleButton.onClick = [this] {
-        showingEnvelope = envLFOToggleButton.getToggleState();
+        showingEnvelope = !envLFOToggleButton.getToggleState();
 
         attackSlider.setVisible(showingEnvelope);
         decaySlider.setVisible(showingEnvelope);
 		gateSlider.setVisible(showingEnvelope);
-        envBox.setVisible(showingEnvelope);
-
-        lfoBox.setVisible(!showingEnvelope);
+        modSourceGraph.setSource(showingEnvelope
+            ? static_cast<ModSource*>(&audioProcessor.ignitive.envelope)
+            : static_cast<ModSource*>(&audioProcessor.ignitive.lfo));
         lfoSpeedSlider.setVisible(!showingEnvelope);
 
         modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
@@ -235,7 +232,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 
     modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
 
-	addAndMakeVisible(envBox);
+	addAndMakeVisible(modSourceGraph);
 
     randomizeButton.setLookAndFeel(&ignitiveLAF);
     auto randomizeIcon = juce::ImageCache::getFromMemory(BinaryData::random_icon_png, BinaryData::random_icon_pngSize);
@@ -301,11 +298,7 @@ void IgnitiveAudioProcessorEditor::timerCallback() {
     characterSlider.repaint();
     driveKnob.repaint();
     filterCurve.repaint();
-    if (showingEnvelope) {
-        envBox.repaint();
-    } else {
-        lfoBox.repaint();
-    }
+	modSourceGraph.repaint();
     paramsDisplay.repaint();
 }
 
@@ -360,11 +353,11 @@ void IgnitiveAudioProcessorEditor::resized() {
     attackSlider.setBounds(30, 710, 40, 40);
     decaySlider.setBounds(97, 710, 40, 40);
     gateSlider.setBounds(165, 710, 40, 40);
-	envBox.setBounds(15, 620, 205, 80);
 
     // LFO
-    lfoBox.setBounds(15, 620, 205, 80);
     lfoSpeedSlider.setBounds(30, 710, 40, 40);
+
+    modSourceGraph.setBounds(15, 620, 205, 80);
 
     paramsDisplay.setBounds(15, 760, 205, 25);
 }

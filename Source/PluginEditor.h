@@ -6,13 +6,12 @@
 #include "CustomLAFs.h"
 #include "IgnitiveLAF.h"
 #include "SwitchButtonAttachment.h"
-#include "EnvelopeBox.h"
-#include "LFOBox.h"
 #include "ModMatrixComponent.h"
 #include "DriveKnob.h"
 #include "Parameters.h"
 #include "LevelMeter.h"
 #include "ParametersDisplay.h"
+#include "ModSourceGraph.h"
 
 class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer, public juce::AudioProcessorValueTreeState::Listener {
     private:
@@ -31,8 +30,7 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
 
         juce::Image backgroundImage;
 
-		EnvelopeBox envBox;
-        LFOBox lfoBox;
+		ModSourceGraph modSourceGraph;
 
         juce::Viewport modMatrixViewport;
         ModMatrixComponent modMatrixComponent;

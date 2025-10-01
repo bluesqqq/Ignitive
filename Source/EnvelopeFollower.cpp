@@ -1,7 +1,7 @@
 #include "EnvelopeFollower.h"
 #include <cmath>
 
-EnvelopeFollower::EnvelopeFollower(juce::AudioProcessorValueTreeState& params, const juce::String& attackID, const juce::String& releaseID, const juce::String& gateID) : parameters(params), attackID(attackID), releaseID(releaseID), gateID(gateID) {
+EnvelopeFollower::EnvelopeFollower(juce::AudioProcessorValueTreeState& params, const juce::String& attackID, const juce::String& releaseID, const juce::String& gateID) : ModSource(juce::Colours::yellow, { 0.0f, 1.0f }), parameters(params), attackID(attackID), releaseID(releaseID), gateID(gateID) {
     fifoBuffer.resize(fifo.getTotalSize());
     writeToFifo(0.0f);
 }

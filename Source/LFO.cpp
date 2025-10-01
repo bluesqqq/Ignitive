@@ -1,6 +1,6 @@
 #include "LFO.h"
 
-LFO::LFO(juce::AudioProcessorValueTreeState& params, const juce::String& speedID) : parameters(params), speedID(speedID) {}
+LFO::LFO(juce::AudioProcessorValueTreeState& params, const juce::String& speedID) : ModSource(juce::Colours::orange, {-1.0f, 1.0f}), parameters(params), speedID(speedID) {}
 
 void LFO::update() {
 	speedHz = juce::jmap(parameters.getRawParameterValue(speedID)->load(), 0.1f, 10.0f);

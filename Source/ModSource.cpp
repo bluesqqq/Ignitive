@@ -1,5 +1,7 @@
 #include "ModSource.h"
 
+ModSource::ModSource(const juce::Colour& color, const juce::Range<float>& range) : displayColor(color), displayRange(range) { }
+
 void ModSource::prepare(const juce::dsp::ProcessSpec& spec) {
 	modulationBuffer.setSize(1, spec.maximumBlockSize);
 	sampleRate = spec.sampleRate;

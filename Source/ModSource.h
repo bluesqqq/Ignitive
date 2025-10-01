@@ -13,6 +13,10 @@ class ModSource {
 		void writeToFifo(float value);
 
 	public:
+		juce::Colour displayColor;
+		juce::Range<float> displayRange;
+
+		ModSource(const juce::Colour& displayColor, const juce::Range<float>& displayRange);
 		virtual void prepare(const juce::dsp::ProcessSpec& spec);
 		virtual void reset();
 		float getValue(int sample) const;

@@ -113,4 +113,7 @@ void IgnitiveEngine::reset() {
     feedback.reset();
     filter.reset();
     limiter.reset();
+
+    envelope.reset();
+    lfo.reset();
 }
