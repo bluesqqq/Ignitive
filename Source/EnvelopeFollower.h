@@ -2,56 +2,55 @@
 
 #include <vector>
 #include "ModSource.h"
+#include "ParametersDisplay.h"
 
+class PeakFollower {
+private:
+    float sampleRate = 0.0f;
+    float releaseTime = 0.05f; // seconds
+    float releaseCoef = 0.0f;
+    float currentPeak = 0.0f;
 
-class RMSFollower {
-	private:
-		size_t windowSize = 0;
-		float sampleRate = 0;
-		float sumSquares = 0;
+public:
+    PeakFollower() {}
 
-		std::vector<float> buffer;
-		int index = 0;
+    void prepare(const juce::dsp::ProcessSpec& spec, float releaseSeconds = 0.01f) {
+        sampleRate = spec.sampleRate;
+        releaseTime = releaseSeconds;
+        releaseCoef = std::exp(-1.0f / (releaseTime * sampleRate));
+        currentPeak = 0.0f;
+    }
 
-	public:
-		RMSFollower() {}
+    /// <summary>
+    /// Processes a single sample and returns the peak value.
+    /// </summary>
+    float processSample(float sample) {
+        float absSample = std::abs(sample);
 
-		void prepare(const juce::dsp::ProcessSpec& spec) {
-			sampleRate = spec.sampleRate;
-			windowSize = static_cast<size_t>(0.02f * sampleRate); // 20 ms window
-			buffer.assign(windowSize, 0.0f);
-			sumSquares = 0.0f;
-			index = 0;
-		}
+        if (absSample > currentPeak) {
+            currentPeak = absSample; // immediate attack
+        }
+        else {
+            currentPeak *= releaseCoef; // decay
+        }
 
-		/// <summary>
-		/// Processes a single sample and returns the RMS value.
-		/// </summary>
-		float processSample(float sample) {
-			float squared = sample * sample;
+        jassert(!std::isnan(currentPeak));
+        return currentPeak;
+    }
 
-			sumSquares -= buffer[index];
+    void reset() {
+        currentPeak = 0.0f;
+    }
 
-			sumSquares = juce::jmax(0.0f, sumSquares);
-
-			buffer[index] = squared;
-			sumSquares += squared;
-
-			index = (index + 1) % buffer.size();
-
-			float result = std::sqrt(sumSquares / (float)buffer.size());
-			jassert(!std::isnan(result));
-			return result;
-		}
-
-		void reset() {
-			std::fill(buffer.begin(), buffer.end(), 0.0f);
-			sumSquares = 0.0f;
-			index = 0;
-		}
+    void setReleaseTime(float newReleaseTime) {
+        releaseTime = newReleaseTime;
+        if (sampleRate > 0.0f)
+            releaseCoef = std::exp(-1.0f / (releaseTime * sampleRate));
+    }
 };
 
-class EnvelopeFollower : public ModSource {
+
+class EnvelopeFollower : public ModSource, public ParametersDisplayInterface {
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
 
@@ -60,7 +59,7 @@ class EnvelopeFollower : public ModSource {
 		float attackCoef, releaseCoef;
 
 		float currentValue = 0;
-		RMSFollower rmsFollower;
+		PeakFollower peakFollower;
 
 		juce::String attackID;
 		juce::String releaseID;
@@ -77,13 +76,10 @@ class EnvelopeFollower : public ModSource {
 
 		void prepare(const juce::dsp::ProcessSpec& spec) override {
 			ModSource::prepare(spec);
-			rmsFollower.prepare(spec);
+            peakFollower.prepare(spec);
 		}
 
 		void process(const juce::dsp::AudioBlock<float>& block);
 
-		void reset() override {
-			ModSource::reset();
-			rmsFollower.reset();
-		}
+        void reset() override;
 };

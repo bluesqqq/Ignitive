@@ -1,8 +1,9 @@
 #pragma once
 
 #include "ModSource.h"
+#include "ParametersDisplay.h"
 
-class LFO : public ModSource {
+class LFO : public ModSource, public ParametersDisplayInterface {
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
 
@@ -15,8 +16,4 @@ class LFO : public ModSource {
 		LFO(juce::AudioProcessorValueTreeState& parameters, const juce::String& speedID);
 
 		void update();
-
-		juce::String getPhaseIncrement() {
-			return juce::String(2.0f * juce::MathConstants<float>::pi * speedHz / sampleRate);
-		}
 };

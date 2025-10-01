@@ -1,9 +1,16 @@
 #include "EnvelopeFollower.h"
 #include <cmath>
 
-EnvelopeFollower::EnvelopeFollower(juce::AudioProcessorValueTreeState& params, const juce::String& attackID, const juce::String& releaseID, const juce::String& gateID) : ModSource(juce::Colours::yellow, { 0.0f, 1.0f }), parameters(params), attackID(attackID), releaseID(releaseID), gateID(gateID) {
+EnvelopeFollower::EnvelopeFollower(juce::AudioProcessorValueTreeState& params, const juce::String& attackID, const juce::String& releaseID, const juce::String& gateID)
+	: ModSource(juce::Colours::yellow, { 0.0f, 1.0f }), 
+	  ParametersDisplayInterface({ "Attack", "Release", "Gate" }),
+	  parameters(params), attackID(attackID), releaseID(releaseID), gateID(gateID) {
     fifoBuffer.resize(fifo.getTotalSize());
     writeToFifo(0.0f);
+
+	valueGetters.push_back([this]() { return juce::String(attackTime, 2) + " ms"; });
+	valueGetters.push_back([this]() { return juce::String(releaseTime, 2) + " ms"; });
+	valueGetters.push_back([this]() { return juce::String(juce::Decibels::gainToDecibels(gate), 2); });
 }
 
 void EnvelopeFollower::process(const juce::dsp::AudioBlock<float>& block) {
@@ -31,16 +38,27 @@ void EnvelopeFollower::process(const juce::dsp::AudioBlock<float>& block) {
 }
 
 float EnvelopeFollower::processSample(float sample) {
-    float rmsValue = rmsFollower.processSample(sample);
+    float peakValue = juce::jlimit(0.0f, 1.0f, peakFollower.processSample(sample));
 
-    float delta = rmsValue - currentValue;
+    float delta = peakValue - currentValue;
 
-    if (delta > 0)
-        currentValue += delta * attackCoef;   // attack
-    else
-        currentValue += delta * releaseCoef;  // release
+	if (peakValue >= gate) {
+		// Above gate - follow the signal
+		if (delta >= 0) {
+			// Signal increasing - attack
+			currentValue += delta * attackCoef;
+		}
+		else {
+			// Signal decreasing - release
+			currentValue += delta * releaseCoef;
+		}
+	}
+	else {
+		// Below gate - always release toward zero
+		currentValue -= currentValue * releaseCoef;
+	}
 
-    return rmsValue;
+    return currentValue;
 }
 
 void EnvelopeFollower::setAttackTime(float attackMs) {
@@ -56,3 +74,8 @@ void EnvelopeFollower::setReleaseTime(float releaseMs) {
 }
 
 void EnvelopeFollower::setGate(float g) { gate = g; }
+
+void EnvelopeFollower::reset() {
+	ModSource::reset();
+	peakFollower.reset();
+}

@@ -310,9 +310,11 @@ const std::vector<CharacterAlgorithm> DistortionProcessor::characterAlgos{
     },
     { "Rectify", "", true,
         [](float& sample, float& drive, float& character) -> void {
-            float copySample = copysignf(1.0f, sample);
-            float halfCharacter = character * 0.5f;
-            sample *= 1.0f - halfCharacter * (1.0f + copySample) + halfCharacter * (1.0f - copySample);
+            if (character > 0.0f) {
+                sample = std::fabsf(sample) * character + sample * (1.0f - character);
+            } else if (character < 0.0f) {
+                    sample = -std::fabsf(sample) * std::fabsf(character) + sample * (1.0f - std::fabsf(character));
+            }
         }
     },
     { "Quantize", "", false,

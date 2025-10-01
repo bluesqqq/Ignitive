@@ -48,7 +48,6 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         auto numChannels = block.getNumChannels();
 
         bool limiterEnabled = parameters.getRawParameterValue(Parameters::ID_LIMITER)->load();
-        bool softClip = parameters.getRawParameterValue(Parameters::ID_SOFTCLIP)->load();
         float mix = parameters.getRawParameterValue(Parameters::ID_MIX)->load();
 
         // Store the dry (unprocessed) signal

@@ -59,12 +59,10 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;
 
         SwitchButton characterPolarityButton;
+		SwitchButtonAttachment characterPolarityAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER_POLARITY, characterPolarityButton };
 
         juce::ToggleButton oversampleButton;
         juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
-
-        juce::ToggleButton softClipButton;
-        juce::AudioProcessorValueTreeState::ButtonAttachment softClipAttach{ audioProcessor.parameters, Parameters::ID_SOFTCLIP, softClipButton };
 
         // Feedback
         juce::Slider feedbackSlider, feedbackDelaySlider;

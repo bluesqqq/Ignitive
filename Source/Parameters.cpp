@@ -10,7 +10,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_MIX, "Mix", 0.0f, 1.0f, 1.0f));
 	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_BYPASS, "Bypass", false));
 	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_LIMITER, "Limiter", true));
-	params.push_back(std::make_unique<juce::AudioParameterBool>(ID_SOFTCLIP, "Soft Clip", false));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_DRIVE, "Drive", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_CHARACTER, "Character", 0.0f, 1.0f, 0.0f));
@@ -31,8 +30,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_HP_CUTOFF,    "HP Cutoff", 0.0f, 1.0f, 0.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_HP_RESONANCE, "HP Resonance", 0.0f, 1.0f, 0.0f));
 
-	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_ATTACK, "Envelope Attack", 0.0f, 100.0f, 0.0f));
-	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_DECAY, "Envelope Decay", 0.0f, 200.0f, 10.0f));
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_ATTACK, "Envelope Attack", 0.0f, 200.0f, 0.0f));
+	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_DECAY, "Envelope Decay", 0.0f, 400.0f, 10.0f));
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_ENV_GATE, "Envelope Gate", 0.0f, 1.0f, 0.0f));
 
 	params.push_back(std::make_unique<juce::AudioParameterFloat>(ID_LFO_SPEED, "LFO Speed", 0.0f, 1.0f, 0.5f));

@@ -355,8 +355,8 @@ void MixLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int he
 }
 
 void SwitchLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
-    // Easier and more discrete than making a LookAndFeel
-
+	targetPos = toggleButton.getToggleState() ? 1.0f : 0.0f;
+    
     auto bounds = toggleButton.getLocalBounds().toFloat();
 
     g.setColour(juce::Colours::black);
@@ -365,11 +365,7 @@ void SwitchLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleBu
     bounds.reduce(5.0f, 5.0f);
 
     g.setColour(juce::Colours::white);
-
-    if (toggleButton.getToggleState()) {
-		bounds = bounds.withTrimmedBottom(bounds.getHeight() / 2.0f);
-    } else {
-        bounds = bounds.withTrimmedTop(bounds.getHeight() / 2.0f);
-	}
+    bounds = bounds.withTrimmedBottom(bounds.getHeight() / 2.0f);
+	bounds.setY(bounds.getY() + (switchPos) * bounds.getHeight());
 	g.fillRoundedRectangle(bounds, 3.0f);
 }

@@ -95,11 +95,6 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     limiterButton.setTooltip("Toggle limiter on/off");
     addAndMakeVisible(limiterButton);
 
-    softClipButton.setLookAndFeel(&ignitiveLAF);
-    softClipButton.setButtonText("");
-    softClipButton.setTooltip("unused");
-    addAndMakeVisible(softClipButton);
-
     // ==============// DISTORTION //==============//
 
     // Drive
@@ -155,12 +150,6 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     };
 
     addAndMakeVisible(characterPolarityButton);
-    characterPolarityButton.onIndexChange = [this](int newIndex) {
-        auto* characterPolarityParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_CHARACTER_POLARITY));
-        if (characterPolarityParameter != nullptr) {
-            characterPolarityParameter->operator=(newIndex);
-        }
-	};
 
     // ==============// Feedback //==============//
     feedbackSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -207,7 +196,6 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     lfoSpeedSlider.setTooltip("LFO speed");
     addAndMakeVisible(lfoSpeedSlider);
 
-    paramsDisplay.setState(showingEnvelope);
     lfoSpeedSlider.setVisible(false);
 
     envLFOToggleButton.onClick = [this] {
@@ -222,7 +210,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         lfoSpeedSlider.setVisible(!showingEnvelope);
 
         modMatrixComponent.setSourceIDFilter(showingEnvelope ? Parameters::ID_ENV : Parameters::ID_LFO);
-        paramsDisplay.setState(showingEnvelope);
+		paramsDisplay.setInterface(showingEnvelope ? static_cast<ParametersDisplayInterface*>(&audioProcessor.ignitive.envelope) : static_cast<ParametersDisplayInterface*>(&audioProcessor.ignitive.lfo));
 
         resized();
     };
@@ -232,6 +220,10 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 
     modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
 
+    modSourceGraph.setSource(showingEnvelope
+        ? static_cast<ModSource*>(&audioProcessor.ignitive.envelope)
+        : static_cast<ModSource*>(&audioProcessor.ignitive.lfo));
+	paramsDisplay.setInterface(static_cast<ParametersDisplayInterface*>(&audioProcessor.ignitive.envelope));
 	addAndMakeVisible(modSourceGraph);
 
     randomizeButton.setLookAndFeel(&ignitiveLAF);
@@ -283,6 +275,17 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     }
 
     presetSelector.setText("No Preset", false);
+
+    attackSlider.onDragStart = [this] { paramsDisplay.showValue(0); };
+    decaySlider.onDragStart  = [this] { paramsDisplay.showValue(1); };
+    gateSlider.onDragStart   = [this] { paramsDisplay.showValue(2); };
+
+    attackSlider.onDragEnd = [this] { paramsDisplay.hideValue(0); };
+    decaySlider.onDragEnd  = [this] { paramsDisplay.hideValue(1); };
+    gateSlider.onDragEnd   = [this] { paramsDisplay.hideValue(2); };
+
+    lfoSpeedSlider.onDragStart = [this] { paramsDisplay.showValue(0); };
+    lfoSpeedSlider.onDragEnd = [this]   { paramsDisplay.hideValue(0); };
 }
 
 IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
@@ -292,6 +295,15 @@ IgnitiveAudioProcessorEditor::~IgnitiveAudioProcessorEditor() {
 void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
     if (backgroundImage.isValid()) g.drawImage(backgroundImage, getLocalBounds().toFloat());
     else g.fillAll(juce::Colours::grey);
+
+    g.setFont(uavosdFont.withHeight(12.0f));
+	g.setColour(juce::Colours::black);
+
+    juce::Rectangle<float> lfoTextBounds = { 237 - 15, 640 + 40, 20 + 25, 25 };
+    g.drawText("LFO", lfoTextBounds, juce::Justification::centred);
+
+    juce::Rectangle<float> envTextBounds = { 237 - 15, 640 - 30, 20 + 25, 25 };
+    g.drawText("ENV", envTextBounds, juce::Justification::centred);
 }
 
 void IgnitiveAudioProcessorEditor::timerCallback() {
@@ -300,6 +312,8 @@ void IgnitiveAudioProcessorEditor::timerCallback() {
     filterCurve.repaint();
 	modSourceGraph.repaint();
     paramsDisplay.repaint();
+
+    envLFOToggleButton.repaint();
 }
 
 void IgnitiveAudioProcessorEditor::resized() {
@@ -336,9 +350,7 @@ void IgnitiveAudioProcessorEditor::resized() {
     inMeter.setBounds(62, 587, 14, 14);
 
     oversampleButton.setBounds(80, 535 - 3, 110, 25 + 3);
-    limiterButton.setBounds(80, 570 - 3, 80, 25 + 3);
-    softClipButton.setBounds(165, 570 - 3, 25, 25 + 3);
-
+    limiterButton.setBounds(80, 570 - 3, 110, 25 + 3);
     outGainSlider.setBounds(200, 535, 60, 60);
     outMeter.setBounds(252, 587, 14, 14);
 

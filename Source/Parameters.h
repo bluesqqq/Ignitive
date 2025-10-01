@@ -10,7 +10,6 @@ class Parameters {
 			ID_MIX                   = "mix",
 			ID_BYPASS                = "bypass",
 			ID_LIMITER               = "limiter",
-			ID_SOFTCLIP              = "softClip",
 
 			ID_DRIVE                 = "driveAmount",
 			ID_DISTORTION_TYPE       = "distortionType",

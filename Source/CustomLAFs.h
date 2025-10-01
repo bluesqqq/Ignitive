@@ -3,8 +3,19 @@
 #include <JuceHeader.h>
 #include "DistortionProcessor.h"
 
-class SwitchLAF : public juce::LookAndFeel_V4 {
+class SwitchLAF : public juce::LookAndFeel_V4, private juce::Timer {
+    float switchPos = 0.0f;
+	float targetPos = 0.0f;
+
     public:
+        SwitchLAF() {
+			startTimerHz(60);
+        }
+
+        void timerCallback() override {
+            switchPos = juce::jmap(0.2f, switchPos, targetPos);
+        }
+
         void drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggleButton, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 };
 
