@@ -1,4 +1,4 @@
-# Ignitive
+# Ignitive (v0.9.0 Pre-release)
 
 <img src="Resources/ignitive-preview.png" alt="Ignitive Preview" width="400">
 
@@ -15,6 +15,12 @@ Key features include:
 * A flexible pre-filter section with independent high-pass and low-pass filters, plus a delay feedback stage for extra texture.
 
 **Ignitive** is a personal project made with the goal of learning and hopefully producing a well-documented example of a JUCE plugin.
+
+---
+
+## Installation
+
+[Download here](https://github.com/bluesqqq/Ignitive/releases/tag/v0.9.0)
 
 ---
 
