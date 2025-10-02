@@ -11,13 +11,12 @@ void LFO::process(const juce::dsp::AudioBlock<float>& block) {
 	speedHz = juce::jmap(parameters.getRawParameterValue(speedID)->load(), 0.1f, 10.0f);
 
 	const int numSamples = block.getNumSamples();
-	float* buffer = modulationBuffer.getWritePointer(0);
 
 	const float phaseIncrement = 2.0f * juce::MathConstants<float>::pi * speedHz / sampleRate;
 
 	for (int i = 0; i < numSamples; i++) {
-		buffer[i] = std::sin(phase);
-		writeToFifo(buffer[i]);
+		modulationBuffer[i] = std::sin(phase);
+		writeToFifo(modulationBuffer[i]);
 		phase += phaseIncrement;
 		if (phase > 2.0f * juce::MathConstants<float>::pi) phase -= 2.0f * juce::MathConstants<float>::pi;
 	}

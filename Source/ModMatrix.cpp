@@ -5,7 +5,7 @@ void ModMatrix::prepare(const juce::dsp::ProcessSpec& spec) {
 	for (auto& source : sourceMap) source.second->prepare(spec);
 }
 
-void ModMatrix::addDestination(const juce::String& id, const juce::String& displayName, juce::AudioProcessorValueTreeState& params) {
+void ModMatrix::addDestination(const juce::String& id, const juce::String& displayName) {
 	destinationMap[id] = std::make_unique<ModDestination>(displayName);
 }
 
@@ -18,6 +18,20 @@ ModSource* ModMatrix::getSource(const juce::String& id) {
 	return nullptr;
 }
 
+int ModMatrix::numSources() { return sourceMap.size(); }
+
+std::vector<ModConnection>& ModMatrix::getConnections() { return connections; }
+
+std::vector<ModConnection*> ModMatrix::getConnectionsWithSource(const juce::String& sourceID) {
+	std::vector<ModConnection*> result;
+
+	for (auto& connection : connections)
+		if (connection.sourceID == sourceID)
+			result.push_back(&connection);
+
+	return result;
+}
+
 ModDestination* ModMatrix::getDestination(const juce::String& id) {
 	auto it = destinationMap.find(id);
 	if (it != destinationMap.end()) return it->second.get();
@@ -25,9 +39,10 @@ ModDestination* ModMatrix::getDestination(const juce::String& id) {
 }
 
 void ModMatrix::process(const juce::dsp::AudioBlock<float>& block) {
-	for (auto& destination : destinationMap) {
-		float value = parameters.getRawParameterValue(destination.first)->load();
-		destination.second->update(value);
+	for (auto& [destinationID, destination] : destinationMap) {
+		float value = parameters.getRawParameterValue(destinationID)->load();
+		destination->setBaseValue(value);
+		destination->process(block);
 	}
 
 	for (ModConnection& connection : connections) {
@@ -38,7 +53,17 @@ void ModMatrix::process(const juce::dsp::AudioBlock<float>& block) {
 	}
 }
 
-int ModMatrix::getNumOfConnections() const { return connections.size(); }
+void ModMatrix::reset() {
+
+}
+
+void ModMatrix::setEmptyConnections() {
+	connections.clear();
+
+	for (const auto& [sourceID, source] : sourceMap)
+		for (int i = 0; i < numDestinations(); ++i)
+			connections.push_back({ sourceID, "", 0.0f });
+}
 
 float ModMatrix::getValue(const juce::String& destinationID, int sample) {
 	// This runs every sample, which is a problem
@@ -47,6 +72,25 @@ float ModMatrix::getValue(const juce::String& destinationID, int sample) {
 	if (!destination) return 0.0f;
 
 	return juce::jlimit(0.0f, 1.0f, destination->getValue(sample));
+}
+
+std::vector<juce::String> ModMatrix::getDestinationsIDs() {
+	std::vector<juce::String> result;
+
+	for (const auto& pair : destinationMap) result.push_back(pair.first);
+
+	return result;
+}
+
+std::vector<juce::String> ModMatrix::getAvailableDestinationIDs(juce::String sourceID) {
+	std::vector<juce::String> result = getDestinationsIDs();
+
+	// Remove already used destinations
+	for (const auto& connection : connections)
+		if (connection.sourceID == sourceID)
+			result.erase(std::remove(result.begin(), result.end(), connection.destinationID), result.end());
+
+	return result;
 }
 
 std::vector<std::pair<juce::String, juce::String>> ModMatrix::getDestinationDisplayNameAndIDs() {
@@ -96,4 +140,32 @@ void ModMatrix::saveModConnectionsToState(juce::ValueTree& state) {
 
 	if (!mods.getParent().isValid())
 		state.addChild(mods, -1, nullptr);
+}
+
+void ModMatrix::randomizeConnections() {
+	setEmptyConnections();
+
+	static thread_local std::mt19937_64 rng{ std::random_device{}() };
+
+	std::binomial_distribution<int> connectionDist(numDestinations(), 0.2);
+
+	std::normal_distribution<float> depthDist(0.0f, 0.2f);
+
+	for (const auto& [sourceID, source] : sourceMap) {
+		auto& conns = getConnectionsWithSource(sourceID);
+
+		int numConnections = std::min(connectionDist(rng), (int)conns.size());
+
+		for (int i = 0; i < numConnections; i++) {
+			auto availableDestinations = getAvailableDestinationIDs(sourceID);
+			if (availableDestinations.empty()) break;
+
+			std::uniform_int_distribution<int> destDist(0, (int)availableDestinations.size() - 1);
+			juce::String destinationID = availableDestinations[destDist(rng)];
+			conns[i]->destinationID = destinationID;
+
+			float depth = depthDist(rng);
+			conns[i]->depth = juce::jlimit(-1.0f, 1.0f, depth);
+		}
+	}
 }

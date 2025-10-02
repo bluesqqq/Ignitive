@@ -21,8 +21,6 @@ void EnvelopeFollower::process(const juce::dsp::AudioBlock<float>& block) {
 	auto numSamples = (int)block.getNumSamples();
 	auto numChannels = (int)block.getNumChannels();
 
-	auto* out = modulationBuffer.getWritePointer(0);
-
 	for (int sample = 0; sample < numSamples; ++sample) {
 		float s = 0.0f;
 
@@ -31,9 +29,9 @@ void EnvelopeFollower::process(const juce::dsp::AudioBlock<float>& block) {
 
 		s /= (float)numChannels;
 
-		out[sample] = processSample(s);
+		modulationBuffer[sample] = processSample(s);
 
-		writeToFifo(out[sample]);
+		writeToFifo(modulationBuffer[sample]);
 	}
 }
 

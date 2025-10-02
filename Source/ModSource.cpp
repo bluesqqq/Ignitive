@@ -3,17 +3,15 @@
 ModSource::ModSource(const juce::Colour& color, const juce::Range<float>& range) : displayColor(color), displayRange(range) { }
 
 void ModSource::prepare(const juce::dsp::ProcessSpec& spec) {
-	modulationBuffer.setSize(1, spec.maximumBlockSize);
+	modulationBuffer.resize(spec.maximumBlockSize, 0.0f);
 	sampleRate = spec.sampleRate;
 	fifoBuffer.resize(fifo.getTotalSize());
 	writeToFifo(0.0f);
 }
 
-float ModSource::getValue(int sample) const { return modulationBuffer.getSample(0, sample); }
+float ModSource::getValue(int sample) const { return modulationBuffer[sample]; }
 
-void ModSource::reset() {
-	modulationBuffer.clear();
-}
+void ModSource::reset() { modulationBuffer.clear(); }
 
 void ModSource::writeToFifo(float value) {
 	int start1, size1, start2, size2;

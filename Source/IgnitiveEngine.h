@@ -19,17 +19,19 @@ class IgnitiveEngine : public juce::dsp::ProcessorBase {
         juce::AudioProcessor& processor;
 
     public:
-        //==============// DSP //==============//
+        // =============== [ DSP ] =============== //
         GainProcessor inGain, outGain;
         DistortionProcessor distortion;
         FeedbackProcessor feedback;
         FilterProcessor filter;
         LimiterProcessor limiter;
 
+        // =============== [ MODULATION ] =============== //
+        ModMatrix modMatrix;
+
+		// Mod Sources
         EnvelopeFollower envelope;
         LFO lfo;
-
-        ModMatrix modMatrix;
 
         IgnitiveEngine(juce::AudioProcessorValueTreeState& parameters, juce::AudioProcessor& processor);
 

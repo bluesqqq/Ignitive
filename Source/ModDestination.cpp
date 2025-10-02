@@ -2,29 +2,22 @@
 
 void ModDestination::prepare(const juce::dsp::ProcessSpec& spec) {
 	baseValue.reset(spec.sampleRate, 0.02);
-	valueBuffer.setSize(1, spec.maximumBlockSize);
+	valueBuffer.resize(spec.maximumBlockSize, baseValue.getTargetValue());
 }
 
-void ModDestination::update(float value) {
-	baseValue.setTargetValue(value);
-
-	auto* out = valueBuffer.getWritePointer(0);
-
-	// Fills the buffer with the base value
-	for (int i = 0; i < valueBuffer.getNumSamples(); i++) {
-		out[i] = baseValue.getNextValue();
-	}
+void ModDestination::process(const juce::dsp::AudioBlock<float>& block) {
+	for (int i = 0; i < block.getNumSamples(); i++) valueBuffer[i] = baseValue.getNextValue();
 }
 
-float ModDestination::getValue(int sampleIndex) const {
-	return valueBuffer.getSample(0, sampleIndex);
+void ModDestination::reset() {
+	valueBuffer.clear();
 }
+
+void ModDestination::setBaseValue(float value) { baseValue.setTargetValue(value); }
+
+float ModDestination::getValue(int index) const { return valueBuffer[index]; }
 
 void ModDestination::addMod(ModSource* source, float depth) {
 	if (source == nullptr) return;
-	auto* out = valueBuffer.getWritePointer(0);
-
-	for (int i = 0; i < valueBuffer.getNumSamples(); i++) {
-		out[i] += source->getValue(i) * depth;
-	}
+	for (int i = 0; i < valueBuffer.size(); i++) valueBuffer[i] += source->getValue(i) * depth;
 }

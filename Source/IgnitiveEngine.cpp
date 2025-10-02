@@ -9,15 +9,18 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
       inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN), 
       lfo(parameters, Parameters::ID_LFO_SPEED), envelope(parameters, Parameters::ID_ENV_ATTACK, Parameters::ID_ENV_DECAY, Parameters::ID_ENV_GATE) { // Holy constructor list
 
-    modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
-    modMatrix.addDestination(Parameters::ID_CHARACTER, "Character", params);
-    modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback", params);
-    modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay", params);
-
-    modMatrix.addDestination(Parameters::ID_LP_CUTOFF,    "LP Cut", params);
-    modMatrix.addDestination(Parameters::ID_LP_RESONANCE, "LP Res", params);
-    modMatrix.addDestination(Parameters::ID_HP_CUTOFF,    "HP Cut", params);
-    modMatrix.addDestination(Parameters::ID_HP_RESONANCE, "HP Res", params);
+    /*
+        All mod destinations and sources must be registered here.
+        I did it manually since I have so few, but it could be automated.
+    */
+    modMatrix.addDestination(Parameters::ID_DRIVE, "Drive");
+    modMatrix.addDestination(Parameters::ID_CHARACTER, "Character");
+    modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback");
+    modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay");
+    modMatrix.addDestination(Parameters::ID_LP_CUTOFF,    "LP Cut");
+    modMatrix.addDestination(Parameters::ID_LP_RESONANCE, "LP Res");
+    modMatrix.addDestination(Parameters::ID_HP_CUTOFF,    "HP Cut");
+    modMatrix.addDestination(Parameters::ID_HP_RESONANCE, "HP Res");
 
     modMatrix.addSource(Parameters::ID_ENV, &envelope);
     modMatrix.addSource(Parameters::ID_LFO, &lfo);
@@ -26,16 +29,18 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
 }
 
 void IgnitiveEngine::prepare(const juce::dsp::ProcessSpec& spec) {
+    // DSP
     inGain.prepare(spec);
     outGain.prepare(spec);
-
     distortion.prepare(spec);
     feedback.prepare(spec);
     filter.prepare(spec);
     limiter.prepare(spec);
+
+	// Modulation
+    modMatrix.prepare(spec);
     envelope.prepare(spec);
     lfo.prepare(spec);
-    modMatrix.prepare(spec);
 }
 
 void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& context) {
@@ -92,14 +97,16 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
 }
 
 void IgnitiveEngine::reset() {
+    // DSP
     inGain.reset();
     outGain.reset();
-
     distortion.reset();
     feedback.reset();
     filter.reset();
     limiter.reset();
 
+	// Modulation
+    modMatrix.reset();
     envelope.reset();
     lfo.reset();
 }

@@ -5,23 +5,52 @@
 #include "Parameters.h"
 #include <random>
 
+/*
+	Represents a single modulation connection between a source and a destination
+
+	Each ModConnection stores the IDs of the modulation source (ModSource), and a destination
+	(ModDestination), along with a depth value that determines the strength of the modulation.
+*/
 struct ModConnection {
+	// The modulation source ID
 	juce::String sourceID;
+	// The destination source ID (same as the parameter ID in apvts)
 	juce::String destinationID;
+	// The depth of the connection (0.0 - 1.0)
 	float depth;
 };
 
+/*
+	This class defines a modulation matrix that can manage connections between registered
+	sources and destinations.
+
+	ModMatrix allows registering sources (ModSource) and destinations (ModDestination),
+	and manages the connections (ModConnection) between them. Each source can modulate
+	multiple destinations. The class handles preparing, processing, resetting, and
+	storing modulation data
+
+	@see ModSource
+	@see ModDestination
+	@see ModConnection
+*/
 class ModMatrix {
+	/*
+		When I made this class, I wanted something similar to Serum's mod matrix. This is a more
+		dumbed-down version with simpler features, but it still mostly achieves what I want.
+
+		I deciced on having empty (destination-less) connections as I found it easier to select
+		destinations than fumbling with adding/removing connections. Sure, it limits the number
+		of connections (per source) to the number of destinations, but is there really any point
+		in, say, mapping ENV -> DRIVE twice? Serum lets you do it, but theres no real benefit
+		to doing so (just my opinion).
+	*/
 	private:
 		juce::AudioProcessorValueTreeState& parameters;
-
 
 		std::unordered_map<juce::String, std::unique_ptr<ModDestination>> destinationMap; // [destinationID] -> ModDestination
 		std::unordered_map<juce::String, ModSource*> sourceMap; // [sourceID] -> ModSource*
 
-		/// <summary>
-		/// List of all active modulation connections
-		/// </summary>
+		// List of all active modulation connections
 		std::vector<ModConnection> connections;
 
 	public:
@@ -29,87 +58,43 @@ class ModMatrix {
 
 		void prepare(const juce::dsp::ProcessSpec& spec);
 		void process(const juce::dsp::AudioBlock<float>& block);
+		void reset();
 
-		void addDestination(const juce::String& id, const juce::String& displayName, juce::AudioProcessorValueTreeState& parameters);
+		// Adds a destination to the mod matrix.
+		void addDestination(const juce::String& id, const juce::String& displayName);
+		// Returns a pointer to the ModDestination with the given ID, or nullptr if not found.
 		ModDestination* getDestination(const juce::String& id);
+		// Returns the number of registered destinations.
 		int numDestinations() { return destinationMap.size(); }
 
+		// Adds a source to the mod matrix.
 		void addSource(const juce::String& id, ModSource* modSource);
+		// Returns a pointer to the ModSource with the given ID, or nullptr if not found.
 		ModSource* getSource(const juce::String& id);
-		int numSources() { return sourceMap.size(); }
+		// Returns the number of registered sources.
+		int numSources();
 
-		std::vector<ModConnection>& getConnections() { return connections; }
-		std::vector<ModConnection*> getConnectionsWithSource(const juce::String& sourceID) {
-			std::vector<ModConnection*> result;
+		// Returns a vector of all connections.
+		std::vector<ModConnection>& getConnections();
+		// Returns a vector of pointers to all connections with the given source ID.
+		std::vector<ModConnection*> getConnectionsWithSource(const juce::String& sourceID);
+		// Clears all connections. Creates new empty connections, such that each source has n empty connections (n being the number of destinations registered).
+		void setEmptyConnections();
 
-			for (auto& connection : connections)
-				if (connection.sourceID == sourceID)
-					result.push_back(&connection);
-
-			return result;
-		}
-		int getNumOfConnections() const;
-		void setEmptyConnections() {
-			connections.clear();
-
-			for (const auto& [sourceID, source] : sourceMap)
-				for (int i = 0; i < numDestinations(); ++i)
-					connections.push_back({sourceID, "", 0.0f});
-		}
-
+		// Returns the current value of the given destination at the given sample index.
 		float getValue(const juce::String& destinationID, int sample);
 
-		std::vector<juce::String> getDestinationsIDs() {
-			std::vector<juce::String> result;
+		// Returns a vector of all destination IDs
+		std::vector<juce::String> getDestinationsIDs();
 
-			for (const auto& pair : destinationMap) result.push_back(pair.first);
-
-			return result;
-		}
-
-		std::vector<juce::String> getAvailableDestinationIDs(juce::String sourceID) {
-			std::vector<juce::String> result = getDestinationsIDs();
-
-			// Remove already used destinations
-			for (const auto& connection : connections)
-				if (connection.sourceID == sourceID)
-					result.erase(std::remove(result.begin(), result.end(), connection.destinationID), result.end());
-
-			return result;
-		}
+		// Returns a vector of all available (not used) destination IDs
+		std::vector<juce::String> getAvailableDestinationIDs(juce::String sourceID);
 
 		std::vector<std::pair<juce::String, juce::String>> getDestinationDisplayNameAndIDs();
 
 		bool loadModConnectionsFromState(const juce::ValueTree& state);
 		void saveModConnectionsToState(juce::ValueTree& state);
 
-		void randomizeConnections() {
-			setEmptyConnections();
-
-			static thread_local std::mt19937_64 rng{ std::random_device{}() };
-
-			std::binomial_distribution<int> connectionDist(numDestinations(), 0.2);
-
-			std::normal_distribution<float> depthDist(0.0f, 0.2f);
-
-			for (const auto& [sourceID, source] : sourceMap) {
-				auto& conns = getConnectionsWithSource(sourceID);
-
-				int numConnections = std::min(connectionDist(rng), (int)conns.size());
-
-				for (int i = 0; i < numConnections; i++) {
-					auto availableDestinations = getAvailableDestinationIDs(sourceID);
-					if (availableDestinations.empty()) break;
-
-					std::uniform_int_distribution<int> destDist(0, (int)availableDestinations.size() - 1);
-					juce::String destinationID = availableDestinations[destDist(rng)];
-					conns[i]->destinationID = destinationID;
-
-					float depth = depthDist(rng);
-					conns[i]->depth = juce::jlimit(-1.0f, 1.0f, depth);
-				}
-			}
-		}
-
-
+		// Clears all previous connections and creates random connections.
+		void randomizeConnections();
 };
