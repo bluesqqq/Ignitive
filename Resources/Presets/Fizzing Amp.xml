@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Parameter PresetName="Fizzing Amp">
+  <PARAM id="bypass" value="0.0"/>
+  <PARAM id="characterPolarity" value="2.0"/>
+  <PARAM id="characterType" value="1.0"/>
+  <PARAM id="distortionType" value="9.0"/>
+  <PARAM id="driveAmount" value="0.4099999964237213"/>
+  <PARAM id="driveColor" value="0.5"/>
+  <PARAM id="envAttack" value="0.0"/>
+  <PARAM id="envDecay" value="231.8600006103516"/>
+  <PARAM id="envGate" value="0.0"/>
+  <PARAM id="feedbackAmount" value="0.0"/>
+  <PARAM id="feedbackDelay" value="0.5"/>
+  <PARAM id="filter1_hpCutoff" value="0.0"/>
+  <PARAM id="filter1_hpResonance" value="0.0"/>
+  <PARAM id="filter1_lpCutoff" value="1.0"/>
+  <PARAM id="filter1_lpResonance" value="0.0"/>
+  <PARAM id="inGain" value="1.0"/>
+  <PARAM id="lfoSpeed" value="0.01999999955296516"/>
+  <PARAM id="limiter" value="1.0"/>
+  <PARAM id="mix" value="1.0"/>
+  <PARAM id="outGain" value="1.0"/>
+  <PARAM id="oversample" value="1.0"/>
+  <ModConnections>
+    <Connection source="envelope" destination="driveAmount" depth="0.35999995470047"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="driveColor" depth="0.3299999833106995"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+  </ModConnections>
+</Parameter>

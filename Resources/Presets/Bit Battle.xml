@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Parameter PresetName="Bit Battle">
+  <PARAM id="bypass" value="0.0"/>
+  <PARAM id="characterPolarity" value="0.0"/>
+  <PARAM id="characterType" value="4.0"/>
+  <PARAM id="distortionType" value="6.0"/>
+  <PARAM id="driveAmount" value="0.07999999821186066"/>
+  <PARAM id="driveColor" value="0.2899999916553497"/>
+  <PARAM id="envAttack" value="0.0"/>
+  <PARAM id="envDecay" value="337.4599914550781"/>
+  <PARAM id="envGate" value="0.09999999403953552"/>
+  <PARAM id="feedbackAmount" value="0.0"/>
+  <PARAM id="feedbackDelay" value="0.5"/>
+  <PARAM id="filter1_hpCutoff" value="0.0"/>
+  <PARAM id="filter1_hpResonance" value="0.0"/>
+  <PARAM id="filter1_lpCutoff" value="1.0"/>
+  <PARAM id="filter1_lpResonance" value="0.0"/>
+  <PARAM id="inGain" value="1.0"/>
+  <PARAM id="lfoSpeed" value="0.01999999955296516"/>
+  <PARAM id="limiter" value="1.0"/>
+  <PARAM id="mix" value="1.0"/>
+  <PARAM id="outGain" value="1.0"/>
+  <PARAM id="oversample" value="1.0"/>
+  <ModConnections>
+    <Connection source="envelope" destination="driveAmount" depth="0.35999995470047"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="driveColor" depth="0.2899999618530273"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+  </ModConnections>
+</Parameter>

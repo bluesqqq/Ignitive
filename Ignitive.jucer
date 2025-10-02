@@ -10,7 +10,25 @@
         <FILE id="Fk4MLn" name="digital.ttf" compile="0" resource="1" file="Resources/Fonts/digital.ttf"/>
         <FILE id="AweTFQ" name="uav-osd.ttf" compile="0" resource="1" file="Resources/Fonts/uav-osd.ttf"/>
       </GROUP>
-      <GROUP id="{B97A24D1-7C43-70C8-171D-7E5A7BC89C64}" name="Presets"/>
+      <GROUP id="{B97A24D1-7C43-70C8-171D-7E5A7BC89C64}" name="Presets">
+        <FILE id="zOqLiX" name="Bit Battle.xml" compile="0" resource="1" file="Resources/Presets/Bit Battle.xml"/>
+        <FILE id="tdT9oI" name="Chirp Machine.xml" compile="0" resource="1"
+              file="Resources/Presets/Chirp Machine.xml"/>
+        <FILE id="WpkYCU" name="Fizzing Amp.xml" compile="0" resource="1" file="Resources/Presets/Fizzing Amp.xml"/>
+        <FILE id="v7APad" name="Hot Air.xml" compile="0" resource="1" file="Resources/Presets/Hot Air.xml"/>
+        <FILE id="cBhbet" name="Hydrophone.xml" compile="0" resource="1" file="Resources/Presets/Hydrophone.xml"/>
+        <FILE id="Pmnlgf" name="Init.xml" compile="0" resource="1" file="Resources/Presets/Init.xml"/>
+        <FILE id="heqVEq" name="Punchy.xml" compile="0" resource="1" file="Resources/Presets/Punchy.xml"/>
+        <FILE id="cpSqOn" name="Rectifying.xml" compile="0" resource="1" file="Resources/Presets/Rectifying.xml"/>
+        <FILE id="EhhZ9O" name="Shiver.xml" compile="0" resource="1" file="Resources/Presets/Shiver.xml"/>
+        <FILE id="m4w78O" name="Snarl.xml" compile="0" resource="1" file="Resources/Presets/Snarl.xml"/>
+        <FILE id="WlzX3X" name="Squeegee.xml" compile="0" resource="1" file="Resources/Presets/Squeegee.xml"/>
+        <FILE id="wCIz6w" name="Static Electricity.xml" compile="0" resource="1"
+              file="Resources/Presets/Static Electricity.xml"/>
+        <FILE id="RRhRZe" name="Tapeworm.xml" compile="0" resource="1" file="Resources/Presets/Tapeworm.xml"/>
+        <FILE id="TBKzuH" name="Tightener.xml" compile="0" resource="1" file="Resources/Presets/Tightener.xml"/>
+        <FILE id="Vt90I9" name="Unphased.xml" compile="0" resource="1" file="Resources/Presets/Unphased.xml"/>
+      </GROUP>
       <FILE id="I2cH3F" name="Ignitive.png" compile="0" resource="1" file="Resources/Ignitive.png"/>
       <FILE id="oGJCsO" name="random_icon.png" compile="0" resource="1" file="Resources/random_icon.png"/>
       <FILE id="RClKEp" name="save_icon.png" compile="0" resource="1" file="Resources/save_icon.png"/>
@@ -18,6 +36,8 @@
             file="Resources/settings_icon.png"/>
     </GROUP>
     <GROUP id="{47183E67-718A-5A45-95E5-D0FE2856AC20}" name="Source">
+      <FILE id="biZgCl" name="Globals.cpp" compile="1" resource="0" file="Source/Globals.cpp"/>
+      <FILE id="aM4RNx" name="Globals.h" compile="0" resource="0" file="Source/Globals.h"/>
       <FILE id="kXgbYu" name="Presets.cpp" compile="1" resource="0" file="Source/Presets.cpp"/>
       <FILE id="HDTsBO" name="Presets.h" compile="0" resource="0" file="Source/Presets.h"/>
       <FILE id="jA2Oay" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>

@@ -1,4 +1,5 @@
 #include "IgnitiveLAF.h"
+#include "Globals.h"
 
 void IgnitiveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
     g.setColour(juce::Colours::black);
@@ -22,7 +23,7 @@ void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggle
 
     auto buttonBase = bounds.withTrimmedTop(buttonHeight);
 
-    float currentHeight = shouldDrawButtonAsDown ? -2 : (buttonDown ? 0 : buttonHeight);
+    float currentHeight = shouldDrawButtonAsDown ? -Globals::buttonDepth : (buttonDown ? 0 : buttonHeight);
 
     auto buttonTop = buttonBase.translated(0, -currentHeight).getIntersection(bounds);
 
@@ -32,7 +33,7 @@ void IgnitiveLAF::drawToggleButton(juce::Graphics& g, juce::ToggleButton& toggle
 
     //Top
     juce::Colour topColor(shouldDrawButtonAsDown ? 0xff666c7b : (buttonDown ? 0xff7b818f : 0xffffffff));
-    juce::Colour textColor(shouldDrawButtonAsDown || buttonDown ? juce::Colours::red : juce::Colours::black);
+    juce::Colour textColor(shouldDrawButtonAsDown || buttonDown ? Globals::distortionColor : juce::Colours::black);
 
     g.setColour(topColor);
     g.fillRoundedRectangle(buttonTop, 5.0f);
@@ -62,7 +63,7 @@ void IgnitiveLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, 
 
     // Top
     juce::Colour topColor(shouldDrawButtonAsDown ? 0xff7b818f : 0xffffffff);
-    juce::Colour textColor(shouldDrawButtonAsDown ? juce::Colours::red : juce::Colours::black);
+    juce::Colour textColor(shouldDrawButtonAsDown ? Globals::distortionColor : juce::Colours::black);
 
     g.setColour(topColor);
     g.fillRoundedRectangle(buttonTop, 5.0f);
@@ -74,7 +75,7 @@ void IgnitiveLAF::drawButtonBackground(juce::Graphics& g, juce::Button& button, 
 }
 
 void IgnitiveLAF::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& comboBox) {
-    g.setColour(juce::Colours::red);
+    g.setColour(Globals::distortionColor);
 
     static juce::Font customFont = [] {
         auto typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::digital_ttf,
@@ -90,11 +91,10 @@ void IgnitiveLAF::drawComboBox(juce::Graphics& g, int width, int height, bool is
 void IgnitiveLAF::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, int x, int y, int width, int height, bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, bool isMouseDown) {
     auto bounds = scrollBar.getLocalBounds().toFloat();
 
-    const int pixelSize = 5;
-    int wPixels = (int)bounds.getWidth() / pixelSize;
+    int wPixels = (int)bounds.getWidth() / Globals::pixelSize;
 
-    int thumbStartPixel = thumbStartPosition / pixelSize;
-    int thumbSizePixel = thumbSize / pixelSize;
+    int thumbStartPixel = thumbStartPosition / Globals::pixelSize;
+    int thumbSizePixel = thumbSize / Globals::pixelSize;
     int thumbEndPixel = thumbStartPixel + thumbSizePixel;
 
     g.setColour(juce::Colours::yellow);
@@ -107,7 +107,7 @@ void IgnitiveLAF::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollBar, i
             if (iy == thumbStartPixel || iy == thumbEndPixel) g.setColour(backgroundColor);
             else g.setColour(juce::Colours::yellow);
 
-            juce::Rectangle<float> pixel(bounds.getX() + ix * pixelSize, bounds.getY() + iy * pixelSize, pixelSize - 1.0f, pixelSize - 1.0f);
+            juce::Rectangle<float> pixel(bounds.getX() + ix * Globals::pixelSize, bounds.getY() + iy * Globals::pixelSize, Globals::pixelSize - 1.0f, Globals::pixelSize - 1.0f);
 
             g.fillRect(pixel);
         }
@@ -124,23 +124,21 @@ void IgnitiveLAF::drawPopupMenuBackground(juce::Graphics& g, int width, int heig
 
 void IgnitiveLAF::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area, bool isSeparator, bool isActive, bool isHighlighted, bool isTicked, bool hasSubMenu, const juce::String& text, const juce::String& shortcutKeyText, const juce::Drawable* icon, const juce::Colour* textColour) {
     g.setFont(digitalFont.withHeight(18.0f));
-    g.setColour(juce::Colours::red);
+    g.setColour(Globals::distortionColor);
     g.drawText(text, area, juce::Justification::centred);
 }
 
 void IgnitiveLAF::drawImageButton(juce::Graphics& g, juce::Image* image, int imageX, int imageY, int imageW, int imageH, const juce::Colour& overlayColour, float imageOpacity, juce::ImageButton& imageButton) {
     auto bounds = imageButton.getLocalBounds().toFloat();
 
-    drawButtonBackground(g, imageButton,
-        imageButton.findColour(juce::TextButton::buttonColourId),
-        imageButton.isMouseOver(),
-        imageButton.isDown());
+    drawButtonBackground(g, imageButton, imageButton.findColour(juce::TextButton::buttonColourId), imageButton.isMouseOver(), imageButton.isDown());
 
     if (image == nullptr || !image->isValid()) return;
 
+    juce::Rectangle<float> imageBounds = bounds.withTrimmedBottom(Globals::buttonHeight);
     if (imageButton.isDown())
-        imageY += 2; // push the icon down visually
+		imageBounds = imageBounds.translated(0, Globals::buttonHeight);
 
     g.setOpacity(imageOpacity);
-    g.drawImage(*image, imageX, imageY, imageW, imageH, 0, 0, image->getWidth(), image->getHeight());
+    g.drawImage(*image, imageBounds);
 }

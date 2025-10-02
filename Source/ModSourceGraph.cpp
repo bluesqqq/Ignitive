@@ -77,8 +77,5 @@ void ModSourceGraph::paint(juce::Graphics& g) {
             g.setColour(isEndPixel ? color : color.darker(0.7f));
             g.fillRect(pixel);
         }
-
     }
-
-    //g.drawText(juce::String(source->getSamplesProcessed()) + " samples", box, juce::Justification::topRight);
 }

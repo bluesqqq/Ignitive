@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Parameter PresetName="Static Electricity">
+  <PARAM id="bypass" value="0.0"/>
+  <PARAM id="characterPolarity" value="2.0"/>
+  <PARAM id="characterType" value="4.0"/>
+  <PARAM id="distortionType" value="4.0"/>
+  <PARAM id="driveAmount" value="0.239999994635582"/>
+  <PARAM id="driveColor" value="0.4799999892711639"/>
+  <PARAM id="envAttack" value="153.5999908447266"/>
+  <PARAM id="envDecay" value="307.6000061035156"/>
+  <PARAM id="envGate" value="0.0"/>
+  <PARAM id="feedbackAmount" value="0.2099999934434891"/>
+  <PARAM id="feedbackDelay" value="0.699999988079071"/>
+  <PARAM id="filter1_hpCutoff" value="0.2999999821186066"/>
+  <PARAM id="filter1_hpResonance" value="0.0"/>
+  <PARAM id="filter1_lpCutoff" value="1.0"/>
+  <PARAM id="filter1_lpResonance" value="0.0"/>
+  <PARAM id="inGain" value="1.0"/>
+  <PARAM id="lfoSpeed" value="0.1400000005960464"/>
+  <PARAM id="limiter" value="1.0"/>
+  <PARAM id="mix" value="1.0"/>
+  <PARAM id="outGain" value="1.0"/>
+  <PARAM id="oversample" value="1.0"/>
+  <ModConnections>
+    <Connection source="envelope" destination="driveAmount" depth="0.35999995470047"/>
+    <Connection source="envelope" destination="driveColor" depth="-0.5300000309944153"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="envelope" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="driveAmount" depth="-0.1200000196695328"/>
+    <Connection source="lfo" destination="feedbackAmount" depth="0.4199999570846558"/>
+    <Connection source="lfo" destination="" depth="0.07999997586011887"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+    <Connection source="lfo" destination="" depth="0.0"/>
+  </ModConnections>
+</Parameter>

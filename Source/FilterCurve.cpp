@@ -1,4 +1,5 @@
 #include "FilterCurve.h"
+#include "Globals.h"
 
 FilterCurve::FilterCurve(juce::AudioProcessorValueTreeState& params, FilterProcessor& filter, IgnitiveLAF& ignitiveLAF)
     : filter(filter), ignitiveLAF(ignitiveLAF) {
@@ -8,9 +9,8 @@ void FilterCurve::paint(juce::Graphics& g) {
     auto screen = getLocalBounds().toFloat();
     screen.reduce(5.0f, 5.0f);
 
-    const int pixelSize = 5;
-    int wPixels = (int)screen.getWidth() / pixelSize;
-    int hPixels = (int)screen.getHeight() / pixelSize;
+    int wPixels = (int)screen.getWidth() / Globals::pixelSize;
+    int hPixels = (int)screen.getHeight() / Globals::pixelSize;
 
     float lpCutoff = filter.lpFilter.getCutoffFrequency();
     float lpResonance = filter.lpFilter.getResonance();
@@ -56,13 +56,13 @@ void FilterCurve::paint(juce::Graphics& g) {
         int pixelCount = (int)(filterCurve[ix] * hPixels);
 
         for (int iy = 0; iy < pixelCount; ++iy) {
-            float y = bottomY - (iy + 1) * pixelSize;
-            float px = screen.getX() + ix * pixelSize + pixelSize / 2.0f;
-            float py = y + pixelSize / 2.0f;
+            float y = bottomY - (iy + 1) * Globals::pixelSize;
+            float px = screen.getX() + ix * Globals::pixelSize + Globals::pixelSize / 2.0f;
+            float py = y + Globals::pixelSize / 2.0f;
 
             // only draw if outside the circle
             if ((px - cx) * (px - cx) + (py - cy) * (py - cy) > radius * radius) {
-                juce::Rectangle<float> pixel(screen.getX() + ix * pixelSize, y, pixelSize - 1.0f, pixelSize - 1.0f);
+                juce::Rectangle<float> pixel(screen.getX() + ix * Globals::pixelSize, y, Globals::pixelSize - 1.0f, Globals::pixelSize - 1.0f);
 
                 if (iy == pixelCount - 1) // top pixel in this column
                     g.setColour(highlightColor);

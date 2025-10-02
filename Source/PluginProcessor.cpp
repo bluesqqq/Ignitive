@@ -2,6 +2,15 @@
 #include "PluginEditor.h"
 #include "Parameters.h"
 
+juce::ValueTree IgnitiveAudioProcessor::getState() {
+    auto state = parameters.copyState();
+    ignitive.modMatrix.saveModConnectionsToState(state);
+    state.setProperty("PresetName", currentPresetName, nullptr);
+    return state;
+}
+
+
+
 IgnitiveAudioProcessor::IgnitiveAudioProcessor()
     : AudioProcessor (BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true).withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, "Parameter", Parameters::createParameterLayout()),
@@ -83,8 +92,8 @@ bool IgnitiveAudioProcessor::hasEditor() const { return true; }
 juce::AudioProcessorEditor* IgnitiveAudioProcessor::createEditor() { return new IgnitiveAudioProcessorEditor (*this); }
 
 void IgnitiveAudioProcessor::getStateInformation (juce::MemoryBlock& destData) {
-    auto state = parameters.copyState();
-    ignitive.modMatrix.saveModConnectionsToState(state);
+    auto state = getState();
+
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
@@ -96,6 +105,7 @@ void IgnitiveAudioProcessor::setStateInformation (const void* data, int sizeInBy
         juce::ValueTree tree = juce::ValueTree::fromXml(*xmlState);
         parameters.replaceState(tree);
         ignitive.modMatrix.loadModConnectionsFromState(tree);
+        currentPresetName = tree.getProperty("PresetName", "Init");
     }
 }
 
@@ -107,6 +117,8 @@ bool IgnitiveAudioProcessor::loadPreset(Preset* preset) {
 
     if (!ignitive.modMatrix.loadModConnectionsFromState(state)) return false;
     parameters.replaceState(state);
+
+    currentPresetName = preset->getName();
 
     return true;
 }
@@ -128,8 +140,8 @@ void IgnitiveAudioProcessor::savePreset() {
         [this, chooser](const juce::FileChooser& fc) {
             auto file = fc.getResult();
             if (file.exists() || file.getParentDirectory().exists()) {
-                auto state = parameters.copyState();
-                ignitive.modMatrix.saveModConnectionsToState(state);
+				currentPresetName = file.getFileNameWithoutExtension();
+                auto state = getState();
 
                 if (auto xml = state.createXml())
                     xml->writeTo(file);
@@ -151,7 +163,13 @@ juce::File IgnitiveAudioProcessor::getUserPresetFolder() const {
 void IgnitiveAudioProcessor::loadAllPresets() {
     presets.clear();
 
+    // Init Preset
+    presets.push_back(std::make_unique<FactoryPreset>("Init", BinaryData::Init_xml, BinaryData::Init_xmlSize));
+
     // Factory Presets
+    for (auto& res : factoryPresets) {
+        presets.push_back(std::make_unique<FactoryPreset>(res.name, res.data, res.size));
+    }
 
     // User Presets
     auto dir = getUserPresetFolder();
@@ -164,8 +182,6 @@ void IgnitiveAudioProcessor::loadAllPresets() {
 }
 
 void IgnitiveAudioProcessor::randomize() {
-    // This works fine for now but it could be improved especially for distortion and character type selections.
-
     for (auto& id : Parameters::getRandomizeParameters()) {
         auto* p = parameters.getParameter(id);
         if (p != nullptr) {

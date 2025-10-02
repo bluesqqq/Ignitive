@@ -28,7 +28,7 @@ class ModMatrix {
 		ModMatrix(juce::AudioProcessorValueTreeState& parameters) : parameters(parameters) {}
 
 		void prepare(const juce::dsp::ProcessSpec& spec);
-		void update();
+		void process(const juce::dsp::AudioBlock<float>& block);
 
 		void addDestination(const juce::String& id, const juce::String& displayName, juce::AudioProcessorValueTreeState& parameters);
 		ModDestination* getDestination(const juce::String& id);

@@ -8,6 +8,8 @@
 
 class IgnitiveAudioProcessor : public juce::AudioProcessor {
     private:
+        juce::ValueTree getState();
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessor)
 
     public:
@@ -16,6 +18,7 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         IgnitiveEngine ignitive;
 
         std::vector<std::unique_ptr<Preset>> presets;
+        juce::String currentPresetName;
 
         IgnitiveAudioProcessor();
         ~IgnitiveAudioProcessor() override;
@@ -46,16 +49,25 @@ class IgnitiveAudioProcessor : public juce::AudioProcessor {
         void getStateInformation (juce::MemoryBlock& destData) override;
         void setStateInformation (const void* data, int sizeInBytes) override;
         
-        // PRESETS
+		// ============/ Presets /============ //
+
         bool loadPreset(Preset* preset);
         bool loadPreset(int index);
 
-        // Saves the current patch as a preset
+        /// <summary>
+		/// Saves the current state as a new preset in the user presets folder.
+        /// </summary>
         void savePreset();
 
         juce::File getUserPresetFolder() const;
 
+        /// <summary>
+        /// Loads all available presets.
+        /// </summary>
         void loadAllPresets();
 
+        /// <summary>
+		/// Generates random values for all randomizable parameters + random modulation connections.
+        /// </summary>
         void randomize();
 };

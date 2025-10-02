@@ -7,13 +7,12 @@ IgnitiveEngine::IgnitiveEngine(juce::AudioProcessorValueTreeState& params, juce:
       feedback  (parameters, modMatrix, Parameters::ID_FEEDBACK, Parameters::ID_FEEDBACK_DELAY),
       filter (parameters, modMatrix, Parameters::ID_LP_CUTOFF, Parameters::ID_LP_RESONANCE, Parameters::ID_HP_CUTOFF, Parameters::ID_HP_RESONANCE),
       inGain(parameters, Parameters::ID_IN_GAIN), outGain(parameters, Parameters::ID_OUT_GAIN), 
-      lfo(parameters, Parameters::ID_LFO_SPEED), envelope(parameters, Parameters::ID_ENV_ATTACK, Parameters::ID_ENV_DECAY, Parameters::ID_ENV_GATE) {
+      lfo(parameters, Parameters::ID_LFO_SPEED), envelope(parameters, Parameters::ID_ENV_ATTACK, Parameters::ID_ENV_DECAY, Parameters::ID_ENV_GATE) { // Holy constructor list
 
     modMatrix.addDestination(Parameters::ID_DRIVE, "Drive", params);
     modMatrix.addDestination(Parameters::ID_CHARACTER, "Character", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK, "Feedback", params);
     modMatrix.addDestination(Parameters::ID_FEEDBACK_DELAY, "Delay", params);
-
 
     modMatrix.addDestination(Parameters::ID_LP_CUTOFF,    "LP Cut", params);
     modMatrix.addDestination(Parameters::ID_LP_RESONANCE, "LP Res", params);
@@ -50,21 +49,11 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         bool limiterEnabled = parameters.getRawParameterValue(Parameters::ID_LIMITER)->load();
         float mix = parameters.getRawParameterValue(Parameters::ID_MIX)->load();
 
-        // Store the dry (unprocessed) signal
+        // Store the dry signal
         juce::AudioBuffer<float> dryBuffer(numChannels, numSamples);
         for (size_t ch = 0; ch < numChannels; ++ch) {
             dryBuffer.copyFrom(ch, 0, block.getChannelPointer(ch), numSamples);
         }
-
-        /*
-          Chain Layout:
-
-          -> IN GAIN -> PRE FILTER -> DISTORTION -> POST FILTER -> [FEEDBACK] -> MIX -> OUT GAIN ->
-                                                 ^                     │
-                                                 └─────────────────────┘
-
-          Feedback is written after the post filter and mixed back in after a delay before the post filter
-        */
 
         inGain.process(context);
 
@@ -73,7 +62,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
 
         lfo.process(block);
 
-        modMatrix.update();
+        modMatrix.process(block);
 
         // DSP
         filter.process(context);
@@ -88,9 +77,7 @@ void IgnitiveEngine::process(const juce::dsp::ProcessContextReplacing<float>& co
         outGain.process(context);
 
         // Limiter
-        if (limiterEnabled) {
-            limiter.process(context);
-        }
+        if (limiterEnabled) limiter.process(context);
 
         // DRY / WET
         for (size_t ch = 0; ch < numChannels; ++ch) {

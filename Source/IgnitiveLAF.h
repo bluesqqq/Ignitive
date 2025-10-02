@@ -1,10 +1,11 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Globals.h"
 
 class IgnitiveLAF : public juce::LookAndFeel_V4 {
 private:
-    float buttonHeight = 3.0f;
+    float buttonHeight = Globals::buttonHeight;
 
     juce::Font uavFont;
     juce::Font digitalFont;

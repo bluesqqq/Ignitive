@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DistortionProcessor.h"
+#include "Globals.h"
 
 class SwitchLAF : public juce::LookAndFeel_V4, private juce::Timer {
     float switchPos = 0.0f;
@@ -9,7 +10,7 @@ class SwitchLAF : public juce::LookAndFeel_V4, private juce::Timer {
 
     public:
         SwitchLAF() {
-			startTimerHz(60);
+			startTimerHz(Globals::frameRate);
         }
 
         void timerCallback() override {
@@ -21,8 +22,8 @@ class SwitchLAF : public juce::LookAndFeel_V4, private juce::Timer {
 
 class MixLAF : public juce::LookAndFeel_V4 {
     private:
-        juce::Colour highlightColor = juce::Colour::fromRGB(255, 0, 0);
-        juce::Colour backgroundColor = juce::Colour::fromRGB(127, 0, 0);
+        juce::Colour highlightColor  = Globals::distortionColor;
+        juce::Colour backgroundColor = Globals::distortionColor.darker(Globals::dimAmount);
 
         float mouseFadeRadius = 25.0f;
         float mouseFadeDepth = 0.5f;
@@ -36,6 +37,7 @@ class MixLAF : public juce::LookAndFeel_V4 {
 class DriveLAF : public juce::LookAndFeel_V4 {
     private:
         DistortionProcessor& distortion;
+		juce::Colour color = Globals::distortionColor;
 
     public:
         DriveLAF(DistortionProcessor& engine);

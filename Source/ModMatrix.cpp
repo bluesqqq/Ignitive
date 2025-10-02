@@ -24,7 +24,7 @@ ModDestination* ModMatrix::getDestination(const juce::String& id) {
 	return nullptr;
 }
 
-void ModMatrix::update() {
+void ModMatrix::process(const juce::dsp::AudioBlock<float>& block) {
 	for (auto& destination : destinationMap) {
 		float value = parameters.getRawParameterValue(destination.first)->load();
 		destination.second->update(value);

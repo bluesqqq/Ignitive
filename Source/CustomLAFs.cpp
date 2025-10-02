@@ -1,4 +1,5 @@
 #include "CustomLafs.h"
+#include "Globals.h"
 
 DriveLAF::DriveLAF(DistortionProcessor& dist) : distortion(dist) {}
 
@@ -29,25 +30,13 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
         arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, startAng, endAng, true);
 
         if (startAng < modStartAngle) {
-            g.setColour(juce::Colours::red);
+            g.setColour(color);
             g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
         } else if (startAng < modEndAngle) {
             g.setColour(juce::Colours::yellow);
             g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
         }
     }
-
-    /*
-    juce::Path arc;
-    arc.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, angle, true);
-    g.setColour(juce::Colours::red);
-    g.strokePath(arc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
-
-    juce::Path modArc;
-    modArc.addCentredArc(centerX, centerY, radius, radius, 0.0f, angle, modifiedAngle, true);
-    g.setColour(juce::Colours::yellow);
-    g.strokePath(modArc, juce::PathStrokeType(5, juce::PathStrokeType::mitered, juce::PathStrokeType::butt));
-    */
 
     // Waveshape
     std::vector<float> waveshape = distortion.getWaveshape(128);
@@ -94,7 +83,7 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
         else        path.lineTo(x, y);
     }
 
-    g.setColour(juce::Colours::red);
+    g.setColour(color);
     g.strokePath(path, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 }
 
@@ -218,7 +207,7 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
     eye.addArc(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), juce::MathConstants<float>::pi + eyelidRadians, juce::MathConstants<float>::pi - eyelidRadians, true);
     eye.closeSubPath();
     
-    g.setColour(juce::Colours::red);
+    g.setColour(Globals::distortionColor);
     g.strokePath(eye, juce::PathStrokeType(5, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
     float pupilSpacing = 4.0f;
@@ -241,7 +230,7 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
     g.setColour(juce::Colours::yellow);
     g.fillEllipse(pupilModBounds);
 
-    g.setColour(juce::Colours::red);
+    g.setColour(Globals::distortionColor);
     g.fillEllipse(pupilBounds);
 
 }
@@ -261,7 +250,7 @@ void MixLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int he
 
     float mix = slider.getValue();
 
-    g.setColour(juce::Colours::red);
+    g.setColour(Globals::distortionColor);
 
     float xPosInterval = 1.0f / (float)w;
     float yPosInterval = xPosInterval / (float)h;
@@ -308,49 +297,6 @@ void MixLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int he
                 }
             }
         }
-
-        /*
-        for (int iy = 0; iy < h; ++iy) {
-
-            int mapValue = ditherMap[ix % 4][iy % 4];
-
-            float px = bounds.getX() + 1.0f + ix * 5.0f + 1.5f;
-            float py = bounds.getY() + 1.0f + iy * 5.0f + 1.5f;
-
-            float dx = px - mousePos.x;
-            float dy = py - mousePos.y;
-            float dist = std::sqrt(dx * dx + dy * dy);
-
-            if (dist < mouseFadeRadius) {
-                float mouseAlpha = 0.0f;
-                mouseAlpha = (1.0f - dist / mouseFadeRadius) * mouseFadeDepth;
-                mouseAlpha = -mouseAlpha;
-
-                alpha = juce::jlimit(0.0f, 1.0f, alpha + mouseAlpha);
-            }
-
-            juce::Rectangle<float> pixel(bounds.getX() + 1.0f + ix * 5.0f,
-                bounds.getY() + 1.0f + iy * 5.0f,
-                3.0f, 3.0f);
-
-            if (alpha > 0.5f) {
-                float scaled = (alpha - 0.5f) * 2.0f * 15.0f;
-                if (mapValue <= (int)(scaled + 0.5f))
-                    g.setColour(highlightColor);
-                else
-                    g.setColour(backgroundColor);
-                g.fillRect(pixel);
-            }
-            else if (alpha > 0.0f) {
-                float scaled = alpha * 2.0f * 15.0f;
-                if (mapValue <= (int)(scaled + 0.5f)) {
-                    g.setColour(backgroundColor);
-                    g.fillRect(pixel);
-                }
-            }
-            
-        }
-        */
     }
 }
 
