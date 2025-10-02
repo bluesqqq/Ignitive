@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Globals.h"
 #include "PluginProcessor.h"
 #include "FilterCurve.h"
 #include "CustomLAFs.h"
@@ -17,39 +18,49 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
     private:
         IgnitiveAudioProcessor& audioProcessor;
 
+        bool showingEnvelope = true;
+
+        juce::TooltipWindow tooltipWindow{ this, Globals::tooltipDelay };
+
+        // =============== [ RESOURCES ] =============== //
+
         // Fonts
         juce::Font digitalFont;
         juce::Font uavosdFont;
 
-        // Look And Feels
+        // Images
+        juce::Image backgroundImage;
+
+        // =============== [ LOOK AND FEELS ] =============== //
         IgnitiveLAF ignitiveLAF{ uavosdFont, digitalFont };
 		SwitchLAF switchLAF;
         MixLAF mixLAF;
-
         BirdsEyeLAF birdsEyeLAF;
 
-        juce::Image backgroundImage;
+        // =============== [ HEADER ] =============== //
 
-		ModSourceGraph modSourceGraph;
+        juce::ImageButton saveButton;
+        juce::ImageButton randomizeButton;
+        juce::ImageButton settingsButton;
+        juce::ComboBox presetSelector;
+        juce::ToggleButton bypassButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment bypassAttach{ audioProcessor.parameters, Parameters::ID_BYPASS, bypassButton };
 
-        juce::Viewport modMatrixViewport;
-        ModMatrixComponent modMatrixComponent;
+        // =============== [ MAIN PANEL ] =============== //
+        
+        // Filter
+        juce::Slider lpCutoffKnob, lpResonanceKnob;
+        juce::Slider hpCutoffKnob, hpResonanceKnob;
 
-        LevelMeter inMeter;
-        LevelMeter outMeter;
+        juce::AudioProcessorValueTreeState::SliderAttachment lpCutoffAttach{ audioProcessor.parameters, Parameters::ID_LP_CUTOFF, lpCutoffKnob };
+        juce::AudioProcessorValueTreeState::SliderAttachment lpResonanceAttach{ audioProcessor.parameters, Parameters::ID_LP_RESONANCE, lpResonanceKnob };
+        juce::AudioProcessorValueTreeState::SliderAttachment hpCutoffAttach{ audioProcessor.parameters, Parameters::ID_HP_CUTOFF, hpCutoffKnob };
+        juce::AudioProcessorValueTreeState::SliderAttachment hpResonanceAttach{ audioProcessor.parameters, Parameters::ID_HP_RESONANCE, hpResonanceKnob };
 
-        // Gain
-        juce::Slider inGainSlider, mixSlider, outGainSlider;
-        juce::AudioProcessorValueTreeState::SliderAttachment inGainAttach{ audioProcessor.parameters, Parameters::ID_IN_GAIN, inGainSlider };
-        juce::AudioProcessorValueTreeState::SliderAttachment mixAttach{ audioProcessor.parameters, Parameters::ID_MIX, mixSlider };
-        juce::AudioProcessorValueTreeState::SliderAttachment outGainAttach{ audioProcessor.parameters, Parameters::ID_OUT_GAIN, outGainSlider };
+        FilterCurve filterCurve;
 
-        juce::ToggleButton limiterButton;
-        juce::AudioProcessorValueTreeState::ButtonAttachment limiterAttach{ audioProcessor.parameters, Parameters::ID_LIMITER, limiterButton };
-
-		// Distortion
-		DriveKnob driveKnob{ audioProcessor, Parameters::ID_DRIVE };
-
+        // Distortion
+        DriveKnob driveKnob{ audioProcessor, Parameters::ID_DRIVE };
         juce::ComboBox distortionTypeSelector;
 
         juce::Slider characterSlider;
@@ -59,74 +70,49 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> characterTypeAttach;
 
         SwitchButton characterPolarityButton;
-		SwitchButtonAttachment characterPolarityAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER_POLARITY, characterPolarityButton };
-
-        juce::ToggleButton oversampleButton;
-        juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
+        SwitchButtonAttachment characterPolarityAttach{ audioProcessor.parameters, Parameters::ID_CHARACTER_POLARITY, characterPolarityButton };
 
         // Feedback
         juce::Slider feedbackSlider, feedbackDelaySlider;
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK, feedbackSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment feedbackDelayAttach{ audioProcessor.parameters, Parameters::ID_FEEDBACK_DELAY, feedbackDelaySlider };
 
-        // Filter
-        juce::Slider lpCutoffKnob, lpResonanceKnob;
-        juce::Slider hpCutoffKnob, hpResonanceKnob;
+        // =============== [ GAIN PANEL ] =============== //
+        
+        // Gain
+        juce::Slider inGainSlider, mixSlider, outGainSlider;
+        juce::AudioProcessorValueTreeState::SliderAttachment inGainAttach{ audioProcessor.parameters, Parameters::ID_IN_GAIN, inGainSlider };
+        juce::AudioProcessorValueTreeState::SliderAttachment mixAttach{ audioProcessor.parameters, Parameters::ID_MIX, mixSlider };
+        juce::AudioProcessorValueTreeState::SliderAttachment outGainAttach{ audioProcessor.parameters, Parameters::ID_OUT_GAIN, outGainSlider };
+        LevelMeter inMeter, outMeter;
 
-        juce::AudioProcessorValueTreeState::SliderAttachment lpCutoffAttach{ audioProcessor.parameters, Parameters::ID_LP_CUTOFF, lpCutoffKnob};
-        juce::AudioProcessorValueTreeState::SliderAttachment lpResonanceAttach{ audioProcessor.parameters, Parameters::ID_LP_RESONANCE, lpResonanceKnob };
-        juce::AudioProcessorValueTreeState::SliderAttachment hpCutoffAttach{ audioProcessor.parameters, Parameters::ID_HP_CUTOFF, hpCutoffKnob };
-        juce::AudioProcessorValueTreeState::SliderAttachment hpResonanceAttach{ audioProcessor.parameters, Parameters::ID_HP_RESONANCE, hpResonanceKnob };
+        juce::ToggleButton limiterButton, oversampleButton;
+        juce::AudioProcessorValueTreeState::ButtonAttachment limiterAttach{ audioProcessor.parameters, Parameters::ID_LIMITER, limiterButton };
+        juce::AudioProcessorValueTreeState::ButtonAttachment oversampleAttach{ audioProcessor.parameters, Parameters::ID_OVERSAMPLE, oversampleButton };
 
-		FilterCurve filterCurve;
+        // =============== [ MODULATION PANEL ] =============== //
 
-        // Envelope + LFO
+        // Mod Matrix
+        juce::Viewport modMatrixViewport;
+        ModMatrixComponent modMatrixComponent;
+
+        // Mod Source
+        ModSourceGraph modSourceGraph;
+        ParametersDisplay paramsDisplay;
+
+        juce::ToggleButton envLFOToggleButton{ "Envelope / LFO" };
+
+        // Envelope
         juce::Slider attackSlider, decaySlider, gateSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment attackAttach{ audioProcessor.parameters, Parameters::ID_ENV_ATTACK, attackSlider };
         juce::AudioProcessorValueTreeState::SliderAttachment decayAttach{ audioProcessor.parameters, Parameters::ID_ENV_DECAY, decaySlider };
         juce::AudioProcessorValueTreeState::SliderAttachment gateAttach{ audioProcessor.parameters, Parameters::ID_ENV_GATE, gateSlider };
 
-        juce::ToggleButton envLFOToggleButton{ "Envelope / LFO" };
-
+        // LFO
         juce::Slider lfoSpeedSlider;
         juce::AudioProcessorValueTreeState::SliderAttachment lfoSpeedAttach{ audioProcessor.parameters, Parameters::ID_LFO_SPEED, lfoSpeedSlider };
 
-        juce::ToggleButton bypassButton;
-        juce::AudioProcessorValueTreeState::ButtonAttachment bypassAttach{ audioProcessor.parameters, Parameters::ID_BYPASS, bypassButton };
-
-        bool showingEnvelope = true;
-
-        // Bounds
-        float modParamNamesFontSize = 14.0f;
-        juce::Rectangle<float> modParamNamesBox{ 15.0f, 760.0f, 205.0f, 25.0f };
-
-        juce::StringArray modParamNames{"---", "---", "---"};
-
-        juce::StringArray modParamNamesEnvelope{ "Attack", "Decay", "Gate" };
-        juce::StringArray modParamNamesLFO{ "Speed", "---", "---" };
-
-        ParametersDisplay paramsDisplay;
-
-        juce::ImageButton saveButton;
-
-        juce::ImageButton randomizeButton;
-
-        juce::ImageButton settingsButton;
-
-        juce::ComboBox presetSelector;
-
-        void parameterChanged(const juce::String& parameterID, float newValue) {
-            if (parameterID == Parameters::ID_DISTORTION_TYPE) {
-                auto* distTypeParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE));
-
-                if (distTypeParameter != nullptr) {
-                    int index = distTypeParameter->getIndex();
-                    juce::MessageManager::callAsync([this, index]() { distortionTypeSelector.setSelectedId(index + 1, juce::dontSendNotification); });
-                }
-            }
-        }
-
-        juce::TooltipWindow tooltipWindow{ this, 700 };
+		void parameterChanged(const juce::String& parameterID, float newValue) override;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IgnitiveAudioProcessorEditor)
 
@@ -139,6 +125,4 @@ class IgnitiveAudioProcessorEditor  : public juce::AudioProcessorEditor, private
         void timerCallback() override;
 
         void resized() override;
-
-
 };

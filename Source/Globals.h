@@ -78,6 +78,8 @@ namespace Globals {
     constexpr float dimAmount = 0.9f;
 
     // ============== Tooltips =============== //
+	constexpr int tooltipDelay = 700; // milliseconds
+
     inline constexpr const char* tooltipLowpassCutoff = "Lowpass filter cutoff frequency";
     inline constexpr const char* tooltipLowpassResonance = "Lowpass filter resonance";
     inline constexpr const char* tooltipHighpassCutoff = "Highpass filter cutoff frequency";

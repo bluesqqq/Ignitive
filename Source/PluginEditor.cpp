@@ -2,6 +2,17 @@
 #include "PluginEditor.h"
 #include "Globals.h"
 
+void IgnitiveAudioProcessorEditor::parameterChanged(const juce::String& parameterID, float newValue) {
+    if (parameterID == Parameters::ID_DISTORTION_TYPE) {
+        auto* distTypeParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE));
+
+        if (distTypeParameter != nullptr) {
+            int index = distTypeParameter->getIndex();
+            juce::MessageManager::callAsync([this, index]() { distortionTypeSelector.setSelectedId(index + 1, juce::dontSendNotification); });
+        }
+    }
+}
+
 IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcessor& p)
     : AudioProcessorEditor(&p), 
       audioProcessor(p), 
@@ -13,14 +24,13 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
       inMeter(p.ignitive.inGain), outMeter(p.ignitive.outGain),
       paramsDisplay(digitalFont),
       characterPolarityButton("Character Polarity", digitalFont) {
-
-    // START
     startTimerHz(Globals::frameRate);
     setSize (Globals::windowWidth, Globals::windowHeight);
 
 	backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Ignitive_png, BinaryData::Ignitive_pngSize);
 
-	// Helpful in keeping the length of this constructor down
+    // =============== [ HELPERS ] =============== //
+
     auto setupRotarySlider = [this](juce::Slider& slider, juce::LookAndFeel* laf, const char* tooltip) {
         slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
         slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -37,41 +47,65 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         addAndMakeVisible(button);
     };
 
-    setupButton(bypassButton, &ignitiveLAF, "BYPASS", Globals::tooltipBypass);
-    setupButton(oversampleButton, &ignitiveLAF, "OVERSAMPLE", Globals::tooltipOversample);
-    setupButton(limiterButton, &ignitiveLAF, "LIMITER", Globals::tooltipLimiter);
+    auto setupImageButton = [this](juce::ImageButton& button, juce::LookAndFeel* laf, const void* imageData, size_t imageSize, const char* tooltip, std::function<void()> onClick) {
+        button.setLookAndFeel(laf);
+        auto icon = juce::ImageCache::getFromMemory(imageData, imageSize);
+        button.setImages(true, true, true, icon, 1.0f, juce::Colours::black, icon, 1.0f, juce::Colours::black, icon, 1.0f, juce::Colours::black);
+        button.setTooltip(tooltip);
+        button.onClick = std::move(onClick);
+        addAndMakeVisible(button);
+    };
 
-    // ==============// Filter //==============//
+    // =============== [ HEADER ] =============== //
+
+    // Randomize
+    setupImageButton(randomizeButton, &ignitiveLAF, BinaryData::random_icon_png, BinaryData::random_icon_pngSize, Globals::tooltipRandomize, [this]() {
+        audioProcessor.randomize();
+        modMatrixComponent.rebuildSlots();
+    });
+
+    // Save
+    setupImageButton(saveButton, &ignitiveLAF, BinaryData::save_icon_png, BinaryData::save_icon_pngSize, Globals::tooltipSavePreset, [this]() {
+        audioProcessor.savePreset();
+    });
+
+    // Preset Selector
+    presetSelector.setLookAndFeel(&ignitiveLAF);
+    presetSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
+    presetSelector.setTooltip("Select preset");
+    addAndMakeVisible(presetSelector);
+    presetSelector.onChange = [this]() {
+        int selectedID = presetSelector.getSelectedId();
+        if (selectedID > 0 && selectedID <= audioProcessor.presets.size()) {
+            if (audioProcessor.loadPreset(selectedID - 1)) {
+                modMatrixComponent.rebuildSlots();
+            }
+        }
+    };
+    int itemID = 1;
+    for (auto& preset : audioProcessor.presets) {
+        presetSelector.addItem(preset->getName(), itemID++);
+    }
+    presetSelector.setText(audioProcessor.currentPresetName, false);
+
+    // Bypass
+    setupButton(bypassButton, &ignitiveLAF, "BYPASS", Globals::tooltipBypass);
+
+    // Settings
+    setupImageButton(settingsButton, &ignitiveLAF, BinaryData::settings_icon_png, BinaryData::settings_icon_pngSize, Globals::tooltipSettings, [this]() {
+        // TODO: open settings menu
+    });
+
+    // =============== [ MAIN PANEL ] =============== //
+    
+    // Filter
     setupRotarySlider(lpCutoffKnob, &ignitiveLAF, Globals::tooltipLowpassCutoff);
     setupRotarySlider(lpResonanceKnob, &ignitiveLAF, Globals::tooltipLowpassResonance);
     setupRotarySlider(hpCutoffKnob, &ignitiveLAF, Globals::tooltipHighpassCutoff);
     setupRotarySlider(hpResonanceKnob, &ignitiveLAF, Globals::tooltipHighpassResonance);
     addAndMakeVisible(filterCurve);
 
-    // ==============// MOD MATRIX //==============//
-    addAndMakeVisible(modMatrixComponent);
-
-    modMatrixViewport.setScrollBarThickness(10);
-    modMatrixViewport.setLookAndFeel(&ignitiveLAF);
-    modMatrixViewport.setViewedComponent(&modMatrixComponent, false);
-    addAndMakeVisible(modMatrixViewport);
-
-	// ==============// GAIN //==============//
-    setupRotarySlider(inGainSlider, &ignitiveLAF, Globals::tooltipInGain);
-
-    mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
-    mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    mixSlider.setLookAndFeel(&mixLAF);
-    mixSlider.setTooltip(Globals::tooltipMix);
-    addAndMakeVisible(mixSlider);
-
-    setupRotarySlider(outGainSlider, &ignitiveLAF, Globals::tooltipOutGain);
-    addAndMakeVisible(outMeter);
-
-
-    // ==============// DISTORTION //==============//
-
-    // Drive
+    // Distortion
     addAndMakeVisible(driveKnob);
 
     auto distortionMenu = distortionTypeSelector.getRootMenu();
@@ -80,17 +114,16 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     auto* distTypeParameter = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.parameters.getParameter(Parameters::ID_DISTORTION_TYPE));
     distortionTypeSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
     distortionTypeSelector.setLookAndFeel(&ignitiveLAF);
-	distortionTypeSelector.setTooltip(Globals::tooltipDistortionType);
+    distortionTypeSelector.setTooltip(Globals::tooltipDistortionType);
     addAndMakeVisible(distortionTypeSelector);
-
     /* I'm not using a ComboBoxAttachment here because when connected to a ComboBox, it
     *  updates to the item's index (in order that the menu appears), instead of the ID of
     * the selected item.
-    * 
+    *
     * Since I'm reordering the distortion algorithms into submenus (see DistortionProcessor::makeDistortionAlgosMenu())
     * I can't guarantee the indexes will line up. Instead, I'm just using the item's ID as
     * the index + 1 (since PopupMenus are 1-indexed in JUCE).
-    * 
+    *
     * I could have used custom unique ID's for each distortion algorithm, but indexing seemed simpler.
     */
     distortionTypeSelector.onChange = [this, distTypeParameter] {
@@ -99,11 +132,10 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         if (selectedID >= 0 && selectedID < DistortionProcessor::getNumAlgorithms()) {
             distTypeParameter->operator=(index);
         }
-	};
-
+    };
     audioProcessor.parameters.addParameterListener(Parameters::ID_DISTORTION_TYPE, this);
-	distortionTypeSelector.setSelectedId(distTypeParameter->getIndex() + 1, juce::dontSendNotification);
-    
+    distortionTypeSelector.setSelectedId(distTypeParameter->getIndex() + 1, juce::dontSendNotification);
+
     // Character 
     setupRotarySlider(characterSlider, &birdsEyeLAF, Globals::tooltipDistortionCharacter);
 
@@ -116,25 +148,58 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     characterTypeAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.parameters, Parameters::ID_CHARACTER_TYPE, characterTypeSelector));
 
     characterTypeSelector.onChange = [this] {
-		characterPolarityButton.setVisible(DistortionProcessor::CharacterHasPolarity(characterTypeSelector.getSelectedItemIndex()));
+        characterPolarityButton.setVisible(DistortionProcessor::CharacterHasPolarity(characterTypeSelector.getSelectedItemIndex()));
     };
 
-	characterPolarityButton.setTooltip(Globals::tooltipDistortionCharPol);
+    characterPolarityButton.setTooltip(Globals::tooltipDistortionCharPol);
     addAndMakeVisible(characterPolarityButton);
 
-    // ==============// Feedback //==============//
+    // Feedback
     setupRotarySlider(feedbackSlider, &ignitiveLAF, Globals::tooltipFeedback);
     setupRotarySlider(feedbackDelaySlider, &ignitiveLAF, Globals::tooltipFeedbackDelay);
 
-    // ==============// ENV + LFO //==============//
-    addAndMakeVisible(paramsDisplay);
+    // =============== [ GAIN PANEL ] =============== //
+
+    // Gain
+    setupRotarySlider(inGainSlider, &ignitiveLAF, Globals::tooltipInGain);
+    addAndMakeVisible(inMeter);
+    setupRotarySlider(outGainSlider, &ignitiveLAF, Globals::tooltipOutGain);
+    addAndMakeVisible(outMeter);
+
+	// Oversample & Limiter
+    setupButton(oversampleButton, &ignitiveLAF, "OVERSAMPLE", Globals::tooltipOversample);
+    setupButton(limiterButton, &ignitiveLAF, "LIMITER", Globals::tooltipLimiter);
+
+    // Mix
+    mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    mixSlider.setLookAndFeel(&mixLAF);
+    mixSlider.setTooltip(Globals::tooltipMix);
+    addAndMakeVisible(mixSlider);
+
+    // =============== [ MODULATION PANEL ] =============== //
+
+    addAndMakeVisible(modMatrixComponent); // This needs to come before viewport or else glitches happen
+    modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
+
+    modMatrixViewport.setScrollBarThickness(10);
+    modMatrixViewport.setLookAndFeel(&ignitiveLAF);
+    modMatrixViewport.setViewedComponent(&modMatrixComponent, false);
+    addAndMakeVisible(modMatrixViewport);
+
+    // Envelope
     setupRotarySlider(attackSlider, &ignitiveLAF, Globals::tooltipEnvAttack);
     setupRotarySlider(decaySlider, &ignitiveLAF, Globals::tooltipEnvDecay);
     setupRotarySlider(gateSlider, &ignitiveLAF, Globals::tooltipEnvGate);
+	attackSlider.setVisible(showingEnvelope);
+	decaySlider.setVisible(showingEnvelope);
+	gateSlider.setVisible(showingEnvelope);
+
+    // LFO
     setupRotarySlider(lfoSpeedSlider, &ignitiveLAF, Globals::tooltipLfoSpeed);
+	lfoSpeedSlider.setVisible(!showingEnvelope);
 
-    lfoSpeedSlider.setVisible(false);
-
+	// Env / LFO Toggle
     envLFOToggleButton.onClick = [this] {
         showingEnvelope = !envLFOToggleButton.getToggleState();
 
@@ -155,63 +220,13 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
 	envLFOToggleButton.setLookAndFeel(&switchLAF);
     addAndMakeVisible(envLFOToggleButton);
 
-    modMatrixComponent.setSourceIDFilter(Parameters::ID_ENV);
-
-    modSourceGraph.setSource(showingEnvelope
-        ? static_cast<ModSource*>(&audioProcessor.ignitive.envelope)
-        : static_cast<ModSource*>(&audioProcessor.ignitive.lfo));
-	paramsDisplay.setInterface(static_cast<ParametersDisplayInterface*>(&audioProcessor.ignitive.envelope));
+    // Mod Source
+    modSourceGraph.setSource(showingEnvelope ? static_cast<ModSource*>(&audioProcessor.ignitive.envelope) : static_cast<ModSource*>(&audioProcessor.ignitive.lfo));
 	addAndMakeVisible(modSourceGraph);
 
-    randomizeButton.setLookAndFeel(&ignitiveLAF);
-    auto randomizeIcon = juce::ImageCache::getFromMemory(BinaryData::random_icon_png, BinaryData::random_icon_pngSize);
-    randomizeButton.setImages(true, true, true, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black, randomizeIcon, 1.0f, juce::Colours::black);
-    randomizeButton.onClick = [this]() {
-        audioProcessor.randomize();
-        modMatrixComponent.rebuildSlots();
-    };
-    randomizeButton.setTooltip(Globals::tooltipRandomize);
-    addAndMakeVisible(randomizeButton);
-    randomizeButton.setBounds(Globals::randomizeButtonBounds);
-
-
-    // TODO: this needs to bring up a settings menu
-    settingsButton.setLookAndFeel(&ignitiveLAF);
-    auto settingsIcon = juce::ImageCache::getFromMemory(BinaryData::settings_icon_png, BinaryData::settings_icon_pngSize);
-    settingsButton.setImages(true, true, true, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black, settingsIcon, 1.0f, juce::Colours::black);
-    settingsButton.setTooltip(Globals::tooltipSettings);
-    addAndMakeVisible(settingsButton);
-    settingsButton.setBounds(Globals::settingsButtonBounds);
-
-    // ==============// PRESETS //==============//
-    saveButton.setLookAndFeel(&ignitiveLAF);
-    auto saveIcon = juce::ImageCache::getFromMemory(BinaryData::save_icon_png, BinaryData::save_icon_pngSize);
-    saveButton.setImages(true, true, true, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black, saveIcon, 1.0f, juce::Colours::black);
-    saveButton.onClick = [this]() { audioProcessor.savePreset(); };
-    saveButton.setTooltip(Globals::tooltipSavePreset);
-    addAndMakeVisible(saveButton);
-    saveButton.setBounds(Globals::saveButtonBounds);
-
-    presetSelector.setLookAndFeel(&ignitiveLAF);
-    presetSelector.setColour(juce::ComboBox::textColourId, juce::Colours::transparentBlack);
-    presetSelector.setTooltip("Select preset");
-    addAndMakeVisible(presetSelector);
-
-    presetSelector.onChange = [this]() {
-        int selectedID = presetSelector.getSelectedId();
-        if (selectedID > 0 && selectedID <= audioProcessor.presets.size()) {
-            if (audioProcessor.loadPreset(selectedID - 1)) {
-                modMatrixComponent.rebuildSlots();
-            }
-        }
-    };
-
-    int itemID = 1;
-    for (auto& preset : audioProcessor.presets) {
-        presetSelector.addItem(preset->getName(), itemID++);
-    }
-
-    presetSelector.setText(audioProcessor.currentPresetName, false);
+    // Parameters Display
+    addAndMakeVisible(paramsDisplay);
+    paramsDisplay.setInterface(static_cast<ParametersDisplayInterface*>(&audioProcessor.ignitive.envelope));
 
     attackSlider.onDragStart = [this] { paramsDisplay.showValue(0); };
     decaySlider.onDragStart  = [this] { paramsDisplay.showValue(1); };
@@ -253,8 +268,7 @@ void IgnitiveAudioProcessorEditor::timerCallback() {
     envLFOToggleButton.repaint();
 }
 
-void IgnitiveAudioProcessorEditor::resized()
-{
+void IgnitiveAudioProcessorEditor::resized() {
     randomizeButton.setBounds(Globals::randomizeButtonBounds);
     saveButton.setBounds(Globals::saveButtonBounds);
     presetSelector.setBounds(Globals::presetSelectorBounds);
