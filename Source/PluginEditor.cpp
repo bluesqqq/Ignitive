@@ -63,11 +63,13 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
         audioProcessor.randomize();
         modMatrixComponent.rebuildSlots();
     });
+    randomizeButton.setBounds(Globals::randomizeButtonBounds); // Something about the image button messes with the bouds
 
     // Save
     setupImageButton(saveButton, &ignitiveLAF, BinaryData::save_icon_png, BinaryData::save_icon_pngSize, Globals::tooltipSavePreset, [this]() {
         audioProcessor.savePreset();
     });
+    saveButton.setBounds(Globals::saveButtonBounds);
 
     // Preset Selector
     presetSelector.setLookAndFeel(&ignitiveLAF);
@@ -95,6 +97,7 @@ IgnitiveAudioProcessorEditor::IgnitiveAudioProcessorEditor(IgnitiveAudioProcesso
     setupImageButton(settingsButton, &ignitiveLAF, BinaryData::settings_icon_png, BinaryData::settings_icon_pngSize, Globals::tooltipSettings, [this]() {
         // TODO: open settings menu
     });
+    settingsButton.setBounds(Globals::settingsButtonBounds);
 
     // =============== [ MAIN PANEL ] =============== //
     
@@ -251,10 +254,10 @@ void IgnitiveAudioProcessorEditor::paint (juce::Graphics& g) {
     g.setFont(uavosdFont.withHeight(12.0f));
 	g.setColour(juce::Colours::black);
 
-    juce::Rectangle<float> lfoTextBounds = { 237 - 15, 640 + 40, 20 + 25, 25 };
+    juce::Rectangle<float> lfoTextBounds = { 237 - 15, 640 + 40 + 1, 20 + 30, 20 };
     g.drawText("LFO", lfoTextBounds, juce::Justification::centred);
 
-    juce::Rectangle<float> envTextBounds = { 237 - 15, 640 - 30, 20 + 25, 25 };
+    juce::Rectangle<float> envTextBounds = { 237 - 15, 640 - 20 + 1, 20 + 30, 20 };
     g.drawText("ENV", envTextBounds, juce::Justification::centred);
 }
 

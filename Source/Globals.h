@@ -5,7 +5,6 @@
 /*
 	A big collection of all the global constants I use in the plugin.
 */
-
 namespace Globals {
 	constexpr int pixelSize = 5;
 	constexpr int frameRate = 60;

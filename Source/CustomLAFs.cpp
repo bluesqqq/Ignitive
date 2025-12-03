@@ -1,7 +1,9 @@
 #include "CustomLafs.h"
 #include "Globals.h"
 
-DriveLAF::DriveLAF(DistortionProcessor& dist) : distortion(dist) {}
+DriveLAF::DriveLAF(DistortionProcessor& dist) : distortion(dist), waveshape{} {
+    updateWaveshape();
+}
 
 void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) {
     float angle = juce::jmap(sliderPos, rotaryStartAngle, rotaryEndAngle);
@@ -38,53 +40,85 @@ void DriveLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int 
         }
     }
 
-    // Waveshape
-    std::vector<float> waveshape = distortion.getWaveshape(128);
+    updateWaveshape();
 
-    // Find max absolute value
+    juce::Rectangle<float> bounds = slider.getLocalBounds().toFloat();
+    bounds.reduce(bounds.getWidth() * 0.2, bounds.getHeight() * 0.2);
+    drawWaveshapePlot(g, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+}
+
+void DriveLAF::updateWaveshape() {
+    std::vector<float> newWaveshape = distortion.getWaveshape(waveshape.size());
+
+    for (size_t i = 0; i < waveshape.size(); i++)
+        waveshape[i] = juce::jmap(0.3f, waveshape[i], newWaveshape[i]);
+}
+
+void DriveLAF::drawWaveshapePlot(juce::Graphics& g, int x, int y, int width, int height) {
+    // Compute geometry
+    float halfHeight = y + height * 0.5f;
+    float segment = (float)width / (float)waveshape.size();
+
+    // Find max absolute value for scaling
     float maxVal = 1.0f;
-    for (auto v : waveshape)
-        maxVal = std::max(maxVal, std::fabs(v));
 
-    juce::Path path;
+    for (float v : waveshape)
+        maxVal = std::max(maxVal, std::abs(v));
 
-    float border = 20;
-    float reducedWidth = width - border * 2;
-    reducedWidth = std::sin(juce::MathConstants<float>::halfPi / 2) * reducedWidth;
-
-    float segmentWidth = reducedWidth / (float)waveshape.size();
-    float start = (width - reducedWidth) / 2;
-    float halfHeight = height / 2;
-
-    // Reference line (-1,-1) -> (1,1)
-    juce::Path refLine;
-    float refX0 = start;                      // corresponds to -1
-    float refX1 = start + reducedWidth;       // corresponds to +1
-    float refY0 = halfHeight + (1.0f / maxVal) * (reducedWidth * 0.5f);  // -1 (bottom)
-    float refY1 = halfHeight - (1.0f / maxVal) * (reducedWidth * 0.5f);  // +1 (top)
-
-    refLine.startNewSubPath(refX0, refY0);
-    refLine.lineTo(refX1, refY1);
-
-    refLine.startNewSubPath(start + reducedWidth / 2.0f, start);
-    refLine.lineTo(start + reducedWidth / 2.0f, start + reducedWidth);
+    float ampScale = (width * 0.5f) / maxVal;
 
     g.setColour(juce::Colours::darkgrey);
-    g.strokePath(refLine, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    juce::Path ellipse;
+    ellipse.addEllipse(x, y, width, height);
+    g.strokePath(ellipse, juce::PathStrokeType(2.0f));
 
-    // Waveshape path
+    // Reference line
+    float cx = x + width * 0.5f;
+    float cy = y + height * 0.5f;
+    float r = width * 0.5f;     
+
+    float dx = width;
+    float dy = -2.0f * ampScale;
+    float len = std::sqrt(dx * dx + dy * dy);
+
+    dx /= len; dy /= len;
+
+    // endpoints touching circle
+    g.drawLine(cx - dx * r, cy - dy * r,
+        cx + dx * r, cy + dy * r, 2.0f);
+
+    // vertical + horizontal dashed lines
+    juce::Path vertical;
+    juce::Path dashedVertical;
+
+    juce::Path horizontal;
+    juce::Path dashedHorizontal;
+
+    float dashes[] = { 4.0f, 4.0f };
+    juce::PathStrokeType stroke(1.0f);
+
+    vertical.startNewSubPath(x + width * 0.5f, y);
+    vertical.lineTo(x + width * 0.5f, y + height);
+    horizontal.startNewSubPath(x, y + height * 0.5f);
+    horizontal.lineTo(x + width, y + height * 0.5f);
+
+    stroke.createDashedStroke(dashedVertical, vertical, dashes, 2);
+    stroke.createDashedStroke(dashedHorizontal, horizontal, dashes, 2);
+
+    g.strokePath(dashedVertical, juce::PathStrokeType(1.0f));
+    g.strokePath(dashedHorizontal, juce::PathStrokeType(1.0f));
+
+    // Draw waveshape
+    juce::Path wave;
     for (int i = 0; i < waveshape.size(); ++i) {
-        float x = start + i * segmentWidth;
-
-        // scale by maxVal instead of assuming -1..1
-        float y = halfHeight - (waveshape[i] / maxVal) * (reducedWidth * 0.5f);
-
-        if (i == 0) path.startNewSubPath(x, y);
-        else        path.lineTo(x, y);
+        float px = x + i * segment;
+        float py = halfHeight - waveshape[i] * ampScale;
+        if (i == 0) wave.startNewSubPath(px, py);
+        else        wave.lineTo(px, py);
     }
 
     g.setColour(color);
-    g.strokePath(path, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    g.strokePath(wave, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 }
 
 void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle sliderStyle, juce::Slider& slider) {
@@ -127,8 +161,7 @@ void ModSlotLAF::drawLinearSlider(juce::Graphics& g, int x, int y, int width, in
 
         if (value <= slider.getValue()) {
             g.setColour(juce::Colours::yellow);
-        }
-        else {
+        } else {
             g.setColour(juce::Colour::fromRGB(127, 127, 0));
         }
         g.fillRect(segment);
@@ -191,7 +224,7 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
         float distance = pupilLookTarget.getDistanceFromOrigin();
         float maxOffset = 9.0f;
         if (distance > maxOffset) pupilLookTarget *= (maxOffset / distance);
-    } else {
+    } else { // Looking forward
         pupilLookTarget.setXY(0.0f, 0.0f);
     }
 
@@ -232,7 +265,6 @@ void BirdsEyeLAF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
 
     g.setColour(Globals::distortionColor);
     g.fillEllipse(pupilBounds);
-
 }
 
 constexpr int ditherMap[4][4] = {

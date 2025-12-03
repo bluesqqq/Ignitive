@@ -38,10 +38,13 @@ class DriveLAF : public juce::LookAndFeel_V4 {
     private:
         DistortionProcessor& distortion;
 		juce::Colour color = Globals::distortionColor;
+        std::array<float, 128> waveshape;
 
     public:
         DriveLAF(DistortionProcessor& engine);
         void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider);
+        void updateWaveshape();
+        void drawWaveshapePlot(juce::Graphics& g, int x, int y, int width, int height);
 };
 
 class ModSlotLAF : public juce::LookAndFeel_V4 {
@@ -68,13 +71,14 @@ class BirdsEyeLAF : public juce::LookAndFeel_V4 {
         juce::Point<float> pupilLook;
         juce::Point<float> pupilLookTarget;
 
-        int pupilTrackState;
+        int pupilTrackState = 0;
         DistortionProcessor& distortion;
 
     public:
         BirdsEyeLAF(DistortionProcessor& distortion) : distortion(distortion) {
             pupilLook.setXY(0.0f, 0.0f);
             pupilLookTarget.setXY(0.0f, 0.0f);
+            lastFrameTime = juce::Time::getMillisecondCounter() * 0.001f;
         }
 
         void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider);
